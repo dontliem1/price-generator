@@ -40,6 +40,7 @@
         }
         ul {
             list-style: none;
+            margin: 0;
             padding: 0;
         }
         li {
@@ -74,25 +75,53 @@
     <div class="page">
         <form class="price">
             <section class="group">
-            <h2 data-prop="legend" contenteditable="true">Брови</h2>
-            <ul>
-                <li>
-                    <h3 contenteditable="true">Архитектура бровей</h3>
-                    <span contenteditable="true">моделирование + окрашивание краской/хной + коррекция</span>
-                    <div contenteditable="true">1100</div>
-                </li>
-                <li>
-                    <h3 contenteditable="true">Архитектура + долговременная укладка/ ламинирование бровей</h3>
-                    <div contenteditable="true">1700</div>
-                </li>
-                <li>
-                    <h3 contenteditable="true">Долго­временная укладка/ ламинирование бровей</h3>
-                    <div contenteditable="true">1000</div>
-                </li>
-            </ul>
+                <h2 contenteditable="true">Брови</h2>
+                <ul>
+                    <li>
+                        <h3 contenteditable="true">Архитектура бровей</h3>
+                        <span contenteditable="true">моделирование + окрашивание краской/хной + коррекция</span>
+                        <div contenteditable="true">1100</div>
+                    </li>
+                    <li>
+                        <h3 contenteditable="true">Архитектура + долговременная укладка/ ламинирование бровей</h3>
+                        <div contenteditable="true">1700</div>
+                    </li>
+                    <li>
+                        <h3 contenteditable="true">Долго­временная укладка/ ламинирование бровей</h3>
+                        <div contenteditable="true">1000</div>
+                    </li>
+                </ul>
             </section>
             <p class="subtitle" contenteditable="true">При одновременной записи на процедуры из разных категорий — скидка 100 рублей</p>
         </form>
     </div>
+    <button type="button" onclick="
+        let json = {};
+        const group = document.querySelector('.group');
+        const output = document.getElementById('json');
+
+        for (let child of group.children) {
+            if (child.tagName === 'UL') {
+                let rowsJson = [];
+                const rows = child.children;
+
+                for (const row of rows) {
+                    let rowJson = {};
+                    const rowElements = row.children;
+
+                    for (const rowElement of rowElements) {
+                        rowJson[rowElement.tagName] = rowElement.textContent;
+                    }
+                    rowsJson.push(rowJson);
+                }
+                json[child.tagName] = rowsJson;
+
+                continue;
+            }
+            json[child.tagName] = child.textContent;
+        }
+        output.value = JSON.stringify(json);
+    ">Выгрузить</button>
+    <output id="json"></output>
 </body>
 </html>
