@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор прайса</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .page {
+            aspect-ratio: 4/5;
+            background-color: #eee;
+            max-width: 1080px;
+            max-height: 1350px;
+        }
+        .price {
+            display: flex;
+            flex-direction: column;
+            padding: 10% 8% 16%;
+            box-sizing: border-box;
+        }
+        fieldset {
+            border: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            flex-shrink: 0;
+            margin: 0;
+        }
+        fieldset + fieldset {
+            margin-top: 5.5%;
+        }
+        legend {
+            padding: 0;
+            font-size: 100px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            align-items: end;
+            display: grid;
+            grid-auto-flow: dense;
+            grid-template-columns: 1fr auto;
+            font-size: min(5.5vw, 60px);
+            margin-top: 1em;
+        }
+        h2 {
+            font-size: inherit;
+            font-weight: inherit;
+            margin: 0;
+        }
+        span {
+            grid-column: 1/3;
+        }
+        .subtitle {
+            justify-self: flex-end;
+            margin-top: 1em;
+            margin-bottom: 0;
+        }
+        span, .subtitle {
+            font-size: min(4vw, 44px);
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <form class="price">
+            <fieldset>
+                <legend data-prop="legend" contenteditable="true">Брови</legend>
+                <ul>
+                    <li>
+                        <h2 contenteditable="true">Архитектура бровей</h2>
+                        <span contenteditable="true">моделирование + окрашивание краской/хной + коррекция</span>
+                        <div contenteditable="true">1100</div>
+                    </li>
+                    <li>
+                        <h2 contenteditable="true">Архитектура + долговременная укладка/ ламинирование бровей</h2>
+                        <div contenteditable="true">1700</div>
+                    </li>
+                    <li>
+                        <h2 contenteditable="true">Долго­временная укладка/ ламинирование бровей</h2>
+                        <div contenteditable="true">1000</div>
+                    </li>
+                </ul>
+            </fieldset>
+            <p class="subtitle" contenteditable="true">При одновременной записи на процедуры из разных категорий — скидка 100 рублей</p>
+        </form>
+    </div>
+</body>
+</html>
