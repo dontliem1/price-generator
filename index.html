@@ -3,180 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
     <title>Генератор прайса</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            margin: 0;
-            min-height: 100vh;
-        }
-        .page {
-            aspect-ratio: 4/5;
-            background-color: #eee;
-            max-width: 1080px;
-            max-height: 1350px;
-            overflow-y: hidden;
-        }
-        .price {
-            display: flex;
-            flex-direction: column;
-            padding: 10% 8% 16%;
-            box-sizing: border-box;
-            height: 100%;
-        }
-        .group {
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-        .group + .group {
-            margin-top: 5.5%;
-        }
-        h2 {
-            font-size: min(9vw, 100px);
-        }
-        ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-        li {
-            align-items: end;
-            display: grid;
-            grid-auto-flow: dense;
-            grid-template-columns: 1fr auto;
-            font-size: min(5.5vw, 60px);
-            margin-top: 1em;
-        }
-        ul:first-child li:first-child {
-            margin-top: 0;
-        }
-        h2, h3 {
-            font-weight: inherit;
-            margin: 0;
-        }
-        h3 {
-            font-size: inherit;
-        }
-        span {
-            grid-column: 1/3;
-        }
-        .subtitle {
-            justify-self: flex-end;
-            margin: auto 0 0;
-            padding-top: 1em;
-        }
-        span, .subtitle {
-            font-size: min(4vw, 44px);
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="page">
-        <form class="price">
-            <section class="group">
-                <h2 contenteditable="true">Брови</h2>
-                <ul>
-                    <li>
-                        <h3 contenteditable="true">Архитектура бровей</h3>
-                        <span contenteditable="true">моделирование + окрашивание краской/хной + коррекция</span>
-                        <div contenteditable="true">1100</div>
-                    </li>
-                    <li>
-                        <h3 contenteditable="true">Архитектура + долговременная укладка/ ламинирование бровей</h3>
-                        <div contenteditable="true">1700</div>
-                    </li>
-                    <li>
-                        <h3 contenteditable="true">Долго­временная укладка/ ламинирование бровей</h3>
-                        <div contenteditable="true">1000</div>
-                    </li>
-                </ul>
-            </section>
-            <p class="subtitle" contenteditable="true">При одновременной записи на процедуры из разных категорий — скидка 100 рублей</p>
-        </form>
+    <ol id="pages" class="pages"></ol>
+    <div class="settings">
+        <div>
+            <fieldset>
+                <legend>Добавить</legend>
+                <button type="button" id="title">Заголовок</button>
+                <button type="button" id="group">Группу</button>
+                <button type="button" id="subtitle">Подпись</button>
+            </fieldset>
+            <button type="button" id="export">Выгрузить</button>
+            <output id="json"></output>
+        </div>
     </div>
-    <fieldset>
-        <legend>Добавить</legend>
-        <button type="button" onclick="
-            const newGroup = document.createElement('section');
-            newGroup.classList.add('group');
-            newGroup.innerHTML = '<h2 contenteditable=\'true\'>Брови</h2><ul><li><h3 contenteditable=\'true\'>Архитектура бровей</h3><span contenteditable=\'true\'>моделирование + окрашивание краской/хной + коррекция</span><div contenteditable=\'true\'>1100</div></li></ul></section>';
-            const price = document.querySelector('.price');
-            const lastElem = document.querySelector('.subtitle');
-            price.insertBefore(newGroup, lastElem);
-        ">Группу</button>
-        <button type="button" onclick="
-            const existingSubtitle = document.querySelector('.subtitle');
-            if (existingSubtitle) {
-                existingSubtitle.focus();
-            } else {
-                const newSubtitle = document.createElement('p');
-                newSubtitle.classList.add('subtitle');
-                newSubtitle.setAttribute('contenteditable', true);
-                newSubtitle.innerText = 'Подпись страницы';
-                const price = document.querySelector('.price');
-                price.appendChild(newSubtitle);
-            }
-        ">Подпись</button>
-    </fieldset>
-    <button type="button" id="delete">Удалить</button>
-    <button type="button" onclick="
-        let json = {};
-        let groupsJson = [];
-        const groups = document.getElementsByClassName('group');
-        const output = document.getElementById('json');
+    <button type="button" id="delete" aria-label="Удалить" title="Удалить элемент" hidden>🗑</button>
 
-        for (let group of groups) {
-            let groupJson = {};
-
-            for (let child of group.children) {
-                if (child.tagName === 'UL') {
-                    let rowsJson = [];
-                    const rows = child.children;
-
-                    for (const row of rows) {
-                        let rowJson = {};
-                        const rowElements = row.children;
-
-                        for (const rowElement of rowElements) {
-                            rowJson[rowElement.tagName] = rowElement.textContent;
-                        }
-                        rowsJson.push(rowJson);
-                    }
-                    groupJson[child.tagName] = rowsJson;
-
-                    continue;
-                }
-                groupJson[child.tagName] = child.textContent;
-            }
-            groupsJson.push(groupJson);
-        }
-        const subtitle = document.querySelector('.subtitle');
-        json.groups = groupsJson;
-        json.subtitle = subtitle.textContent;
-        output.value = JSON.stringify(json);
-    ">Выгрузить</button>
-    <output id="json"></output>
-    <script>
-        let activeElement;
-        const form = document.querySelector('.price');
-
-        function handleInput(e) {
-            if (e.target.hasAttribute('contenteditable')) {
-                activeElement = e.target;
-            }
-        }
-
-        form.addEventListener('input', handleInput);
-        form.addEventListener('click', handleInput);
-
-        const deleteBtn = document.getElementById('delete');
-        deleteBtn.addEventListener('click', function handleDeleteClick() {
-            activeElement.remove();
-        })
-    </script>
+    <script src="js/import.js" type="module"></script>
+    <script src="js/create.js" type="module"></script>
+    <script src="js/main.js" type="module"></script>
 </body>
 </html>
