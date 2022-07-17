@@ -18,27 +18,25 @@
             background-color: #eee;
             max-width: 1080px;
             max-height: 1350px;
+            overflow-y: hidden;
         }
         .price {
             display: flex;
             flex-direction: column;
             padding: 10% 8% 16%;
             box-sizing: border-box;
+            height: 100%;
         }
-        fieldset {
-            border: 0;
+        .group {
             display: flex;
             flex-direction: column;
-            padding: 0;
             flex-shrink: 0;
-            margin: 0;
         }
-        fieldset + fieldset {
+        .group + .group {
             margin-top: 5.5%;
         }
-        legend {
-            padding: 0;
-            font-size: 100px;
+        h2 {
+            font-size: min(9vw, 100px);
         }
         ul {
             list-style: none;
@@ -52,18 +50,20 @@
             font-size: min(5.5vw, 60px);
             margin-top: 1em;
         }
-        h2 {
-            font-size: inherit;
+        h2, h3 {
             font-weight: inherit;
             margin: 0;
+        }
+        h3 {
+            font-size: inherit;
         }
         span {
             grid-column: 1/3;
         }
         .subtitle {
             justify-self: flex-end;
-            margin-top: 1em;
-            margin-bottom: 0;
+            margin: auto 0 0;
+            padding-top: 1em;
         }
         span, .subtitle {
             font-size: min(4vw, 44px);
@@ -73,24 +73,24 @@
 <body>
     <div class="page">
         <form class="price">
-            <fieldset>
-                <legend data-prop="legend" contenteditable="true">Брови</legend>
-                <ul>
-                    <li>
-                        <h2 contenteditable="true">Архитектура бровей</h2>
-                        <span contenteditable="true">моделирование + окрашивание краской/хной + коррекция</span>
-                        <div contenteditable="true">1100</div>
-                    </li>
-                    <li>
-                        <h2 contenteditable="true">Архитектура + долговременная укладка/ ламинирование бровей</h2>
-                        <div contenteditable="true">1700</div>
-                    </li>
-                    <li>
-                        <h2 contenteditable="true">Долго­временная укладка/ ламинирование бровей</h2>
-                        <div contenteditable="true">1000</div>
-                    </li>
-                </ul>
-            </fieldset>
+            <section class="group">
+            <h2 data-prop="legend" contenteditable="true">Брови</h2>
+            <ul>
+                <li>
+                    <h3 contenteditable="true">Архитектура бровей</h3>
+                    <span contenteditable="true">моделирование + окрашивание краской/хной + коррекция</span>
+                    <div contenteditable="true">1100</div>
+                </li>
+                <li>
+                    <h3 contenteditable="true">Архитектура + долговременная укладка/ ламинирование бровей</h3>
+                    <div contenteditable="true">1700</div>
+                </li>
+                <li>
+                    <h3 contenteditable="true">Долго­временная укладка/ ламинирование бровей</h3>
+                    <div contenteditable="true">1000</div>
+                </li>
+            </ul>
+            </section>
             <p class="subtitle" contenteditable="true">При одновременной записи на процедуры из разных категорий — скидка 100 рублей</p>
         </form>
     </div>
