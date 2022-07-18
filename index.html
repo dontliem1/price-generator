@@ -9,22 +9,39 @@
 </head>
 <body>
     <ol id="pages" class="pages"></ol>
-    <div class="settings">
-        <div>
-            <fieldset>
-                <legend>Добавить</legend>
-                <button type="button" id="title">Заголовок</button>
-                <button type="button" id="group">Группу</button>
-                <button type="button" id="subtitle">Подпись</button>
-            </fieldset>
-            <button type="button" id="export">Выгрузить</button>
-            <output id="json"></output>
-        </div>
-    </div>
-    <button type="button" id="delete" aria-label="Удалить" title="Удалить элемент" hidden>🗑</button>
+    <form class="settings">
+        <fieldset>
+            <legend>Добавить</legend>
+            <button type="button" id="page">Страницу</button>
+            <button type="button" id="title">Заголовок</button>
+            <button type="button" id="group">Группу</button>
+            <button type="button" id="service">Услугу</button>
+            <button type="button" id="subtitle">Подпись</button>
+        </fieldset>
+        <fieldset>
+            <legend>Цвета</legend>
+            <label>Текст <input type="color" name="color"></label>
+            <label>Фон <input type="color" name="backgroundColor"></label>
+        </fieldset>
+        <select name="aspectRatio">
+            <option value="1 / 1">1:1</option>
+            <option value="4 / 5" selected>4:5</option>
+            <option value="9 / 16">9:16</option>
+        </select>
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&display=swap" rel="stylesheet">
+        <select name="fontFamily">
+            <option value="system-ui, sans-serif" selected>Системный шрифт</option>
+            <optgroup label="Антиквы">
+                <option value="'Playfair Display', serif">Playfair Display</option>
+            </optgroup>
+        </select>
+        <button type="button" id="export">Выгрузить</button>
+        <output id="json"></output>
+        <button type="button" id="delete" aria-label="Удалить" title="Удалить элемент">🗑</button>
+    </form>
 
     <script src="js/import.js" type="module"></script>
     <script src="js/create.js" type="module"></script>
-    <script src="js/main.js" type="module"></script>
+    <script src="js/export.js"></script>
 </body>
 </html>
