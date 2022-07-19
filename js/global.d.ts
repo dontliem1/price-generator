@@ -1,0 +1,1 @@
+declare function html2canvas(el: HTMLElement): Promise<HTMLCanvasElement>;

@@ -1,12 +1,217 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=yes">
     <title>Генератор прайса</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="description" content="Создать картинку для прайса в инстаграм и вконтакте онлайн бесплатно">
+    <style>
+        html {
+            color-scheme: dark light;
+            font-family: system-ui, sans-serif;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            line-height: 1.2;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        button,
+        input,
+        select {
+            color: inherit;
+            font-size: inherit;
+            max-width: 100%;
+        }
+
+        button,
+        [type="range"],
+        [type="color"],
+        select {
+            cursor: pointer;
+        }
+
+        a {
+            align-items: center;
+            color: inherit;
+            display: inline-flex;
+        }
+
+        button,
+        a,
+        select,
+        label span,
+        [type="color"],
+        [type="number"] {
+            box-sizing: border-box;
+            min-height: 48px;
+            min-width: 48px;
+            vertical-align: middle;
+        }
+
+        .visually-hidden {
+            border: 0;
+            clip-path: inset(100%);
+            clip: rect(0 0 0 0);
+            height: 1px;
+            margin: -1px;
+            overflow: hidden;
+            padding: 0;
+            position: absolute;
+            white-space: nowrap;
+            width: 1px;
+        }
+
+        /* Страницы */
+        .pages {
+            align-items: center;
+            display: flex;
+            flex-grow: 1;
+            list-style: none;
+            margin: 0;
+            max-width: 100vw;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 0;
+            scroll-behavior: smooth;
+            scroll-snap-type: x mandatory;
+            touch-action: manipulation;
+        }
+
+        .pages>li {
+            flex-basis: 100%;
+            flex-shrink: 0;
+            scroll-snap-align: center;
+        }
+
+        /* Прайс */
+        .pages article {
+            aspect-ratio: 4 / 5;
+            background-color: #000;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            color: #fff;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 1080px;
+            position: relative;
+        }
+
+        .pages form {
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            font-size: min(4vw, 44px);
+            height: 100%;
+            padding: 10% 8% 16%;
+            position: relative;
+        }
+
+        .pages article>div {
+            bottom: 0;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+
+        .pages form {
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .pages section+section {
+            margin-top: 5.5%;
+        }
+
+        .pages h2 {
+            font-size: min(9vw, 100px);
+        }
+
+        .pages ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            text-align: left;
+        }
+
+        .pages li li {
+            align-items: end;
+            display: grid;
+            font-size: min(5.5vw, 60px);
+            grid-auto-flow: dense;
+            grid-template-columns: 1fr auto;
+            margin-top: 1em;
+        }
+
+        .pages ul:first-child li:first-child {
+            margin-top: 0;
+        }
+
+        .pages h1,
+        h2,
+        h3 {
+            font-weight: inherit;
+            margin: 0;
+        }
+
+        .pages h1,
+        h3 {
+            font-size: inherit;
+        }
+
+        .pages h1:only-child {
+            font-size: min(16.5vw, 180px);
+            padding-bottom: 4%;
+            padding-top: 10%;
+        }
+
+        .pages p {
+            margin: 0;
+        }
+
+        .pages span {
+            font-size: min(4vw, 44px);
+            grid-column: 1/3;
+        }
+
+        .pages footer {
+            justify-self: flex-end;
+            margin: auto 0 0;
+            order: 1;
+            padding-top: 1em;
+        }
+
+        .settings {
+            touch-action: manipulation;
+        }
+
+        .settings a,
+        .visually-hidden+span {
+            -webkit-appearance: button;
+            align-items: center;
+            appearance: button;
+            cursor: pointer;
+            display: inline-flex;
+            padding-bottom: 3px;
+            padding-left: 6px;
+            padding-right: 6px;
+            padding-top: 2px;
+            text-decoration: none;
+        }
+
+    </style>
 </head>
+
 <body>
     <form class="settings">
         <fieldset>
@@ -44,9 +249,8 @@
             <option value="4 / 5" selected>4:5</option>
             <option value="9 / 16">9:16</option>
         </select>
-        <link href="https://fonts.googleapis.com/css2?family=Alegreya&family=Alice&family=Bitter&family=Cormorant&family=EB+Garamond&family=IBM+Plex+Serif&family=Literata:opsz@7..72&family=Lora&family=Merriweather&family=Old+Standard+TT&family=PT+Serif&family=PT+Serif+Caption&family=Piazzolla:opsz@8..30&family=Playfair+Display&family=Prata&family=Source+Serif+Pro&family=Spectral&family=Alegreya+Sans&family=Arsenal&family=Commissioner&family=IBM+Plex+Mono&family=IBM+Plex+Sans&family=Inter&family=JetBrains+Mono&family=Montserrat&family=PT+Mono&family=PT+Sans&family=Raleway&family=Roboto&family=Roboto+Condensed&family=Roboto+Mono&family=Rubik&family=Yanone+Kaffeesatz&family=Caveat&family=Lobster&family=Pacifico&family=Pangolin&family=Podkova&family=Press+Start+2P&family=Ruslan+Display&family=Russo+One&family=Underdog&family=Yeseva+One&display=swap" rel="stylesheet">
         <select name="fontFamily" aria-label="Шрифт" title="Выбрать шрифт">
-            <option value="system-ui, sans-serif" selected>Системный</option>
+            <option value="system-ui, sans-serif" selected>Системный шрифт</option>
             <optgroup label="Антиквы">
                 <option value='Alegreya, serif'>Alegreya</option>
                 <option value='Alice, serif'>Alice</option>
@@ -101,14 +305,14 @@
         </select>
         <button type="button" id="delete">Удалить</button><br>
         <label><input class="visually-hidden" id="import" type="file" accept="application/json" /><span>Импортировать из файла</span></label>
-        <a href="" download='price.json' id="export">Сохранить в файл</a>
+        <a href="./" download='price.json' id="export">Сохранить в файл</a>
         <button type="button" id="save">Экспортировать картинки</button>
     </form>
     <ol id="pages" class="pages"></ol>
 
     <script src="js/import.js" type="module"></script>
     <script src="js/create.js" type="module"></script>
-    <script src="js/html2canvas.min.js"></script>
     <script src="js/export.js" type="module"></script>
 </body>
+
 </html>

@@ -1,3 +1,5 @@
+"use strict";
+
 import { DEFAULTS } from "./constants.js";
 
 /**
@@ -5,13 +7,17 @@ import { DEFAULTS } from "./constants.js";
  * @param {{tag: string; text?: string; parent?: HTMLElement; fromStart?: boolean}} params
  * @returns {HTMLElement} Созданный элемент
  */
-export function createEditableElement({tag, text = DEFAULTS[tag], parent, fromStart}) {
+export function createEditableElement({ tag, text = DEFAULTS[tag], parent, fromStart }) {
     const elem = document.createElement(tag);
 
     elem.setAttribute('contenteditable', 'true');
     elem.innerText = text;
     if (parent) {
-        fromStart ? parent.prepend(elem) : parent.appendChild(elem);
+        if (fromStart) {
+            parent.prepend(elem);
+        } else {
+            parent.appendChild(elem);
+        }
     }
 
     return elem;
@@ -33,8 +39,40 @@ export function handleFormInput(e) {
     }
     const page = e.currentTarget.parentElement;
     if (page && (page.scrollHeight - page.clientHeight > 16)) {
-        alert(page.scrollHeight + ' ' + page.clientHeight);
+        window.alert(page.scrollHeight + ' ' + page.clientHeight);
     }
+}
+
+export function createService(serviceJson = DEFAULTS.LI) {
+    const li = document.createElement('li');
+
+    for (const liTag in serviceJson) {
+        createEditableElement({ tag: liTag, text: serviceJson[liTag], parent: li });
+    }
+
+    return li;
+}
+
+export function createSection(sectionJson = DEFAULTS.SECTION) {
+    const section = document.createElement('section');
+
+    for (const sectionTag in sectionJson) {
+        if (sectionTag === 'UL') {
+            const ul = document.createElement('ul');
+
+            for (const liJson of sectionJson[sectionTag]) {
+                const li = createService(liJson);
+
+                ul.appendChild(li);
+            }
+            section.appendChild(ul);
+
+            continue;
+        }
+        createEditableElement({ tag: sectionTag, text: sectionJson[sectionTag], parent: section });
+    }
+
+    return section;
 }
 
 export function createPage(pageJson = DEFAULTS.PAGE, isActive = true) {
@@ -75,43 +113,11 @@ export function createPage(pageJson = DEFAULTS.PAGE, isActive = true) {
 
             continue;
         }
-        createEditableElement({tag, text: pageJson[tag], parent: form});
+        createEditableElement({ tag, text: pageJson[tag], parent: form });
     }
     li.appendChild(article);
 
     return li;
-}
-
-export function createService(serviceJson = DEFAULTS.LI) {
-    const li = document.createElement('li');
-
-    for (const liTag in serviceJson) {
-        createEditableElement({tag: liTag, text: serviceJson[liTag], parent: li});
-    }
-
-    return li;
-}
-
-export function createSection(sectionJson = DEFAULTS.SECTION) {
-    const section = document.createElement('section');
-
-    for (const sectionTag in sectionJson) {
-        if (sectionTag === 'UL') {
-            const ul = document.createElement('ul');
-
-            for (const liJson of sectionJson[sectionTag]) {
-                const li = createService(liJson);
-
-                ul.appendChild(li);
-            }
-            section.appendChild(ul);
-
-            continue;
-        }
-        createEditableElement({tag: sectionTag, text: sectionJson[sectionTag], parent: section});
-    }
-
-    return section;
 }
 
 /**

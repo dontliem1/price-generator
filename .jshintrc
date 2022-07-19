@@ -1,3 +1,17 @@
 {
-    "esversion": 6
+    "-W119": false,
+    "browser": true,
+    "curly": true,
+    "esversion": 6,
+    "eqeqeq": true,
+    "freeze": true,
+    "globals": {
+        "html2canvas": false
+    },
+    "latedef": true,
+    "maxparams": 3,
+    "nocomma": true,
+    "noreturnawait": true,
+    "strict": "global",
+    "unused": "strict"
 }

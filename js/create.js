@@ -1,3 +1,5 @@
+"use strict";
+
 import { createEditableElement, createPage, createSection, createService, getActiveForm, getActivePage, handleFormFocusIn, handleFormInput } from './utils.js';
 
 const titleBtn = document.getElementById('title');
@@ -11,7 +13,7 @@ if (titleBtn) {
             if (existingTitle) {
                 existingTitle.focus();
             } else {
-                createEditableElement({tag: 'H1', fromStart: true, parent: form});
+                createEditableElement({ tag: 'H1', fromStart: true, parent: form });
             }
         }
     });
@@ -28,7 +30,7 @@ if (subtitleBtn) {
             if (existingSubtitle) {
                 existingSubtitle.focus();
             } else {
-                createEditableElement({tag: 'FOOTER', parent: form});
+                createEditableElement({ tag: 'FOOTER', parent: form });
             }
         }
     });

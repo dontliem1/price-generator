@@ -1,8 +1,10 @@
+"use strict";
+
 //Экспорт
 const exportBtn = /** @type {HTMLAnchorElement | null} */ (document.getElementById('export'));
 
 if (exportBtn) {
-    exportBtn.addEventListener('click', function handleExportClick(e) {
+    exportBtn.addEventListener('click', function handleExportClick() {
         const json = [];
         const pages = document.getElementsByTagName('article');
 
@@ -50,7 +52,8 @@ if (exportBtn) {
             if (form) {
                 pageJson.STYLE.textAlign = form.style.textAlign;
                 pageJson.STYLE.justifyContent = form.style.justifyContent;
-                pageJson.STYLE.backdropFilter = form.style['backdropFilter'];
+                // @ts-ignore
+                pageJson.STYLE.backdropFilter = form.style.backdropFilter;
                 pageJson.STYLE['-webkit-backdrop-filter'] = form.style['-webkit-backdrop-filter'];
             }
             if (div) {
@@ -68,25 +71,36 @@ if (exportBtn) {
 
 const saveBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('save'));
 
-// @ts-ignore
-if (saveBtn && html2canvas) {
-    saveBtn.addEventListener('click', function handleSaveClick() {
+function resolveCanvas(canvas) {
+    const link = /** @type {HTMLAnchorElement | null} */ (document.getElementById('canvas'));
+
+    if (link) {
+        link.href = canvas.toDataURL('image/png');
+        link.download = link.dataset.index + '.png';
+        link.click();
+        link.dataset.index = (parseInt(link.dataset.index ?? '0', 10) + 1).toString();
+    }
+}
+
+if (saveBtn) {
+    saveBtn.addEventListener('click', async function handleSaveClick() {
+        saveBtn.disabled = true;
+        document.body.style.minWidth = '1080px';
+
+        await import('./html2canvas.min.js');
+
+        const link = document.createElement('a');
         const pages = document.getElementsByTagName('article');
 
-        function resolveCanvas(canvas) {
-            // document.body.appendChild(canvas);
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png');
-            link.download = 'price.png';
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+        link.id = 'canvas';
+        link.dataset.index = '1';
+        document.body.appendChild(link);
+        for (const page of pages) {
+            await html2canvas(page).then(resolveCanvas);
         }
 
-        for (const page of pages) {
-            page.scrollIntoView();
-            // @ts-ignore
-            html2canvas(page).then(resolveCanvas);
-        }
+        link.remove();
+        document.body.style.minWidth = '';
+        saveBtn.disabled = false;
     });
 }
