@@ -57,7 +57,7 @@ a {
     padding: 0;
     scroll-behavior: smooth;
     scroll-snap-type: x mandatory;
-    touch-action: pan-x;
+    touch-action: manipulation;
 }
 .pages > li {
     flex-basis: 100%;
