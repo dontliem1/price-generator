@@ -21,7 +21,7 @@
             <legend>Фон</legend>
             <label><input type="color" name="backgroundColor"> Цвет</label><br>
             <label>Непрозрачность <input type="range" name="opacity" min="0" max="1" step="0.1"></label><br>
-            <label>Размытие <input type="number" name="backdropFilter" min="0" max="99" value="0">px</label><br>
+            <label>Размытие <input type="number" name="backdropFilter" min="0" max="99" step="1" value="0" pattern="[0-9]*" inputmode="numeric">px</label><br>
             <label><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span>Загрузить картинку</span></label>
             <button type="button" id="deleteBackgroundImage">Удалить картинку</button>
         </fieldset>
