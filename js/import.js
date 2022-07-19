@@ -210,7 +210,7 @@ const deleteBtn =  /** @type {HTMLButtonElement | null} */ (document.getElementB
 if (deleteBtn) {
     deleteBtn.addEventListener('click', function handleDeleteClick() {
         const activeElement = getActiveElement();
-        if (activeElement && confirm('Удалить элемент?')) {
+        if (activeElement && confirm(`Удалить элемент${activeElement.innerText.trim() ? (' «' + activeElement.innerText + '»') : ''}?`)) {
             const pages = document.getElementById('pages');
             const section = activeElement.closest('section');
             const li = activeElement.closest('li');

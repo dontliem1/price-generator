@@ -57,6 +57,7 @@ a {
     padding: 0;
     scroll-behavior: smooth;
     scroll-snap-type: x mandatory;
+    touch-action: pan-x;
 }
 .pages > li {
     flex-basis: 100%;
@@ -147,6 +148,9 @@ h1:only-child {
     order: 1;
 }
 
+.settings {
+    touch-action: manipulation;
+}
 #export,
 .visually-hidden + span {
     -webkit-appearance: button;
@@ -157,7 +161,4 @@ h1:only-child {
     padding-bottom: 3px;
     padding-left: 6px;
     text-decoration: none;
-}
-.active[contenteditable] {
-    box-shadow: 0 0 1px;
 }
