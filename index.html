@@ -44,6 +44,10 @@
             display: inline-flex;
         }
 
+        button {
+            margin: 0;
+        }
+
         button,
         a,
         select,
@@ -194,13 +198,15 @@
         .settings {
             touch-action: manipulation;
         }
-
+        .settings label,
+        .settings fieldset {
+            display: inline-block;
+        }
         .settings a,
         .visually-hidden+span {
             -webkit-appearance: button;
             align-items: center;
             appearance: button;
-            background-color: buttonFace;
             cursor: pointer;
             display: inline-flex;
             padding-bottom: 3px;
@@ -215,36 +221,6 @@
 
 <body>
     <form class="settings">
-        <fieldset>
-            <legend>Добавить</legend>
-            <button type="button" id="page">Страницу</button>
-            <button type="button" id="title">Заголовок</button>
-            <button type="button" id="group">Группу</button>
-            <button type="button" id="service">Услугу</button>
-            <button type="button" id="subtitle">Подпись</button>
-        </fieldset>
-        <fieldset>
-            <legend>Фон</legend>
-            <label><input type="color" name="backgroundColor"> Цвет</label><br>
-            <label>Непрозрачность <input type="range" name="opacity" min="0" max="1" step="0.1"></label><br>
-            <label>Размытие <input type="number" name="backdropFilter" min="0" max="99" step="1" value="0" pattern="[0-9]*" inputmode="numeric">px</label><br>
-            <label><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span>Загрузить картинку</span></label>
-            <button type="button" id="deleteBackgroundImage">Удалить картинку</button>
-        </fieldset>
-        <fieldset>
-            <legend>Заголовок и подпись</legend>
-            <select name="textAlign" aria-label="Выравнивание текста" title="Выбрать горизонтальное выравнивание">
-                <option value="left">Слева</option>
-                <option value="center">По центру</option>
-                <option value="right">Справа</option>
-            </select>
-            <select name="justifyContent" aria-label="Расположение по вертикали" title="Выбрать вертикальное расположение">
-                <option value="flex-start">Сверху</option>
-                <option value="center">По центру</option>
-                <option value="flex-end">Снизу</option>
-            </select>
-        </fieldset>
-        <label><input type="color" name="color"> Цвет текста</label>
         <select name="aspectRatio" aria-label="Соотношение сторон" title="Выбрать соотношение сторон">
             <option value="1 / 1">1:1</option>
             <option value="4 / 5" selected>4:5</option>
@@ -304,10 +280,40 @@
                 <option value='"Yeseva One", serif'>Yeseva One</option>
             </optgroup>
         </select>
-        <button type="button" id="delete">Удалить последний активный элемент</button><br>
+        <label><input type="color" name="color"> Цвет текста</label>
+        <button type="button" id="delete">Удалить последний активный элемент</button>
         <label><input class="visually-hidden" id="import" type="file" accept="application/json" /><span>Импортировать из файла</span></label>
         <a href="./" download='price.json' id="export">Сохранить в файл</a>
-        <button type="button" id="save">Экспортировать картинки</button>
+        <button type="button" id="save">Экспортировать картинки</button><br>
+        <fieldset>
+            <legend>Фон</legend>
+            <label><input type="color" name="backgroundColor"> Цвет</label>
+            <label>Размытие <input type="number" name="backdropFilter" min="0" max="99" step="1" value="0" pattern="[0-9]*" inputmode="numeric">px</label>
+            <label>Непрозрачность <input type="range" name="opacity" min="0" max="1" step="0.1"></label>
+            <label><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span>Загрузить картинку</span></label>
+            <button type="button" id="deleteBackgroundImage">Удалить картинку</button>
+        </fieldset>
+        <fieldset>
+            <legend>Заголовок</legend>
+            <select name="textAlign" aria-label="Выравнивание текста" title="Выбрать горизонтальное выравнивание">
+                <option value="left">Слева</option>
+                <option value="center">По центру</option>
+                <option value="right">Справа</option>
+            </select>
+            <select name="justifyContent" aria-label="Расположение по вертикали" title="Выбрать вертикальное расположение">
+                <option value="flex-start">Сверху</option>
+                <option value="center">По центру</option>
+                <option value="flex-end">Снизу</option>
+            </select>
+        </fieldset>
+        <fieldset>
+            <legend>Добавить</legend>
+            <button type="button" id="page">Страницу</button>
+            <button type="button" id="title">Заголовок</button>
+            <button type="button" id="group">Группу</button>
+            <button type="button" id="service">Услугу</button>
+            <button type="button" id="subtitle">Подпись</button>
+        </fieldset>
     </form>
     <ol id="pages" class="pages"></ol>
 
