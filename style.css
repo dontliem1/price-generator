@@ -107,6 +107,7 @@ ul {
     list-style: none;
     margin: 0;
     padding: 0;
+    text-align: left;
 }
 .pages li li {
     align-items: end;
@@ -133,6 +134,7 @@ h1:only-child {
 }
 .pages p {
     margin: 0;
+    text-align: right;
 }
 .pages span {
     grid-column: 1/3;
