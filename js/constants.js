@@ -10,7 +10,7 @@ function Defaults() {
     this.SECTION = {H2: this.H2, UL: [this.LI, this.LI]};
     this.STYLE = {
         aspectRatio: '4 / 5',
-        backgroundColor: 'rgb(0, 0, 0)',
+        backgroundColor: 'rgb(128, 128, 128)',
         color: 'rgb(255, 255, 255)',
         fontFamily: 'system-ui, sans-serif',
         textAlign: 'left',

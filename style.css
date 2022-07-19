@@ -15,9 +15,18 @@ button,
 input,
 select {
     font-size: inherit;
+    color: inherit;
+    max-width: 100%;
+}
+button,
+[type="range"],
+[type="color"],
+select {
+    cursor: pointer;
 }
 a {
     color: inherit;
+    display: inline-block;
 }
 .visually-hidden {
     position: absolute;
@@ -136,10 +145,17 @@ h1:only-child {
     order: 1;
 }
 
-#import + span {
+#export,
+.visually-hidden + span {
+    -webkit-appearance: button;
     appearance: button;
+    cursor: pointer;
     padding-top: 2px;
     padding-right: 6px;
     padding-bottom: 3px;
     padding-left: 6px;
+    text-decoration: none;
+}
+.active[contenteditable] {
+    box-shadow: 0 0 1px;
 }

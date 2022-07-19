@@ -22,7 +22,7 @@
             <label><input type="color" name="backgroundColor"> Цвет</label><br>
             <label>Непрозрачность <input type="range" name="opacity" min="0" max="1" step="0.1"></label><br>
             <label>Размытие <input type="number" name="backdropFilter" min="0" max="99" value="0">px</label><br>
-            <label>Картинка <input type="file" name="backgroundImage" id="backgroundImage" accept="image/*"></label>
+            <label><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span>Загрузить картинку</span></label>
             <button type="button" id="deleteBackgroundImage">Удалить картинку</button>
         </fieldset>
         <fieldset>
@@ -102,7 +102,7 @@
         <button type="button" id="delete">Удалить</button><br>
         <label><input class="visually-hidden" id="import" type="file" accept="application/json" /><span>Импортировать из файла</span></label>
         <a href="" download='price.json' id="export">Сохранить в файл</a>
-        <button type="button" id="save">Сохранить картинку</button>
+        <button type="button" id="save">Экспортировать картинки</button>
     </form>
     <ol id="pages" class="pages"></ol>
 

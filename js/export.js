@@ -1,6 +1,5 @@
 //Экспорт
 const exportBtn = /** @type {HTMLAnchorElement | null} */ (document.getElementById('export'));
-const output = /** @type {HTMLOutputElement | null} */ (document.getElementById('json'));
 
 if (exportBtn) {
     exportBtn.addEventListener('click', function handleExportClick(e) {
@@ -72,16 +71,22 @@ const saveBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById
 // @ts-ignore
 if (saveBtn && html2canvas) {
     saveBtn.addEventListener('click', function handleSaveClick() {
-        // @ts-ignore
-        html2canvas(document.querySelector('article')).then(function (canvas) {
-                // document.body.appendChild(canvas);
-                console.log(canvas);
-                var data = canvas.toDataURL('image/png');
-                var image = new Image(108);
-                image.src = data;
-                // @ts-ignore
-                document.querySelector('.settings').appendChild(image);
-            }
-        );
+        const pages = document.getElementsByTagName('article');
+
+        function resolveCanvas(canvas) {
+            // document.body.appendChild(canvas);
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = 'price.png';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+
+        for (const page of pages) {
+            page.scrollIntoView();
+            // @ts-ignore
+            html2canvas(page).then(resolveCanvas);
+        }
     });
 }

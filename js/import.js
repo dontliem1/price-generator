@@ -211,18 +211,19 @@ if (deleteBtn) {
     deleteBtn.addEventListener('click', function handleDeleteClick() {
         const activeElement = getActiveElement();
         if (activeElement && confirm('Удалить элемент?')) {
+            const pages = document.getElementById('pages');
             const section = activeElement.closest('section');
             const li = activeElement.closest('li');
 
             activeElement.remove();
             if (section && !section.innerText.trim()) {
                 section.remove();
+                if (backgroundImageInput) {backgroundImageInput.value = '';}
             }
             if (li && !li.innerText.trim()) {
                 li.remove();
             }
 
-            const pages = document.getElementById('pages');
 
             if (pages && pages.children.length === 1) {
                 const li = pages.children[0];
