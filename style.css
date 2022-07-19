@@ -11,8 +11,28 @@ body {
     margin: 0;
     min-height: 100vh;
 }
-button {
+button,
+input,
+select {
     font-size: inherit;
+}
+a {
+    color: inherit;
+}
+.visually-hidden {
+    position: absolute;
+
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    border: 0;
+    padding: 0;
+
+    white-space: nowrap;
+
+    clip-path: inset(100%);
+    clip: rect(0 0 0 0);
+    overflow: hidden;
 }
 
 /* Страницы */
@@ -37,11 +57,15 @@ button {
 /* Прайс */
 .pages article {
     aspect-ratio: 4 / 5;
-    background-color: rgba(128, 128, 128, .3);
-    max-height: 1350px;
     max-width: 1080px;
     margin-left: auto;
     margin-right: auto;
+    background-color: #000;
+    color: #fff;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    position: relative;
 }
 .pages form {
     display: flex;
@@ -50,6 +74,14 @@ button {
     box-sizing: border-box;
     height: 100%;
     font-size: min(4vw, 44px);
+    position: relative;
+}
+.pages article > div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 .pages form {
     display: flex;
@@ -86,7 +118,7 @@ h1, h3 {
     font-size: inherit;
 }
 h1:only-child {
-    font-size: min(18.5vw, 200px);
+    font-size: min(16.5vw, 180px);
     padding-top: 10%;
     padding-bottom: 4%;
 }
@@ -104,23 +136,10 @@ h1:only-child {
     order: 1;
 }
 
-#delete {
-    aspect-ratio: 1;
-    border-radius: 22px;
-    border: 1px solid;
-    bottom: .5em;
-    box-sizing: border-box;
-    font: inherit;
-    line-height: 1;
-    margin: 0;
-    min-height: 44px;
-    min-width: 44px;
-    padding: 0;
-    position: fixed;
-    right: .5em;
-    cursor: pointer;
-    transition: filter .2s;
-}
-#delete:hover {
-    filter: brightness(1.2);
+#import + span {
+    appearance: button;
+    padding-top: 2px;
+    padding-right: 6px;
+    padding-bottom: 3px;
+    padding-left: 6px;
 }

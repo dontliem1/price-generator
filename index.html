@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <ol id="pages" class="pages"></ol>
     <form class="settings">
         <fieldset>
             <legend>Добавить</legend>
@@ -19,29 +18,97 @@
             <button type="button" id="subtitle">Подпись</button>
         </fieldset>
         <fieldset>
-            <legend>Цвета</legend>
-            <label>Текст <input type="color" name="color"></label>
-            <label>Фон <input type="color" name="backgroundColor"></label>
+            <legend>Фон</legend>
+            <label><input type="color" name="backgroundColor"> Цвет</label><br>
+            <label>Непрозрачность <input type="range" name="opacity" min="0" max="1" step="0.1"></label><br>
+            <label>Размытие <input type="number" name="backdropFilter" min="0" max="99" value="0">px</label><br>
+            <label>Картинка <input type="file" name="backgroundImage" id="backgroundImage" accept="image/*"></label>
+            <button type="button" id="deleteBackgroundImage">Удалить картинку</button>
         </fieldset>
-        <select name="aspectRatio">
+        <fieldset>
+            <legend>Заголовок и подпись</legend>
+            <select name="textAlign" aria-label="Выравнивание текста" title="Выбрать горизонтальное выравнивание">
+                <option value="left">Слева</option>
+                <option value="center">По центру</option>
+                <option value="right">Справа</option>
+            </select>
+            <select name="justifyContent" aria-label="Расположение по вертикали" title="Выбрать вертикальное расположение">
+                <option value="flex-start">Сверху</option>
+                <option value="center">По центру</option>
+                <option value="flex-end">Снизу</option>
+            </select>
+        </fieldset>
+        <label><input type="color" name="color"> Цвет текста</label>
+        <select name="aspectRatio" aria-label="Соотношение сторон" title="Выбрать соотношение сторон">
             <option value="1 / 1">1:1</option>
             <option value="4 / 5" selected>4:5</option>
             <option value="9 / 16">9:16</option>
         </select>
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&display=swap" rel="stylesheet">
-        <select name="fontFamily">
-            <option value="system-ui, sans-serif" selected>Системный шрифт</option>
+        <link href="https://fonts.googleapis.com/css2?family=Alegreya&family=Alice&family=Bitter&family=Cormorant&family=EB+Garamond&family=IBM+Plex+Serif&family=Literata:opsz@7..72&family=Lora&family=Merriweather&family=Old+Standard+TT&family=PT+Serif&family=PT+Serif+Caption&family=Piazzolla:opsz@8..30&family=Playfair+Display&family=Prata&family=Source+Serif+Pro&family=Spectral&family=Alegreya+Sans&family=Arsenal&family=Commissioner&family=IBM+Plex+Mono&family=IBM+Plex+Sans&family=Inter&family=JetBrains+Mono&family=Montserrat&family=PT+Mono&family=PT+Sans&family=Raleway&family=Roboto&family=Roboto+Condensed&family=Roboto+Mono&family=Rubik&family=Yanone+Kaffeesatz&family=Caveat&family=Lobster&family=Pacifico&family=Pangolin&family=Podkova&family=Press+Start+2P&family=Ruslan+Display&family=Russo+One&family=Underdog&family=Yeseva+One&display=swap" rel="stylesheet">
+        <select name="fontFamily" aria-label="Шрифт" title="Выбрать шрифт">
+            <option value="system-ui, sans-serif" selected>Системный</option>
             <optgroup label="Антиквы">
-                <option value="'Playfair Display', serif">Playfair Display</option>
+                <option value='Alegreya, serif'>Alegreya</option>
+                <option value='Alice, serif'>Alice</option>
+                <option value='Bitter, serif'>Bitter</option>
+                <option value='Cormorant, serif'>Cormorant</option>
+                <option value='"EB Garamond", serif'>EB Garamond</option>
+                <option value='"IBM Plex Serif", serif'>IBM Plex Serif</option>
+                <option value='Literata, serif'>Literata</option>
+                <option value='Lora, serif'>Lora</option>
+                <option value='Merriweather, serif'>Merriweather</option>
+                <option value='"Old Standard TT", serif'>Old Standard TT</option>
+                <option value='Piazzolla, serif'>Piazzolla</option>
+                <option value='"Playfair Display", serif'>Playfair Display</option>
+                <option value='Prata, serif'>Prata</option>
+                <option value='"PT Serif", serif'>PT Serif</option>
+                <option value='"PT Serif Caption", serif'>PT Serif Caption</option>
+                <option value='"Source Serif Pro", serif'>Source Serif Pro</option>
+                <option value='Spectral, serif'>Spectral</option>
+            </optgroup>
+            <optgroup label="Гротески">
+                <option value='"Alegreya Sans", sans-serif'>Alegreya Sans</option>
+                <option value='Arsenal, sans-serif'>Arsenal</option>
+                <option value='Commissioner, sans-serif'>Commissioner</option>
+                <option value='"IBM Plex Sans", sans-serif'>IBM Plex Sans</option>
+                <option value='Inter, sans-serif'>Inter</option>
+                <option value='Montserrat, sans-serif'>Montserrat</option>
+                <option value='"PT Sans", sans-serif'>PT Sans</option>
+                <option value='Raleway, sans-serif'>Raleway</option>
+                <option value='Roboto, sans-serif'>Roboto</option>
+                <option value='"Roboto Condensed", sans-serif'>Roboto Condensed</option>
+                <option value='Rubik, sans-serif'>Rubik</option>
+                <option value='"Yanone Kaffeesatz", sans-serif'>Yanone Kaffeesatz</option>
+            </optgroup>
+            <optgroup label="Моноширинные">
+                <option value='"IBM Plex Mono", monospace'>IBM Plex Mono</option>
+                <option value='"JetBrains Mono", monospace'>JetBrains Mono</option>
+                <option value='"PT Mono", monospace'>PT Mono</option>
+                <option value='"Roboto Mono", monospace'>Roboto Mono</option>
+            </optgroup>
+            <optgroup label="Акциденция">
+                <option value='Caveat, cursive'>Caveat</option>
+                <option value='Lobster, cursive'>Lobster</option>
+                <option value='Pacifico, cursive'>Pacifico</option>
+                <option value='Pangolin, cursive'>Pangolin</option>
+                <option value='Podkova, serif'>Podkova</option>
+                <option value='"Press Start 2P", serif'>Press Start 2P</option>
+                <option value='"Ruslan Display", serif'>Ruslan Display</option>
+                <option value='"Russo One", sans-serif'>Russo One</option>
+                <option value='Underdog, cursive'>Underdog</option>
+                <option value='"Yeseva One", serif'>Yeseva One</option>
             </optgroup>
         </select>
-        <button type="button" id="export">Выгрузить</button>
-        <output id="json"></output>
-        <button type="button" id="delete" aria-label="Удалить" title="Удалить элемент">🗑</button>
+        <button type="button" id="delete">Удалить</button><br>
+        <label><input class="visually-hidden" id="import" type="file" accept="application/json" /><span>Импортировать из файла</span></label>
+        <a href="" download='price.json' id="export">Сохранить в файл</a>
+        <button type="button" id="save">Сохранить картинку</button>
     </form>
+    <ol id="pages" class="pages"></ol>
 
     <script src="js/import.js" type="module"></script>
     <script src="js/create.js" type="module"></script>
-    <script src="js/export.js"></script>
+    <script src="js/html2canvas.min.js"></script>
+    <script src="js/export.js" type="module"></script>
 </body>
 </html>

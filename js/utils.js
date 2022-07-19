@@ -38,18 +38,29 @@ export function handleFormInput(e) {
 }
 
 export function createPage(pageJson = DEFAULTS.PAGE, isActive = true) {
+    const li = document.createElement('li');
     const article = document.createElement('article');
     const form = document.createElement('form');
-    const li = document.createElement('li');
+    const div = document.createElement('div');
 
+    li.classList.toggle('active', isActive);
     form.addEventListener('focusin', handleFormFocusIn);
     form.addEventListener('input', handleFormInput);
-    article.appendChild(form);
-    li.classList.toggle('active', isActive);
+    article.append(div, form);
 
     for (const tag in pageJson) {
         if (tag === 'STYLE') {
             for (const styleProp in pageJson[tag]) {
+                if (['-webkit-backdrop-filter', 'backdropFilter', 'textAlign', 'justifyContent'].includes(styleProp)) {
+                    form.style[styleProp] = pageJson[tag][styleProp];
+
+                    continue;
+                }
+                if (['backgroundColor', 'opacity'].includes(styleProp)) {
+                    div.style[styleProp] = pageJson[tag][styleProp];
+
+                    continue;
+                }
                 article.style[styleProp] = pageJson[tag][styleProp];
             }
 
@@ -125,6 +136,14 @@ export function getActiveArticle() {
  */
 export function getActiveForm() {
     return document.querySelector('li.active form');
+}
+
+/**
+ * Найти подложку активной страницы
+ * @returns {HTMLDivElement | null}
+ */
+export function getActiveDiv() {
+    return document.querySelector('li.active div');
 }
 
 /**

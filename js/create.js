@@ -1,4 +1,4 @@
-import { createEditableElement, createPage, createSection, createService, getActiveElement, getActiveForm, getActivePage, handleFormFocusIn, handleFormInput } from './utils.js';
+import { createEditableElement, createPage, createSection, createService, getActiveForm, getActivePage, handleFormFocusIn, handleFormInput } from './utils.js';
 
 const titleBtn = document.getElementById('title');
 
@@ -103,22 +103,6 @@ if (pageBtn) {
 
             pages.appendChild(newPage);
             newPage.scrollIntoView();
-        }
-    });
-}
-
-//Удаление
-const deleteBtn =  /** @type {HTMLButtonElement | null} */ (document.getElementById('delete'));
-
-if (deleteBtn) {
-    deleteBtn.addEventListener('click', function handleDeleteClick() {
-        const activeElement = getActiveElement();
-        if (activeElement && confirm('Удалить элемент?')) {
-            const parent = activeElement.parentElement;
-            activeElement.remove();
-            if (parent && !parent.innerText.trim()) {
-                parent.remove();
-            }
         }
     });
 }

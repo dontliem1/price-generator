@@ -1,8 +1,5 @@
 function Defaults() {
-    this.ASPECT_RATIO = '4 / 5';
-    this.BG_COLOR = '#333333';
-    this.COLOR = '#ffffff';
-    this.FONT_FAMILY = 'system-ui, sans-serif';
+    this.backdropFilter = 'blur(0px)';
     this.H1 = 'Заголовок страницы';
     this.H2 = 'Категория';
     this.H3 = 'Название услуги';
@@ -12,10 +9,15 @@ function Defaults() {
     this.LI = {H3: this.H3, P: this.P, SPAN: this.SPAN};
     this.SECTION = {H2: this.H2, UL: [this.LI, this.LI]};
     this.STYLE = {
-        aspectRatio: this.ASPECT_RATIO,
-        backgroundColor: this.BG_COLOR,
-        color: this.COLOR,
-        fontFamily: this.FONT_FAMILY,
+        aspectRatio: '4 / 5',
+        backgroundColor: 'rgb(0, 0, 0)',
+        color: 'rgb(255, 255, 255)',
+        fontFamily: 'system-ui, sans-serif',
+        textAlign: 'left',
+        justifyContent: 'flex-start',
+        opacity: '0.5',
+        ['-webkit-backdrop-filter']: this.backdropFilter,
+        backdropFilter: this.backdropFilter,
     };
     this.FIRST_PAGE = {H1: 'ПРАЙС', STYLE: this.STYLE};
     this.PAGE = {
