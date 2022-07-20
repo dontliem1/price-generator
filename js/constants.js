@@ -24,7 +24,7 @@ function Defaults() {
         STYLE: {
             aspectRatio: this.aspectRatio,
             backgroundColor: 'rgb(0, 0, 0)',
-            backgroundImage: 'url(images/example.jpg)',
+            backgroundImage: 'url(images/example.webp)',
             color: 'rgb(255, 228, 168)',
             justifyContent: 'flex-end',
             opacity: '0.5',
