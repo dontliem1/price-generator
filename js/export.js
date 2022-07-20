@@ -110,23 +110,26 @@ if (saveBtn) {
             }
             link.remove();
         } else {
-            const canvases = /** @type {Blob[]} */ ([]);
+            const canvases = /** @type {HTMLCanvasElement[]} */ ([]);
             const files = /** @type {File[]} */ ([]);
 
             for (const page of pages) {
-                await html2canvas(page).then(function resolveCanvas(/** @type {HTMLCanvasElement} */ canvas) {
-                    canvas.toBlob(function handleBlob(blob) {
-                        if (blob) { canvases.push(blob); }
-                    });
+                canvases.push(await html2canvas(page).then(function resolveCanvas(/** @type {HTMLCanvasElement} */ canvas) {
+                    return canvas;
+                }));
+            }
+
+            for (const canvas of canvases) {
+                canvas.toBlob(function blobToFile(blob) {
+                    if (blob) { files.push(new File([blob], (files.length + 1) + ".png")); }
                 });
             }
-            canvases.forEach(function makeFile(value, index) {
-                files.push(new File([value], index + ".png"));
-            });
 
-            await navigator.share({ files }).catch(function handleError(error) {
-                window.console.error(error);
-            });
+            setTimeout(async () => {
+                await navigator.share({ files }).catch(function handleError(error) {
+                    window.console.error(error);
+                });
+            }, 0);
         }
 
         document.body.style.minWidth = '';
