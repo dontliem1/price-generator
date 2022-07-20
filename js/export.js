@@ -74,40 +74,61 @@ if (exportBtn) {
     });
 }
 
-const saveBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('save'));
-
-/**
- * @param {{ toDataURL: (arg0: string) => string; }} canvas
- */
-function resolveCanvas(canvas) {
-    const link = /** @type {HTMLAnchorElement | null} */ (document.getElementById('canvas'));
-
-    if (link) {
-        link.href = canvas.toDataURL('image/png');
-        link.download = link.dataset.index + '.png';
-        link.click();
-        link.dataset.index = (parseInt(link.dataset.index ?? '0', 10) + 1).toString();
-    }
+function checkBasicFileShare() {
+    // XXX: There is no straightforward API to do this.
+    // For now, assume that text/plain is supported everywhere.
+    const txt = new Blob(['Hello, world!'], { type: 'text/plain' });
+    // XXX: Blob support? https://github.com/w3c/web-share/issues/181
+    const file = new File([txt], "test.txt");
+    return navigator.canShare({ files: [file] });
 }
+
+const saveBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('save'));
 
 if (saveBtn) {
     saveBtn.addEventListener('click', async function handleSaveClick() {
         saveBtn.disabled = true;
-        document.body.style.minWidth = '1080px';
 
         await import('./html2canvas.min.js');
 
-        const link = document.createElement('a');
         const pages = document.getElementsByTagName('article');
 
-        link.id = 'canvas';
-        link.dataset.index = '1';
-        document.body.appendChild(link);
-        for (const page of pages) {
-            await html2canvas(page).then(resolveCanvas);
+        document.body.style.minWidth = '1080px';
+
+        if (navigator.share === undefined || !navigator.canShare || !checkBasicFileShare()) {
+            const link = document.createElement('a');
+            const canvases = /** @type {string[]} */ ([]);
+
+            document.body.appendChild(link);
+            for (const page of pages) {
+                await html2canvas(page).then(function resolveCanvas(canvas) { canvases.push(canvas.toDataURL()); });
+            }
+            for (let i = 0; i < canvases.length; i++) {
+                link.href = canvases[i];
+                link.download = (i + 1) + '.png';
+                link.click();
+            }
+            link.remove();
+        } else {
+            const canvases = /** @type {Blob[]} */ ([]);
+            const files = /** @type {File[]} */ ([]);
+
+            for (const page of pages) {
+                await html2canvas(page).then(function resolveCanvas(/** @type {HTMLCanvasElement} */ canvas) {
+                    canvas.toBlob(function handleBlob(blob) {
+                        if (blob) { canvases.push(blob); }
+                    });
+                });
+            }
+            canvases.forEach(function makeFile(value, index) {
+                files.push(new File([value], index + ".png"));
+            });
+
+            await navigator.share({ files }).catch(function handleError(error) {
+                window.console.error(error);
+            });
         }
 
-        link.remove();
         document.body.style.minWidth = '';
         saveBtn.disabled = false;
     });
