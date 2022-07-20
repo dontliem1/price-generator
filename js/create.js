@@ -83,25 +83,26 @@ if (pageBtn) {
     pageBtn.addEventListener('click', function handleAddPageClick() {
         const pages = document.getElementById('pages');
         if (pages) {
-            let newPage;
-            const activePage = getActivePage();
-            if (activePage) {
-                newPage = /** @type {HTMLLIElement} */ (activePage.cloneNode(true));
+            // let newPage;
+            // const activePage = getActivePage();
+            // if (activePage) {
+            //     newPage = /** @type {HTMLLIElement} */ (activePage.cloneNode(true));
 
-                let newPageTitle = newPage.querySelector('h1');
+            //     let newPageTitle = newPage.querySelector('h1');
 
-                if (newPageTitle) {
-                    newPageTitle.innerText += ' копия';
-                }
+            //     if (newPageTitle) {
+            //         newPageTitle.innerText += ' копия';
+            //     }
 
-                let newPageForm = newPage.querySelector('form');
-                if (newPageForm) {
-                    newPageForm.addEventListener('focusin', handleFormFocusIn);
-                    newPageForm.addEventListener('input', handleFormInput);
-                }
-            } else {
-                newPage = createPage();
-            }
+            //     let newPageForm = newPage.querySelector('form');
+            //     if (newPageForm) {
+            //         newPageForm.addEventListener('focusin', handleFormFocusIn);
+            //         newPageForm.addEventListener('input', handleFormInput);
+            //     }
+            // } else {
+            //     newPage = createPage();
+            // }
+            const newPage = createPage();
 
             pages.appendChild(newPage);
             newPage.scrollIntoView();

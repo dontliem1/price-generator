@@ -75,7 +75,17 @@ export function createSection(sectionJson = DEFAULTS.SECTION) {
     return section;
 }
 
-export function createPage(pageJson = DEFAULTS.PAGE, isActive = true) {
+const options = {
+    root: document.getElementById('#pages'),
+    rootMargin: '0px',
+    threshold: 0.75
+}
+const callback = function(entries, observer) {
+    console.log(entries, observer);
+};
+const observer = new IntersectionObserver(callback, options);
+
+export function createPage(pageJson, isActive = true) {
     const li = document.createElement('li');
     const article = document.createElement('article');
     const form = document.createElement('form');
@@ -116,6 +126,7 @@ export function createPage(pageJson = DEFAULTS.PAGE, isActive = true) {
         createEditableElement({ tag, text: pageJson[tag], parent: form });
     }
     li.appendChild(article);
+    observer.observe(li);
 
     return li;
 }
