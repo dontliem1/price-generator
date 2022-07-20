@@ -12,16 +12,16 @@ function Defaults() {
     this.SECTION = { H2: this.H2, UL: [this.LI, this.LI] };
     this.STYLE = {
         aspectRatio: '4 / 5',
-        backgroundColor: 'rgb(128, 128, 128)',
+        backgroundColor: 'rgb(50, 50, 50)',
         color: 'rgb(255, 255, 255)',
         fontFamily: 'system-ui, sans-serif',
         textAlign: 'left',
         justifyContent: 'flex-start',
-        opacity: '0.5',
+        opacity: '0.7',
         ['-webkit-backdrop-filter']: this.backdropFilter,
         backdropFilter: this.backdropFilter,
     };
-    this.FIRST_PAGE = { H1: 'ПРАЙС', STYLE: this.STYLE };
+    this.FIRST_PAGE = { H1: 'ПРАЙС', STYLE: {...this.STYLE, backgroundImage: 'url(http://placekitten.com/400/500)'} };
     this.PAGE = {
         H1: this.H1,
         SECTIONS: [this.SECTION],
