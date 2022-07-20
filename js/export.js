@@ -93,8 +93,7 @@ if (saveBtn) {
 
         const pages = document.getElementsByTagName('article');
 
-        document.body.style.minWidth = '1080px';
-
+        document.body.classList.add('rendering');
         if (navigator.share === undefined || !navigator.canShare || !checkBasicFileShare()) {
             const link = document.createElement('a');
             const canvases = /** @type {string[]} */ ([]);
@@ -103,25 +102,23 @@ if (saveBtn) {
             for (const page of pages) {
                 await html2canvas(page).then(function resolveCanvas(canvas) { canvases.push(canvas.toDataURL()); });
             }
-            for (let i = 0; i < canvases.length; i++) {
-                link.href = canvases[i];
-                link.download = (i + 1) + '.png';
-                link.click();
-            }
-            link.remove();
+
+            setTimeout(async () => {
+                for (let i = 0; i < canvases.length; i++) {
+                    link.href = canvases[i];
+                    link.download = (i + 1) + '.png';
+                    link.click();
+                }
+                link.remove();
+            }, 0);
         } else {
-            const canvases = /** @type {HTMLCanvasElement[]} */ ([]);
             const files = /** @type {File[]} */ ([]);
 
             for (const page of pages) {
-                canvases.push(await html2canvas(page).then(function resolveCanvas(/** @type {HTMLCanvasElement} */ canvas) {
-                    return canvas;
-                }));
-            }
-
-            for (const canvas of canvases) {
-                canvas.toBlob(function blobToFile(blob) {
-                    if (blob) { files.push(new File([blob], (files.length + 1) + ".png")); }
+                await html2canvas(page).then(function resolveCanvas(/** @type {HTMLCanvasElement} */ canvas) {
+                    canvas.toBlob(function blobToFile(blob) {
+                        if (blob) { files.push(new File([blob], (files.length + 1) + ".png")); }
+                    });
                 });
             }
 
@@ -129,10 +126,10 @@ if (saveBtn) {
                 await navigator.share({ files }).catch(function handleError(error) {
                     window.console.error(error);
                 });
-            }, 0);
+            }, 1);
         }
 
-        document.body.style.minWidth = '';
+        document.body.classList.remove('rendering');
         saveBtn.disabled = false;
     });
 }

@@ -22,6 +22,13 @@
             margin: 0;
             min-height: 100vh;
         }
+        .rendering * {
+            overflow: -moz-hidden-unscrollable;
+	        overflow: hidden;
+        }
+        .rendering {
+            min-width: 1080px;
+        }
 
         button,
         input,
@@ -229,12 +236,10 @@
 
 <body>
     <h1 class="visually-hidden">Конструктор прайс-листа</h1>
-    <p>
-        <label><input class="visually-hidden" id="import" type="file" accept="application/json" /><span>Импортировать</span></label>
+    <form class="settings">
+        <label><input class="visually-hidden" id="import" type="file" accept="application/json" /><span>Импорт</span></label>
         <a href="./" download='price.json' id="export">Сохранить</a>
         <button type="button" id="save">Экспорт в фото</button>
-    </p>
-    <form class="settings">
         <h2 class="visually-hidden">Настройка страницы</h2>
         <select name="aspectRatio" aria-label="Соотношение сторон" title="Выбрать соотношение сторон">
             <option value="1 / 1">1:1</option>
@@ -312,10 +317,10 @@
         <fieldset>
             <legend>Фон</legend>
             <label><input type="color" name="backgroundColor"> Цвет</label>
-            <label>Прозрачность <input type="range" name="opacity" min="0" max="1" step="0.1"></label>
+            <label>Прозрачность<br><input type="range" name="opacity" min="0" max="1" step="0.1"></label>
             <fieldset>
                 <legend>Картинка</legend>
-                <label>Размытие <input type="range" name="backdropFilter" min="0" max="50" step="1" value="0"></label>
+                <label>Размытие<br><input type="range" name="backdropFilter" min="0" max="50" step="1" value="0"></label>
                 <label><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span>Загрузить</span></label>
                 <button type="button" id="deleteBackgroundImage">Удалить</button>
             </fieldset>
@@ -328,7 +333,7 @@
             <button type="button" id="service">Услугу</button>
             <button type="button" id="subtitle">Подпись</button>
         </fieldset>
-        <button type="button" id="delete">Удалить последний активный элемент</button>
+        <button type="button" id="delete">Удалить последний выбранный элемент</button>
     </form>
     <main>
         <h2 class="visually-hidden">Страницы и содержимое</h2>
