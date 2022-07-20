@@ -119,6 +119,7 @@
             margin-right: auto;
             max-width: 1080px;
             position: relative;
+            display: grid;
         }
 
         .pages form {
@@ -131,18 +132,28 @@
             position: relative;
         }
 
-        .pages article>div {
-            bottom: 0;
-            left: 0;
-            position: absolute;
-            right: 0;
-            top: 0;
+        .pages article > div {
+            grid-column: 1/2;
+            grid-row: 1/2;
+            padding-bottom: 100%;
+            /* box-sizing: border-box;
+            min-height: 100%; */
+        }
+
+        .pages article[style*="aspect-ratio: 4 / 5;"] > div {
+            padding-bottom: 125%;
+        }
+
+        .pages article[style*="aspect-ratio: 9 / 16;"] > div {
+            padding-bottom: calc(16 / 9 * 100%);
         }
 
         .pages form {
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
+            grid-column: 1/2;
+            grid-row: 1/2;
         }
 
         .pages section+section {
