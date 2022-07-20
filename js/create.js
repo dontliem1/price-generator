@@ -1,6 +1,6 @@
 "use strict";
 
-import { createEditableElement, createPage, createSection, createService, getActiveForm, getActivePage, handleFormFocusIn, handleFormInput } from './utils.js';
+import { createEditableElement, createSection, createService, getActiveForm } from './utils.js';
 
 const titleBtn = document.getElementById('title');
 
@@ -72,40 +72,6 @@ if (serviceBtn) {
                 ul.appendChild(li);
                 form.appendChild(ul);
             }
-        }
-    });
-}
-
-//Добавить страницу
-const pageBtn = document.getElementById('page');
-
-if (pageBtn) {
-    pageBtn.addEventListener('click', function handleAddPageClick() {
-        const pages = document.getElementById('pages');
-        if (pages) {
-            // let newPage;
-            // const activePage = getActivePage();
-            // if (activePage) {
-            //     newPage = /** @type {HTMLLIElement} */ (activePage.cloneNode(true));
-
-            //     let newPageTitle = newPage.querySelector('h1');
-
-            //     if (newPageTitle) {
-            //         newPageTitle.innerText += ' копия';
-            //     }
-
-            //     let newPageForm = newPage.querySelector('form');
-            //     if (newPageForm) {
-            //         newPageForm.addEventListener('focusin', handleFormFocusIn);
-            //         newPageForm.addEventListener('input', handleFormInput);
-            //     }
-            // } else {
-            //     newPage = createPage();
-            // }
-            const newPage = createPage();
-
-            pages.appendChild(newPage);
-            newPage.scrollIntoView();
         }
     });
 }

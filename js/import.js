@@ -1,7 +1,9 @@
 "use strict";
 
-import { createPage, getActiveArticle, getActiveDiv, getActiveElement, getActiveForm } from "./utils.js";
+import { createSection, createEditableElement, getActiveArticle, getActiveDiv, getActiveElement, getActiveForm, handleFormFocusIn, handleFormInput } from "./utils.js";
 import { DEFAULTS } from "./constants.js";
+
+const mount = document.getElementById('pages');
 
 function handleArticleStylePropChange(e) {
     const activeArticle = getActiveArticle();
@@ -145,7 +147,7 @@ function ConvertRGBtoHex(rgb) {
     return "#" + ColorToHex(colors[0]) + ColorToHex(colors[1]) + ColorToHex(colors[2]);
 }
 
-function updateStyleControls() {
+export function updateStyleControls() {
     const activeArticle = getActiveArticle();
     const activeDiv = getActiveDiv();
     const activeForm = getActiveForm();
@@ -174,9 +176,64 @@ function updateStyleControls() {
     if (backdropFilterInput && activeForm) { backdropFilterInput.value = activeForm.style[backdropFilterInput.name] ? activeForm.style[backdropFilterInput.name].slice(5, -3) : '0'; }
 }
 
-//Импорт
-const mount = document.getElementById('pages');
+//Создание страницы
+const observer = new IntersectionObserver(function onIntersect(entries) {
+    entries.forEach(function handleEntryIntersection(entry) {
+        entry.target.classList.toggle('active', entry.isIntersecting);
+        updateStyleControls();
+    });
+}, {
+    root: mount,
+    threshold: 0.75
+});
 
+function createPage(pageJson, isActive = true) {
+    const li = document.createElement('li');
+    const article = document.createElement('article');
+    const form = document.createElement('form');
+    const div = document.createElement('div');
+
+    li.classList.toggle('active', isActive);
+    form.addEventListener('focusin', handleFormFocusIn);
+    form.addEventListener('input', handleFormInput);
+    article.append(div, form);
+
+    for (const tag in pageJson) {
+        if (tag === 'STYLE') {
+            for (const styleProp in pageJson[tag]) {
+                if (['-webkit-backdrop-filter', 'backdropFilter', 'textAlign', 'justifyContent'].includes(styleProp)) {
+                    form.style[styleProp] = pageJson[tag][styleProp];
+
+                    continue;
+                }
+                if (['backgroundColor', 'opacity'].includes(styleProp)) {
+                    div.style[styleProp] = pageJson[tag][styleProp];
+
+                    continue;
+                }
+                article.style[styleProp] = pageJson[tag][styleProp];
+            }
+
+            continue;
+        }
+        if (tag === 'SECTIONS') {
+            for (const sectionJson of pageJson[tag]) {
+                const section = createSection(sectionJson);
+
+                form.appendChild(section);
+            }
+
+            continue;
+        }
+        createEditableElement({ tag, text: pageJson[tag], parent: form });
+    }
+    li.appendChild(article);
+    observer.observe(li);
+
+    return li;
+}
+
+//Импорт
 function renderPages(pagesJson, mount) {
     const pages = [];
 
@@ -187,21 +244,9 @@ function renderPages(pagesJson, mount) {
         pages.push(li);
     }
     mount.append(...pages);
-    updateStyleControls();
 }
 
 if (mount) {
-    mount.addEventListener('scroll', function handlePagesScroll() {
-        if (mount.scrollLeft % mount.offsetWidth === 0) {
-            const activeIndex = mount.scrollLeft / mount.offsetWidth;
-            const pages = mount.children;
-
-            for (let i = 0; i < pages.length; i++) {
-                pages[i].classList.toggle('active', i === activeIndex);
-            }
-            updateStyleControls();
-        }
-    });
     renderPages([DEFAULTS.FIRST_PAGE, DEFAULTS.SECOND_PAGE], mount);
 }
 
@@ -259,8 +304,41 @@ if (deleteBtn) {
                 const li = pages.children[0];
 
                 li.classList.add('active');
-                updateStyleControls();
             }
+        }
+    });
+}
+
+//Добавить страницу
+const pageBtn = document.getElementById('page');
+
+if (pageBtn) {
+    pageBtn.addEventListener('click', function handleAddPageClick() {
+        const pages = document.getElementById('pages');
+        if (pages) {
+            // let newPage;
+            // const activePage = getActivePage();
+            // if (activePage) {
+            //     newPage = /** @type {HTMLLIElement} */ (activePage.cloneNode(true));
+
+            //     let newPageTitle = newPage.querySelector('h1');
+
+            //     if (newPageTitle) {
+            //         newPageTitle.innerText += ' копия';
+            //     }
+
+            //     let newPageForm = newPage.querySelector('form');
+            //     if (newPageForm) {
+            //         newPageForm.addEventListener('focusin', handleFormFocusIn);
+            //         newPageForm.addEventListener('input', handleFormInput);
+            //     }
+            // } else {
+            //     newPage = createPage();
+            // }
+            const newPage = createPage();
+
+            pages.appendChild(newPage);
+            newPage.scrollIntoView();
         }
     });
 }

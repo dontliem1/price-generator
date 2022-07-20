@@ -2,6 +2,7 @@
 
 function Defaults() {
     this.aspectRatio = '4 / 5';
+    this.opacity = '0.5';
     this.H1 = 'Заголовок страницы';
     this.H2 = 'Категория';
     this.H3 = 'Название услуги';
@@ -17,7 +18,7 @@ function Defaults() {
         fontFamily: 'system-ui, sans-serif',
         textAlign: 'left',
         justifyContent: 'flex-start',
-        opacity: '1',
+        opacity: this.opacity,
     };
     this.FIRST_PAGE = {
         H1: 'ПРАЙС',
@@ -27,7 +28,7 @@ function Defaults() {
             backgroundImage: 'url(images/example.webp)',
             color: 'rgb(255, 228, 168)',
             justifyContent: 'flex-end',
-            opacity: '0.5',
+            opacity: this.opacity,
         },
     };
     this.SECOND_PAGE = {
