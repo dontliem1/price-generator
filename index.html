@@ -300,10 +300,13 @@
         <fieldset>
             <legend>Фон</legend>
             <label><input type="color" name="backgroundColor"> Цвет</label>
-            <label>Размытие <input type="range" name="backdropFilter" min="0" max="50" step="1" value="0"></label>
-            <label>Непрозрачность <input type="range" name="opacity" min="0" max="1" step="0.1"></label>
-            <label><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span>Загрузить картинку</span></label>
-            <button type="button" id="deleteBackgroundImage">Удалить картинку</button>
+            <label>Прозрачность <input type="range" name="opacity" min="0" max="1" step="0.1"></label>
+            <fieldset>
+                <legend>Картинка</legend>
+                <label>Размытие <input type="range" name="backdropFilter" min="0" max="50" step="1" value="0"></label>
+                <label><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span>Загрузить</span></label>
+                <button type="button" id="deleteBackgroundImage">Удалить</button>
+            </fieldset>
         </fieldset>
         <fieldset>
             <legend>Добавить</legend>

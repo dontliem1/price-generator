@@ -32,7 +32,7 @@ const backdropFilterInput = /** @type {HTMLInputElement | null} */ (document.que
 
 if (backdropFilterInput) {
     backdropFilterInput.addEventListener('input', function handleBackdropFilterInput(e) {
-        const input = /** @type {HTMLInputElement} */ (e.target);
+        const input = /** @type {HTMLInputElement | null} */ (e.target);
         const activeForm = getActiveForm();
 
         if (input && activeForm) {
@@ -46,7 +46,16 @@ if (backdropFilterInput) {
 //Прозрачность подложки
 const opacityRange = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="opacity"]'));
 
-if (opacityRange) { opacityRange.addEventListener('input', handleDivStylePropChange); }
+if (opacityRange) {
+    opacityRange.addEventListener('input', function handleOpacityRangeChange(e) {
+        const activeDiv = getActiveDiv();
+        const input = /** @type {HTMLInputElement | null} */ (e.target);
+
+        if (input && activeDiv) {
+            activeDiv.style[input.name] = (1 - parseFloat(input.value)).toString();
+        }
+    });
+}
 
 //Фоновая картинка
 const backgroundImageInput = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="backgroundImage"]'));
@@ -149,14 +158,10 @@ function updateStyleControls() {
     assignValueFromStyle(justifyContentSelect, activeForm);
     assignValueFromStyle(fontFamilySelect, activeArticle);
     assignValueFromStyle(aspectRatioSelect, activeArticle);
-    assignValueFromStyle(opacityRange, activeDiv);
-    if (activeArticle && activeDiv && colorInput && backgroundColorInput) {
-        colorInput.value = ConvertRGBtoHex(activeArticle.style.color);
-        backgroundColorInput.value = ConvertRGBtoHex(activeDiv.style.backgroundColor);
-    }
-    if (backdropFilterInput && activeForm) {
-        backdropFilterInput.value = activeForm.style[backdropFilterInput.name].slice(5, -3);
-    }
+    if (opacityRange && activeDiv) { opacityRange.value = (1 - parseFloat(activeDiv.style.opacity)).toString(); }
+    if (activeArticle && colorInput) { colorInput.value = ConvertRGBtoHex(activeArticle.style.color); }
+    if (activeDiv && backgroundColorInput) { backgroundColorInput.value = ConvertRGBtoHex(activeDiv.style.backgroundColor); }
+    if (backdropFilterInput && activeForm) { backdropFilterInput.value = activeForm.style[backdropFilterInput.name].slice(5, -3); }
 }
 
 //Импорт
