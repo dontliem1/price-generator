@@ -150,8 +150,18 @@ function updateStyleControls() {
     const activeDiv = getActiveDiv();
     const activeForm = getActiveForm();
 
-    function assignValueFromStyle(elem, from) {
-        if (elem && from) { elem.value = from.style[elem.name]; }
+    /**
+     * @param {HTMLSelectElement | null} select
+     * @param {HTMLElement | null} from Откуда брать значение из style
+     */
+    function assignValueFromStyle(select, from) {
+        if (select && from) {
+            if (from.style[select.name]) {
+                select.value = from.style[select.name];
+            } else {
+                select.selectedIndex = 0;
+            }
+        }
     }
 
     assignValueFromStyle(textAlignSelect, activeForm);
@@ -161,7 +171,7 @@ function updateStyleControls() {
     if (opacityRange && activeDiv) { opacityRange.value = (1 - parseFloat(activeDiv.style.opacity)).toString(); }
     if (activeArticle && colorInput) { colorInput.value = ConvertRGBtoHex(activeArticle.style.color); }
     if (activeDiv && backgroundColorInput) { backgroundColorInput.value = ConvertRGBtoHex(activeDiv.style.backgroundColor); }
-    if (backdropFilterInput && activeForm) { backdropFilterInput.value = activeForm.style[backdropFilterInput.name].slice(5, -3); }
+    if (backdropFilterInput && activeForm) { backdropFilterInput.value = activeForm.style[backdropFilterInput.name] ? activeForm.style[backdropFilterInput.name].slice(5, -3) : '0'; }
 }
 
 //Импорт
@@ -192,7 +202,7 @@ if (mount) {
             updateStyleControls();
         }
     });
-    renderPages([DEFAULTS.FIRST_PAGE, DEFAULTS.PAGE], mount);
+    renderPages([DEFAULTS.FIRST_PAGE, DEFAULTS.SECOND_PAGE], mount);
 }
 
 const importInput = document.getElementById('import');

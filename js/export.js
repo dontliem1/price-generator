@@ -3,6 +3,26 @@
 //Экспорт
 const exportBtn = /** @type {HTMLAnchorElement | null} */ (document.getElementById('export'));
 
+function parseStyles({ page, form, div }) {
+    const result = {};
+
+    ['aspectRatio', 'color', 'fontFamily'].forEach(function addPageProps(prop) {
+        if (page.style[prop]) { result[prop] = page.style[prop]; }
+    });
+    if (form) {
+        ['-webkit-backdrop-filter', 'backdropFilter', 'justifyContent', 'textAlign'].forEach(function addFormProps(prop) {
+            if (form.style[prop]) { result[prop] = form.style[prop]; }
+        });
+    }
+    if (div) {
+        ['backgroundColor', 'opacity'].forEach(function addFormProps(prop) {
+            if (div.style[prop]) { result[prop] = div.style[prop]; }
+        });
+    }
+
+    return result;
+}
+
 if (exportBtn) {
     exportBtn.addEventListener('click', function handleExportClick() {
         const json = [];
@@ -44,22 +64,7 @@ if (exportBtn) {
                 }
                 pageJson[priceElem.tagName] = priceElem.textContent;
             }
-            pageJson.STYLE = {
-                aspectRatio: page.style.aspectRatio,
-                color: page.style.color,
-                fontFamily: page.style.fontFamily,
-            };
-            if (form) {
-                pageJson.STYLE.textAlign = form.style.textAlign;
-                pageJson.STYLE.justifyContent = form.style.justifyContent;
-                // @ts-ignore
-                pageJson.STYLE.backdropFilter = form.style.backdropFilter;
-                pageJson.STYLE['-webkit-backdrop-filter'] = form.style['-webkit-backdrop-filter'];
-            }
-            if (div) {
-                pageJson.STYLE.backgroundColor = div.style.backgroundColor;
-                pageJson.STYLE.opacity = div.style.opacity;
-            }
+            pageJson.STYLE = parseStyles({ page, form, div });
             json.push(pageJson);
         }
         const stringified = JSON.stringify(json);
@@ -71,6 +76,9 @@ if (exportBtn) {
 
 const saveBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('save'));
 
+/**
+ * @param {{ toDataURL: (arg0: string) => string; }} canvas
+ */
 function resolveCanvas(canvas) {
     const link = /** @type {HTMLAnchorElement | null} */ (document.getElementById('canvas'));
 
