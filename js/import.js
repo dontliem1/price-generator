@@ -1,6 +1,6 @@
 "use strict";
 
-import { createSection, createEditableElement, getActiveArticle, getActiveDiv, getActiveElement, getActiveForm, handleFormFocusIn, handleFormInput } from "./utils.js";
+import { createSection, createEditableElement, getActiveArticle, getActiveDiv, getActiveElement, getActiveForm, handleFormFocusIn, handleFormInput, getActivePage } from "./utils.js";
 import { DEFAULTS } from "./constants.js";
 
 const mount = document.getElementById('pages');
@@ -312,32 +312,45 @@ if (deleteBtn) {
 //Добавить страницу
 const pageBtn = document.getElementById('page');
 
-if (pageBtn) {
+if (pageBtn && mount) {
     pageBtn.addEventListener('click', function handleAddPageClick() {
+        const newPage = createPage();
+
+        mount.appendChild(newPage);
+        newPage.scrollIntoView();
+    }
+    );
+}
+
+//Дублировать страницу
+const duplicateBtn = document.getElementById('duplicate');
+
+if (duplicateBtn) {
+    duplicateBtn.addEventListener('click', function handleAddPageClick() {
         const pages = document.getElementById('pages');
         if (pages) {
-            // let newPage;
-            // const activePage = getActivePage();
-            // if (activePage) {
-            //     newPage = /** @type {HTMLLIElement} */ (activePage.cloneNode(true));
+            let newPage;
+            const activePage = getActivePage();
+            if (activePage) {
+                newPage = /** @type {HTMLLIElement} */ (activePage.cloneNode(true));
 
-            //     let newPageTitle = newPage.querySelector('h1');
+                let newPageTitle = newPage.querySelector('h1');
 
-            //     if (newPageTitle) {
-            //         newPageTitle.innerText += ' копия';
-            //     }
+                if (newPageTitle) {
+                    newPageTitle.innerText += ' копия';
+                }
 
-            //     let newPageForm = newPage.querySelector('form');
-            //     if (newPageForm) {
-            //         newPageForm.addEventListener('focusin', handleFormFocusIn);
-            //         newPageForm.addEventListener('input', handleFormInput);
-            //     }
-            // } else {
-            //     newPage = createPage();
-            // }
-            const newPage = createPage();
+                let newPageForm = newPage.querySelector('form');
+                if (newPageForm) {
+                    newPageForm.addEventListener('focusin', handleFormFocusIn);
+                    newPageForm.addEventListener('input', handleFormInput);
+                }
+            } else {
+                newPage = createPage();
+            }
 
             pages.appendChild(newPage);
+            observer.observe(newPage);
             newPage.scrollIntoView();
         }
     });
