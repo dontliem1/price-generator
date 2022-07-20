@@ -220,10 +220,14 @@
 </head>
 
 <body>
-    <form class="settings">
+    <h1 class="visually-hidden">Конструктор прайс-листа</h1>
+    <p>
         <label><input class="visually-hidden" id="import" type="file" accept="application/json" /><span>Импортировать</span></label>
         <a href="./" download='price.json' id="export">Сохранить</a>
-        <button type="button" id="save">Экспорт картинок</button>
+        <button type="button" id="save">Экспорт</button>
+    </p>
+    <form class="settings">
+        <h2 class="visually-hidden">Настройка страницы</h2>
         <select name="aspectRatio" aria-label="Соотношение сторон" title="Выбрать соотношение сторон">
             <option value="1 / 1">1:1</option>
             <option value="4 / 5" selected>4:5</option>
@@ -283,7 +287,7 @@
                 <option value='"Yeseva One", serif'>Yeseva One</option>
             </optgroup>
         </select>
-        <label><input type="color" name="color"> Цвет текста</label>
+        <label><input type="color" name="color"> Текст</label>
         <fieldset>
             <legend>Заголовок</legend>
             <select name="textAlign" aria-label="Выравнивание текста" title="Выбрать горизонтальное выравнивание">
@@ -318,7 +322,10 @@
         </fieldset>
         <button type="button" id="delete">Удалить последний активный элемент</button>
     </form>
-    <ol id="pages" class="pages"></ol>
+    <main>
+        <h2 class="visually-hidden">Страницы и содержимое</h2>
+        <ol id="pages" class="pages"></ol>
+    </main>
 
     <script src="js/import.js" type="module"></script>
     <script src="js/create.js" type="module"></script>
