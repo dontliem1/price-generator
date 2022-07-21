@@ -20,6 +20,33 @@ function createEditableElement({ tag, text, parent, fromStart }) {
         }
     }
 
+
+    elem.addEventListener('paste', function (e) {
+        e.preventDefault();
+
+        const text = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
+        const oldSelection = document.getSelection();
+
+        if (oldSelection) {
+            const range = oldSelection.getRangeAt(0);
+
+            range.deleteContents();
+
+            const textNode = document.createTextNode(text);
+
+            range.insertNode(textNode);
+            range.selectNodeContents(textNode);
+            range.collapse(false);
+
+            const selection = window.getSelection();
+
+            if (selection) {
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        }
+    });
+
     return elem;
 }
 
