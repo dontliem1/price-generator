@@ -27,7 +27,9 @@
 	        overflow: hidden;
         }
         .rendering {
-            min-width: 1080px;
+            width: 1080px;
+            overflow: -moz-hidden-unscrollable;
+	        overflow: hidden;
         }
 
         button,
@@ -357,6 +359,7 @@
             <button type="button" id="subtitle">Подпись</button>
         </fieldset>
         <button type="button" id="delete">Удалить последний выбранный элемент</button>
+        <button type="button" id="deletePage">Удалить страницу</button>
         <button type="button" id="duplicate">Дублировать страницу</button>
     </form>
     <main>

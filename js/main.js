@@ -7,11 +7,11 @@ import { DEFAULTS } from "./constants.js";
  * @param {{tag: string; text?: string; parent?: HTMLElement; fromStart?: boolean}} params
  * @returns {HTMLElement} Созданный элемент
  */
-function createEditableElement({ tag, text = DEFAULTS[tag], parent, fromStart }) {
+function createEditableElement({ tag, text, parent, fromStart }) {
     const elem = document.createElement(tag);
 
     elem.setAttribute('contenteditable', 'true');
-    elem.innerText = text;
+    elem.innerText = text ?? DEFAULTS[tag];
     if (parent) {
         if (fromStart) {
             parent.prepend(elem);
@@ -73,6 +73,14 @@ function createSection(sectionJson = DEFAULTS.SECTION) {
     }
 
     return section;
+}
+
+/**
+ * Найти li активной страницы
+ * @returns {HTMLLIElement | null}
+ */
+function getActiveLi() {
+    return document.querySelector('li.active');
 }
 
 /**
@@ -371,8 +379,20 @@ if (importInput && mount) {
     });
 }
 
+//Удаление страницы
+const deletePageBtn =  /** @type {HTMLButtonElement | null} */ (document.getElementById('deletePage'));
 
-//Удаление
+if (deletePageBtn) {
+    deletePageBtn.addEventListener('click', function handleDeleteClick() {
+        const activePage = getActiveLi();
+
+        if (activePage && window.confirm('Удалить страницу?')) {
+            activePage.remove();
+        }
+    });
+}
+
+//Удаление элемента
 const deleteBtn =  /** @type {HTMLButtonElement | null} */ (document.getElementById('delete'));
 
 if (deleteBtn) {
@@ -380,7 +400,6 @@ if (deleteBtn) {
         const activeElement = /** @type {HTMLElement | null} */ (document.querySelector('.active[contenteditable]'));
 
         if (activeElement && window.confirm(`Удалить элемент${activeElement.innerText.trim() ? (' «' + activeElement.innerText + '»') : ''}?`)) {
-            const pages = document.getElementById('pages');
             const section = activeElement.closest('section');
             const li = activeElement.closest('li');
 
@@ -391,13 +410,6 @@ if (deleteBtn) {
             }
             if (li && !li.innerText.trim()) {
                 li.remove();
-            }
-
-
-            if (pages && pages.children.length === 1) {
-                const li = pages.children[0];
-
-                li.classList.add('active');
             }
         }
     });
@@ -424,7 +436,7 @@ if (duplicateBtn) {
         const pages = document.getElementById('pages');
         if (pages) {
             let newPage;
-            const activePage = document.querySelector('li.active');
+            const activePage = getActiveLi();
 
             if (activePage) {
                 newPage = /** @type {HTMLLIElement} */ (activePage.cloneNode(true));
