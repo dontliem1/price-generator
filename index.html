@@ -120,6 +120,7 @@
             max-width: 1080px;
             position: relative;
             display: grid;
+            overflow: hidden;
         }
 
         .pages form {
@@ -136,8 +137,8 @@
             grid-column: 1/2;
             grid-row: 1/2;
             padding-bottom: 100%;
-            /* box-sizing: border-box;
-            min-height: 100%; */
+            box-sizing: border-box;
+            min-height: 100%;
         }
 
         .pages article[style*="aspect-ratio: 4 / 5;"] > div {
@@ -363,8 +364,7 @@
         <ol id="pages" class="pages"></ol>
     </main>
 
-    <script src="js/import.js" type="module"></script>
-    <script src="js/create.js" type="module"></script>
+    <script src="js/main.js" type="module"></script>
     <script src="js/export.js" type="module"></script>
 </body>
 

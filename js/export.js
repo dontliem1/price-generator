@@ -75,10 +75,7 @@ if (exportBtn) {
 }
 
 function checkBasicFileShare() {
-    // XXX: There is no straightforward API to do this.
-    // For now, assume that text/plain is supported everywhere.
     const txt = new Blob(['Hello, world!'], { type: 'text/plain' });
-    // XXX: Blob support? https://github.com/w3c/web-share/issues/181
     const file = new File([txt], "test.txt");
     return navigator.canShare({ files: [file] });
 }

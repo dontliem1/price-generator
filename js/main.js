@@ -1,7 +1,103 @@
 "use strict";
 
-import { createSection, createEditableElement, getActiveArticle, getActiveDiv, getActiveElement, getActiveForm, handleFormFocusIn, handleFormInput, getActivePage } from "./utils.js";
 import { DEFAULTS } from "./constants.js";
+
+/**
+ * Создает редактируемый элемент и добавляет к родителю
+ * @param {{tag: string; text?: string; parent?: HTMLElement; fromStart?: boolean}} params
+ * @returns {HTMLElement} Созданный элемент
+ */
+function createEditableElement({ tag, text = DEFAULTS[tag], parent, fromStart }) {
+    const elem = document.createElement(tag);
+
+    elem.setAttribute('contenteditable', 'true');
+    elem.innerText = text;
+    if (parent) {
+        if (fromStart) {
+            parent.prepend(elem);
+        } else {
+            parent.appendChild(elem);
+        }
+    }
+
+    return elem;
+}
+
+function handleFormFocusIn(e) {
+    const element = /** @type {HTMLElement} */ (e.target);
+    const editableElements = document.querySelectorAll('[contenteditable]');
+
+    for (const editableElement of editableElements) {
+        editableElement.classList.toggle('active', editableElement === element);
+    }
+}
+
+function handleFormInput(e) {
+    const element = /** @type {HTMLElement} */ (e.target);
+    if (!element.textContent) {
+        element.innerHTML = ' ';
+    }
+    // const page = e.currentTarget.parentElement;
+    // if (page && (page.scrollHeight - page.clientHeight > 16)) {
+    //     window.alert(page.scrollHeight + ' ' + page.clientHeight);
+    // }
+}
+
+function createService(serviceJson = DEFAULTS.LI) {
+    const li = document.createElement('li');
+
+    for (const liTag in serviceJson) {
+        createEditableElement({ tag: liTag, text: serviceJson[liTag], parent: li });
+    }
+
+    return li;
+}
+
+function createSection(sectionJson = DEFAULTS.SECTION) {
+    const section = document.createElement('section');
+
+    for (const sectionTag in sectionJson) {
+        if (sectionTag === 'UL') {
+            const ul = document.createElement('ul');
+
+            for (const liJson of sectionJson[sectionTag]) {
+                const li = createService(liJson);
+
+                ul.appendChild(li);
+            }
+            section.appendChild(ul);
+
+            continue;
+        }
+        createEditableElement({ tag: sectionTag, text: sectionJson[sectionTag], parent: section });
+    }
+
+    return section;
+}
+
+/**
+ * Найти article активной страницы
+ * @returns {HTMLElement | null}
+ */
+function getActiveArticle() {
+    return document.querySelector('li.active > article');
+}
+
+/**
+ * Найти форму активной страницы
+ * @returns {HTMLFormElement | null}
+ */
+function getActiveForm() {
+    return document.querySelector('li.active form');
+}
+
+/**
+ * Найти подложку активной страницы
+ * @returns {HTMLDivElement | null}
+ */
+function getActiveDiv() {
+    return document.querySelector('li.active div');
+}
 
 const mount = document.getElementById('pages');
 
@@ -18,14 +114,6 @@ function handleFormStylePropChange(e) {
 
     if (activeForm) {
         activeForm.style[e.target.name] = e.target.value;
-    }
-}
-
-function handleDivStylePropChange(e) {
-    const activeDiv = getActiveDiv();
-
-    if (activeDiv) {
-        activeDiv.style[e.target.name] = e.target.value;
     }
 }
 
@@ -133,7 +221,16 @@ if (colorInput) { colorInput.addEventListener('change', handleArticleStylePropCh
 
 const backgroundColorInput = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="backgroundColor"]'));
 
-if (backgroundColorInput) { backgroundColorInput.addEventListener('change', handleDivStylePropChange); }
+if (backgroundColorInput) {
+    backgroundColorInput.addEventListener('change', function handleDivStylePropChange(e) {
+        const activeDiv = getActiveDiv();
+        const input = /** @type {HTMLInputElement | null} */ (e.target);
+
+        if (activeDiv && input) {
+            activeDiv.style[input.name] = input.value;
+        }
+    });
+}
 
 function ColorToHex(color) {
     const hexadecimal = parseInt(color, 10).toString(16);
@@ -147,8 +244,11 @@ function ConvertRGBtoHex(rgb) {
     return "#" + ColorToHex(colors[0]) + ColorToHex(colors[1]) + ColorToHex(colors[2]);
 }
 
-export function updateStyleControls() {
-    const activeArticle = getActiveArticle();
+//Создание страницы
+const observer = new IntersectionObserver(function onIntersect(entries) {
+    entries.forEach(function handleEntryIntersection(entry) {
+        entry.target.classList.toggle('active', entry.isIntersecting);
+        const activeArticle = getActiveArticle();
     const activeDiv = getActiveDiv();
     const activeForm = getActiveForm();
 
@@ -174,13 +274,6 @@ export function updateStyleControls() {
     if (activeArticle && colorInput) { colorInput.value = ConvertRGBtoHex(activeArticle.style.color); }
     if (activeDiv && backgroundColorInput) { backgroundColorInput.value = ConvertRGBtoHex(activeDiv.style.backgroundColor); }
     if (backdropFilterInput && activeForm) { backdropFilterInput.value = activeForm.style[backdropFilterInput.name] ? activeForm.style[backdropFilterInput.name].slice(5, -3) : '0'; }
-}
-
-//Создание страницы
-const observer = new IntersectionObserver(function onIntersect(entries) {
-    entries.forEach(function handleEntryIntersection(entry) {
-        entry.target.classList.toggle('active', entry.isIntersecting);
-        updateStyleControls();
     });
 }, {
     root: mount,
@@ -284,7 +377,8 @@ const deleteBtn =  /** @type {HTMLButtonElement | null} */ (document.getElementB
 
 if (deleteBtn) {
     deleteBtn.addEventListener('click', function handleDeleteClick() {
-        const activeElement = getActiveElement();
+        const activeElement = /** @type {HTMLElement | null} */ (document.querySelector('.active[contenteditable]'));
+
         if (activeElement && window.confirm(`Удалить элемент${activeElement.innerText.trim() ? (' «' + activeElement.innerText + '»') : ''}?`)) {
             const pages = document.getElementById('pages');
             const section = activeElement.closest('section');
@@ -330,7 +424,8 @@ if (duplicateBtn) {
         const pages = document.getElementById('pages');
         if (pages) {
             let newPage;
-            const activePage = getActivePage();
+            const activePage = document.querySelector('li.active');
+
             if (activePage) {
                 newPage = /** @type {HTMLLIElement} */ (activePage.cloneNode(true));
 
@@ -352,6 +447,80 @@ if (duplicateBtn) {
             pages.appendChild(newPage);
             observer.observe(newPage);
             newPage.scrollIntoView();
+        }
+    });
+}
+
+const titleBtn = document.getElementById('title');
+
+if (titleBtn) {
+    titleBtn.addEventListener('click', function handleAddTitleClick() {
+        const form = getActiveForm();
+        if (form) {
+            const existingTitle = form.querySelector('h1');
+
+            if (existingTitle) {
+                existingTitle.focus();
+            } else {
+                createEditableElement({ tag: 'H1', fromStart: true, parent: form });
+            }
+        }
+    });
+}
+
+const subtitleBtn = document.getElementById('subtitle');
+
+if (subtitleBtn) {
+    subtitleBtn.addEventListener('click', function handleAddSubtitleClick() {
+        const form = getActiveForm();
+        if (form) {
+            const existingSubtitle = form.querySelector('footer');
+
+            if (existingSubtitle) {
+                existingSubtitle.focus();
+            } else {
+                createEditableElement({ tag: 'FOOTER', parent: form });
+            }
+        }
+    });
+}
+
+const groupBtn = document.getElementById('group');
+
+if (groupBtn) {
+    groupBtn.addEventListener('click', function handleAddGroupClick() {
+        const form = getActiveForm();
+        if (form) {
+            const existingSubtitle = form.querySelector('footer');
+            const group = createSection();
+
+            if (existingSubtitle) {
+                form.insertBefore(group, existingSubtitle);
+            } else {
+                form.appendChild(group);
+            }
+        }
+    });
+}
+
+//Добавить услугу
+const serviceBtn = document.getElementById('service');
+
+if (serviceBtn) {
+    serviceBtn.addEventListener('click', function handleAddServiceClick() {
+        const form = getActiveForm();
+        if (form) {
+            const existingGroup = form.querySelector('ul');
+            const li = createService();
+
+            if (existingGroup) {
+                existingGroup.appendChild(li);
+            } else {
+                const ul = document.createElement('ul');
+
+                ul.appendChild(li);
+                form.appendChild(ul);
+            }
         }
     });
 }
