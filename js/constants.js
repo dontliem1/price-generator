@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 function Defaults() {
     this.aspectRatio = '4 / 5';
@@ -9,8 +9,15 @@ function Defaults() {
     this.P = 'Цена';
     this.SPAN = 'Описание услуги';
     this.FOOTER = 'Подпись страницы';
-    this.LI = { H3: this.H3, P: this.P, SPAN: this.SPAN };
-    this.SECTION = { H2: this.H2, UL: [this.LI, this.LI] };
+    this.LI = {
+        H3: this.H3,
+        P: this.P,
+        SPAN: this.SPAN,
+    };
+    this.SECTION = {
+        H2: this.H2,
+        UL: [this.LI, this.LI],
+    };
     this.STYLE = {
         aspectRatio: this.aspectRatio,
         backgroundColor: 'rgb(50, 50, 50)',
@@ -39,7 +46,7 @@ function Defaults() {
                     {
                         H3: 'Архитектура бровей',
                         P: '1100',
-                        SPAN: 'моделирование + окрашивание краской/хной + коррекция'
+                        SPAN: 'моделирование + окрашивание краской/хной + коррекция',
                     },
                     {
                         H3: 'Архитектура + долговременная укладка/ламинирование бровей',
@@ -49,7 +56,7 @@ function Defaults() {
                         H3: 'Долго­временная укладка/ламинирование бровей',
                         P: '1000',
                     },
-                ]
+                ],
             }],
         FOOTER: 'Источник картинки с первой страницы: https://unsplash.com/photos/hSlmasb-tuE',
         STYLE: this.STYLE,

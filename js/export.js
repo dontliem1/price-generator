@@ -1,22 +1,28 @@
-"use strict";
+'use strict';
 
-//Экспорт
+// Экспорт
 const exportBtn = /** @type {HTMLAnchorElement | null} */ (document.getElementById('export'));
 
 function parseStyles({ page, form, div }) {
     const result = {};
 
-    ['aspectRatio', 'color', 'fontFamily'].forEach(function addPageProps(prop) {
-        if (page.style[prop]) { result[prop] = page.style[prop]; }
+    [ 'aspectRatio', 'color', 'fontFamily' ].forEach(function addPageProps(prop) {
+        if (page.style[prop]) {
+            result[prop] = page.style[prop];
+        }
     });
     if (form) {
-        ['-webkit-backdrop-filter', 'backdropFilter', 'justifyContent', 'textAlign'].forEach(function addFormProps(prop) {
-            if (form.style[prop]) { result[prop] = form.style[prop]; }
+        [ '-webkit-backdrop-filter', 'backdropFilter', 'justifyContent', 'textAlign' ].forEach(function addFormProps(prop) {
+            if (form.style[prop]) {
+                result[prop] = form.style[prop];
+            }
         });
     }
     if (div) {
-        ['backgroundColor', 'opacity'].forEach(function addFormProps(prop) {
-            if (div.style[prop]) { result[prop] = div.style[prop]; }
+        [ 'backgroundColor', 'opacity' ].forEach(function addFormProps(prop) {
+            if (div.style[prop]) {
+                result[prop] = div.style[prop];
+            }
         });
     }
 
@@ -64,20 +70,24 @@ if (exportBtn) {
                 }
                 pageJson[priceElem.tagName] = priceElem.textContent;
             }
-            pageJson.STYLE = parseStyles({ page, form, div });
+            pageJson.STYLE = parseStyles({
+                page,
+                form,
+                div,
+            });
             json.push(pageJson);
         }
         const stringified = JSON.stringify(json);
-        const exportJson = new Blob([stringified], { type: 'text/json' });
+        const exportJson = new Blob([ stringified ], { type: 'text/json' });
 
         exportBtn.href = URL.createObjectURL(exportJson);
     });
 }
 
 function checkBasicFileShare() {
-    const txt = new Blob(['Hello, world!'], { type: 'text/plain' });
-    const file = new File([txt], "test.txt");
-    return navigator.canShare({ files: [file] });
+    const txt = new Blob([ 'Hello, world!' ], { type: 'text/plain' });
+    const file = new File([ txt ], 'test.txt');
+    return navigator.canShare({ files: [ file ] });
 }
 
 const saveBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('save'));
@@ -97,7 +107,9 @@ if (saveBtn) {
 
             document.body.appendChild(link);
             for (const page of pages) {
-                await html2canvas(page).then(function resolveCanvas(canvas) { canvases.push(canvas.toDataURL()); });
+                await html2canvas(page).then(function resolveCanvas(canvas) {
+                    canvases.push(canvas.toDataURL());
+                });
             }
 
             setTimeout(async () => {
@@ -114,7 +126,9 @@ if (saveBtn) {
             for (const page of pages) {
                 await html2canvas(page).then(function resolveCanvas(/** @type {HTMLCanvasElement} */ canvas) {
                     canvas.toBlob(function blobToFile(blob) {
-                        if (blob) { files.push(new File([blob], (files.length + 1) + ".png")); }
+                        if (blob) {
+                            files.push(new File([ blob ], (files.length + 1) + '.png'));
+                        }
                     });
                 });
             }

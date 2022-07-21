@@ -1,10 +1,11 @@
-"use strict";
+'use strict';
 
-import { DEFAULTS } from "./constants.js";
+import { DEFAULTS } from './constants.js';
 
+/** @typedef {{tag: string; text?: string; parent?: HTMLElement; fromStart?: boolean}} editableElementParams */
 /**
  * Создает редактируемый элемент и добавляет к родителю
- * @param {{tag: string; text?: string; parent?: HTMLElement; fromStart?: boolean}} params
+ * @param {editableElementParams} params Параметры
  * @returns {HTMLElement} Созданный элемент
  */
 function createEditableElement({ tag, text, parent, fromStart }) {
@@ -51,8 +52,9 @@ function createEditableElement({ tag, text, parent, fromStart }) {
 }
 
 function handleFormFocusIn(e) {
+    const form = /** @type {HTMLFormElement} */ (e.currentTarget);
     const element = /** @type {HTMLElement} */ (e.target);
-    const editableElements = document.querySelectorAll('[contenteditable]');
+    const editableElements = form.querySelectorAll('[contenteditable]');
 
     for (const editableElement of editableElements) {
         editableElement.classList.toggle('active', editableElement === element);
@@ -74,7 +76,9 @@ function createService(serviceJson = DEFAULTS.LI) {
     const li = document.createElement('li');
 
     for (const liTag in serviceJson) {
-        createEditableElement({ tag: liTag, text: serviceJson[liTag], parent: li });
+        createEditableElement({ tag: liTag,
+text: serviceJson[liTag],
+parent: li });
     }
 
     return li;
@@ -96,42 +100,49 @@ function createSection(sectionJson = DEFAULTS.SECTION) {
 
             continue;
         }
-        createEditableElement({ tag: sectionTag, text: sectionJson[sectionTag], parent: section });
+        createEditableElement({ tag: sectionTag,
+text: sectionJson[sectionTag],
+parent: section });
     }
 
     return section;
 }
 
 /**
- * Найти li активной страницы
- * @returns {HTMLLIElement | null}
+ * @returns {HTMLLIElement | null} `<li>` активной страницы
  */
 function getActiveLi() {
     return document.querySelector('li.active');
 }
 
 /**
- * Найти article активной страницы
- * @returns {HTMLElement | null}
+ * @returns {HTMLElement | null} `<article>` активной страницы
  */
 function getActiveArticle() {
     return document.querySelector('li.active > article');
 }
 
 /**
- * Найти форму активной страницы
- * @returns {HTMLFormElement | null}
+ * @returns {HTMLFormElement | null} `<form>` активной страницы
  */
 function getActiveForm() {
     return document.querySelector('li.active form');
 }
 
 /**
- * Найти подложку активной страницы
- * @returns {HTMLDivElement | null}
+ * @returns {HTMLDivElement | null} `<div>` подложка активной страницы
  */
 function getActiveDiv() {
     return document.querySelector('li.active div');
+}
+
+/**
+ * @returns {HTMLElement | null} последний элемент страницы в фокусе
+ */
+function getActiveElement() {
+    const form = getActiveForm();
+
+    return form ? form.querySelector('.active[contenteditable]') : null;
 }
 
 const mount = document.getElementById('pages');
@@ -152,7 +163,7 @@ function handleFormStylePropChange(e) {
     }
 }
 
-//Размытие фона
+// Размытие фона
 const backdropFilterInput = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="backdropFilter"]'));
 
 if (backdropFilterInput) {
@@ -161,14 +172,14 @@ if (backdropFilterInput) {
         const activeForm = getActiveForm();
 
         if (input && activeForm) {
-            const value = `blur(${input.value}px)`;
+            const value = `blur(${ input.value }px)`;
 
             activeForm.style[input.name] = activeForm.style['-webkit-backdrop-filter'] = value;
         }
     });
 }
 
-//Прозрачность подложки
+// Прозрачность подложки
 const opacityRange = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="opacity"]'));
 
 if (opacityRange) {
@@ -182,7 +193,7 @@ if (opacityRange) {
     });
 }
 
-//Фоновая картинка
+// Фоновая картинка
 const backgroundImageInput = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="backgroundImage"]'));
 
 if (backgroundImageInput) {
@@ -216,17 +227,21 @@ if (deleteBackgroundImage) {
     });
 }
 
-//Выключка заголовка
+// Выключка заголовка
 const textAlignSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="textAlign"]'));
 
-if (textAlignSelect) { textAlignSelect.addEventListener('change', handleFormStylePropChange); }
+if (textAlignSelect) {
+ textAlignSelect.addEventListener('change', handleFormStylePropChange);
+}
 
-//Вертикальное выравнивание заголовка
+// Вертикальное выравнивание заголовка
 const justifyContentSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="justifyContent"]'));
 
-if (justifyContentSelect) { justifyContentSelect.addEventListener('change', handleFormStylePropChange); }
+if (justifyContentSelect) {
+ justifyContentSelect.addEventListener('change', handleFormStylePropChange);
+}
 
-//Шрифт
+// Шрифт
 const fontFamilySelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="fontFamily"]'));
 
 if (fontFamilySelect) {
@@ -236,7 +251,7 @@ if (fontFamilySelect) {
             const link = document.createElement('link');
 
             link.rel = 'stylesheet';
-            link.href = "https://fonts.googleapis.com/css2?family=Alegreya&family=Alice&family=Bitter&family=Cormorant&family=EB+Garamond&family=IBM+Plex+Serif&family=Literata:opsz@7..72&family=Lora&family=Merriweather&family=Old+Standard+TT&family=PT+Serif&family=PT+Serif+Caption&family=Piazzolla:opsz@8..30&family=Playfair+Display&family=Prata&family=Source+Serif+Pro&family=Spectral&family=Alegreya+Sans&family=Arsenal&family=Commissioner&family=IBM+Plex+Mono&family=IBM+Plex+Sans&family=Inter&family=JetBrains+Mono&family=Montserrat&family=PT+Mono&family=PT+Sans&family=Raleway&family=Roboto&family=Roboto+Condensed&family=Roboto+Mono&family=Rubik&family=Yanone+Kaffeesatz&family=Caveat&family=Lobster&family=Pacifico&family=Pangolin&family=Podkova&family=Press+Start+2P&family=Ruslan+Display&family=Russo+One&family=Underdog&family=Yeseva+One&display=swap";
+            link.href = 'https://fonts.googleapis.com/css2?family=Alegreya&family=Alice&family=Bitter&family=Cormorant&family=EB+Garamond&family=IBM+Plex+Serif&family=Literata:opsz@7..72&family=Lora&family=Merriweather&family=Old+Standard+TT&family=PT+Serif&family=PT+Serif+Caption&family=Piazzolla:opsz@8..30&family=Playfair+Display&family=Prata&family=Source+Serif+Pro&family=Spectral&family=Alegreya+Sans&family=Arsenal&family=Commissioner&family=IBM+Plex+Mono&family=IBM+Plex+Sans&family=Inter&family=JetBrains+Mono&family=Montserrat&family=PT+Mono&family=PT+Sans&family=Raleway&family=Roboto&family=Roboto+Condensed&family=Roboto+Mono&family=Rubik&family=Yanone+Kaffeesatz&family=Caveat&family=Lobster&family=Pacifico&family=Pangolin&family=Podkova&family=Press+Start+2P&family=Ruslan+Display&family=Russo+One&family=Underdog&family=Yeseva+One&display=swap';
             document.head.appendChild(link);
             fontsAdded = true;
         }
@@ -244,15 +259,19 @@ if (fontFamilySelect) {
     });
 }
 
-//Соотношение сторон
+// Соотношение сторон
 const aspectRatioSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="aspectRatio"]'));
 
-if (aspectRatioSelect) { aspectRatioSelect.addEventListener('change', handleArticleStylePropChange); }
+if (aspectRatioSelect) {
+ aspectRatioSelect.addEventListener('change', handleArticleStylePropChange);
+}
 
-//Цвета
+// Цвета
 const colorInput = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="color"]'));
 
-if (colorInput) { colorInput.addEventListener('change', handleArticleStylePropChange); }
+if (colorInput) {
+ colorInput.addEventListener('change', handleArticleStylePropChange);
+}
 
 const backgroundColorInput = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="backgroundColor"]'));
 
@@ -270,49 +289,58 @@ if (backgroundColorInput) {
 function ColorToHex(color) {
     const hexadecimal = parseInt(color, 10).toString(16);
 
-    return hexadecimal.length === 1 ? "0" + hexadecimal : hexadecimal;
+    return hexadecimal.length === 1 ? '0' + hexadecimal : hexadecimal;
 }
 
 function ConvertRGBtoHex(rgb) {
     const colors = rgb.slice(4, -1).split(', ');
 
-    return "#" + ColorToHex(colors[0]) + ColorToHex(colors[1]) + ColorToHex(colors[2]);
+    return '#' + ColorToHex(colors[0]) + ColorToHex(colors[1]) + ColorToHex(colors[2]);
 }
 
-//Создание страницы
+// Создание страницы
 const observer = new IntersectionObserver(function onIntersect(entries) {
     entries.forEach(function handleEntryIntersection(entry) {
         entry.target.classList.toggle('active', entry.isIntersecting);
         const activeArticle = getActiveArticle();
-    const activeDiv = getActiveDiv();
-    const activeForm = getActiveForm();
+        const activeDiv = getActiveDiv();
+        const activeForm = getActiveForm();
 
-    /**
-     * @param {HTMLSelectElement | null} select
-     * @param {HTMLElement | null} from Откуда брать значение из style
-     */
-    function assignValueFromStyle(select, from) {
-        if (select && from) {
-            if (from.style[select.name]) {
-                select.value = from.style[select.name];
-            } else {
-                select.selectedIndex = 0;
+        /**
+         * @param {HTMLSelectElement | null} select Куда вставить значение
+         * @param {HTMLElement | null} from Откуда брать значение из style
+         * @returns {void}
+         */
+        function assignValueFromStyle(select, from) {
+            if (select && from) {
+                if (from.style[select.name]) {
+                    select.value = from.style[select.name];
+                } else {
+                    select.selectedIndex = 0;
+                }
             }
         }
-    }
 
-    assignValueFromStyle(textAlignSelect, activeForm);
-    assignValueFromStyle(justifyContentSelect, activeForm);
-    assignValueFromStyle(fontFamilySelect, activeArticle);
-    assignValueFromStyle(aspectRatioSelect, activeArticle);
-    if (opacityRange && activeDiv) { opacityRange.value = (1 - parseFloat(activeDiv.style.opacity)).toString(); }
-    if (activeArticle && colorInput) { colorInput.value = ConvertRGBtoHex(activeArticle.style.color); }
-    if (activeDiv && backgroundColorInput) { backgroundColorInput.value = ConvertRGBtoHex(activeDiv.style.backgroundColor); }
-    if (backdropFilterInput && activeForm) { backdropFilterInput.value = activeForm.style[backdropFilterInput.name] ? activeForm.style[backdropFilterInput.name].slice(5, -3) : '0'; }
+        assignValueFromStyle(textAlignSelect, activeForm);
+        assignValueFromStyle(justifyContentSelect, activeForm);
+        assignValueFromStyle(fontFamilySelect, activeArticle);
+        assignValueFromStyle(aspectRatioSelect, activeArticle);
+        if (opacityRange && activeDiv) {
+ opacityRange.value = (1 - parseFloat(activeDiv.style.opacity)).toString();
+}
+        if (activeArticle && colorInput) {
+ colorInput.value = ConvertRGBtoHex(activeArticle.style.color);
+}
+        if (activeDiv && backgroundColorInput) {
+ backgroundColorInput.value = ConvertRGBtoHex(activeDiv.style.backgroundColor);
+}
+        if (backdropFilterInput && activeForm) {
+ backdropFilterInput.value = activeForm.style[backdropFilterInput.name] ? activeForm.style[backdropFilterInput.name].slice(5, -3) : '0';
+}
     });
 }, {
     root: mount,
-    threshold: 0.75
+    threshold: 0.75,
 });
 
 function createPage(pageJson, isActive = true) {
@@ -329,12 +357,12 @@ function createPage(pageJson, isActive = true) {
     for (const tag in pageJson) {
         if (tag === 'STYLE') {
             for (const styleProp in pageJson[tag]) {
-                if (['-webkit-backdrop-filter', 'backdropFilter', 'textAlign', 'justifyContent'].includes(styleProp)) {
+                if ([ '-webkit-backdrop-filter', 'backdropFilter', 'textAlign', 'justifyContent' ].includes(styleProp)) {
                     form.style[styleProp] = pageJson[tag][styleProp];
 
                     continue;
                 }
-                if (['backgroundColor', 'opacity'].includes(styleProp)) {
+                if ([ 'backgroundColor', 'opacity' ].includes(styleProp)) {
                     div.style[styleProp] = pageJson[tag][styleProp];
 
                     continue;
@@ -353,7 +381,9 @@ function createPage(pageJson, isActive = true) {
 
             continue;
         }
-        createEditableElement({ tag, text: pageJson[tag], parent: form });
+        createEditableElement({ tag,
+text: pageJson[tag],
+parent: form });
     }
     li.appendChild(article);
     observer.observe(li);
@@ -361,7 +391,7 @@ function createPage(pageJson, isActive = true) {
     return li;
 }
 
-//Импорт
+// Импорт
 function renderPages(pagesJson, mount) {
     const pages = [];
 
@@ -375,7 +405,7 @@ function renderPages(pagesJson, mount) {
 }
 
 if (mount) {
-    renderPages([DEFAULTS.FIRST_PAGE, DEFAULTS.SECOND_PAGE], mount);
+    renderPages([ DEFAULTS.FIRST_PAGE, DEFAULTS.SECOND_PAGE ], mount);
 }
 
 const importInput = document.getElementById('import');
@@ -401,13 +431,13 @@ if (importInput && mount) {
                     window.alert('Не удалось загрузить файл');
                 }
             };
-            fileReader.readAsText(input.files[0], "UTF-8");
+            fileReader.readAsText(input.files[0], 'UTF-8');
         }
     });
 }
 
-//Удаление страницы
-const deletePageBtn =  /** @type {HTMLButtonElement | null} */ (document.getElementById('deletePage'));
+// Удаление страницы
+const deletePageBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('deletePage'));
 
 if (deletePageBtn) {
     deletePageBtn.addEventListener('click', function handleDeleteClick() {
@@ -419,30 +449,32 @@ if (deletePageBtn) {
     });
 }
 
-//Удаление элемента
-const deleteBtn =  /** @type {HTMLButtonElement | null} */ (document.getElementById('delete'));
+// Удаление элемента
+const deleteBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('delete'));
 
 if (deleteBtn) {
     deleteBtn.addEventListener('click', function handleDeleteClick() {
-        const activeElement = /** @type {HTMLElement | null} */ (document.querySelector('.active[contenteditable]'));
+        const activeElement = getActiveElement();
 
-        if (activeElement && window.confirm(`Удалить элемент${activeElement.innerText.trim() ? (' «' + activeElement.innerText + '»') : ''}?`)) {
+        if (activeElement && window.confirm(`Удалить элемент${ activeElement.innerText.trim() ? (' «' + activeElement.innerText + '»') : '' }?`)) {
             const section = activeElement.closest('section');
             const li = activeElement.closest('li');
 
             activeElement.remove();
             if (section && !section.innerText.trim()) {
                 section.remove();
-                if (backgroundImageInput) { backgroundImageInput.value = ''; }
+                if (backgroundImageInput) {
+ backgroundImageInput.value = '';
+}
             }
-            if (li && !li.innerText.trim()) {
+            if (li && !li.innerText.trim() && !li.classList.contains('active')) {
                 li.remove();
             }
         }
     });
 }
 
-//Добавить страницу
+// Добавить страницу
 const pageBtn = document.getElementById('page');
 
 if (pageBtn && mount) {
@@ -451,11 +483,11 @@ if (pageBtn && mount) {
 
         mount.appendChild(newPage);
         newPage.scrollIntoView();
-    }
+    },
     );
 }
 
-//Дублировать страницу
+// Дублировать страницу
 const duplicateBtn = document.getElementById('duplicate');
 
 if (duplicateBtn) {
@@ -490,6 +522,7 @@ if (duplicateBtn) {
     });
 }
 
+// Добавить заголвок
 const titleBtn = document.getElementById('title');
 
 if (titleBtn) {
@@ -501,12 +534,15 @@ if (titleBtn) {
             if (existingTitle) {
                 existingTitle.focus();
             } else {
-                createEditableElement({ tag: 'H1', fromStart: true, parent: form });
+                createEditableElement({ tag: 'H1',
+fromStart: true,
+parent: form });
             }
         }
     });
 }
 
+// Добавить подпись
 const subtitleBtn = document.getElementById('subtitle');
 
 if (subtitleBtn) {
@@ -518,17 +554,20 @@ if (subtitleBtn) {
             if (existingSubtitle) {
                 existingSubtitle.focus();
             } else {
-                createEditableElement({ tag: 'FOOTER', parent: form });
+                createEditableElement({ tag: 'FOOTER',
+parent: form });
             }
         }
     });
 }
 
+// Добавить группу услуг
 const groupBtn = document.getElementById('group');
 
 if (groupBtn) {
     groupBtn.addEventListener('click', function handleAddGroupClick() {
         const form = getActiveForm();
+
         if (form) {
             const existingSubtitle = form.querySelector('footer');
             const group = createSection();
@@ -542,23 +581,46 @@ if (groupBtn) {
     });
 }
 
-//Добавить услугу
+// Добавить услугу
 const serviceBtn = document.getElementById('service');
 
 if (serviceBtn) {
     serviceBtn.addEventListener('click', function handleAddServiceClick() {
         const form = getActiveForm();
-        if (form) {
-            const existingGroup = form.querySelector('ul');
-            const li = createService();
 
-            if (existingGroup) {
-                existingGroup.appendChild(li);
+        if (form) {
+            const li = createService();
+            const activeElement = getActiveElement();
+            if (activeElement) {
+                const closestSection = activeElement.closest('section');
+
+                if (closestSection) {
+                    const sectionsUl = closestSection.querySelector('ul');
+
+                    if (sectionsUl) {
+                        sectionsUl.append(li);
+                    } else {
+                        const ul = document.createElement('ul');
+
+                        ul.appendChild(li);
+                        closestSection.appendChild(ul);
+                    }
+
+                    return;
+                }
+            }
+
+            const existingGroups = form.querySelectorAll('ul');
+
+            if (existingGroups.length > 0) {
+                existingGroups[existingGroups.length - 1].appendChild(li);
             } else {
+                const section = document.createElement('section');
                 const ul = document.createElement('ul');
 
                 ul.appendChild(li);
-                form.appendChild(ul);
+                section.appendChild(ul);
+                form.appendChild(section);
             }
         }
     });
