@@ -51,13 +51,15 @@ function createEditableElement({ tag, text, parent, fromStart }) {
     return elem;
 }
 
+/**
+ * @param {FocusEvent} e
+ */
 function handleFormFocusIn(e) {
     const form = /** @type {HTMLFormElement} */ (e.currentTarget);
-    const element = /** @type {HTMLElement} */ (e.target);
     const editableElements = form.querySelectorAll('[contenteditable]');
 
     for (const editableElement of editableElements) {
-        editableElement.classList.toggle('active', editableElement === element);
+        editableElement.classList.toggle('active', editableElement === e.target);
     }
 }
 
@@ -66,6 +68,7 @@ function handleFormInput(e) {
     if (!element.textContent) {
         element.innerHTML = ' ';
     }
+    // Сделать что-нибудь с переполнением
     // const page = e.currentTarget.parentElement;
     // if (page && (page.scrollHeight - page.clientHeight > 16)) {
     //     window.alert(page.scrollHeight + ' ' + page.clientHeight);
@@ -76,9 +79,11 @@ function createService(serviceJson = DEFAULTS.LI) {
     const li = document.createElement('li');
 
     for (const liTag in serviceJson) {
-        createEditableElement({ tag: liTag,
-text: serviceJson[liTag],
-parent: li });
+        createEditableElement({
+            tag: liTag,
+            text: serviceJson[liTag],
+            parent: li
+        });
     }
 
     return li;
@@ -100,9 +105,11 @@ function createSection(sectionJson = DEFAULTS.SECTION) {
 
             continue;
         }
-        createEditableElement({ tag: sectionTag,
-text: sectionJson[sectionTag],
-parent: section });
+        createEditableElement({
+            tag: sectionTag,
+            text: sectionJson[sectionTag],
+            parent: section
+        });
     }
 
     return section;
@@ -172,7 +179,7 @@ if (backdropFilterInput) {
         const activeForm = getActiveForm();
 
         if (input && activeForm) {
-            const value = `blur(${ input.value }px)`;
+            const value = `blur(${input.value}px)`;
 
             activeForm.style[input.name] = activeForm.style['-webkit-backdrop-filter'] = value;
         }
@@ -231,14 +238,14 @@ if (deleteBackgroundImage) {
 const textAlignSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="textAlign"]'));
 
 if (textAlignSelect) {
- textAlignSelect.addEventListener('change', handleFormStylePropChange);
+    textAlignSelect.addEventListener('change', handleFormStylePropChange);
 }
 
 // Вертикальное выравнивание заголовка
 const justifyContentSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="justifyContent"]'));
 
 if (justifyContentSelect) {
- justifyContentSelect.addEventListener('change', handleFormStylePropChange);
+    justifyContentSelect.addEventListener('change', handleFormStylePropChange);
 }
 
 // Шрифт
@@ -263,14 +270,14 @@ if (fontFamilySelect) {
 const aspectRatioSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="aspectRatio"]'));
 
 if (aspectRatioSelect) {
- aspectRatioSelect.addEventListener('change', handleArticleStylePropChange);
+    aspectRatioSelect.addEventListener('change', handleArticleStylePropChange);
 }
 
 // Цвета
 const colorInput = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="color"]'));
 
 if (colorInput) {
- colorInput.addEventListener('change', handleArticleStylePropChange);
+    colorInput.addEventListener('change', handleArticleStylePropChange);
 }
 
 const backgroundColorInput = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="backgroundColor"]'));
@@ -286,12 +293,18 @@ if (backgroundColorInput) {
     });
 }
 
+/**
+ * @param {string} color октет
+ */
 function ColorToHex(color) {
     const hexadecimal = parseInt(color, 10).toString(16);
 
     return hexadecimal.length === 1 ? '0' + hexadecimal : hexadecimal;
 }
 
+/**
+ * @param {string} rgb запись цвета вида `rgb(255, 255, 255)`
+ */
 function ConvertRGBtoHex(rgb) {
     const colors = rgb.slice(4, -1).split(', ');
 
@@ -326,17 +339,17 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
         assignValueFromStyle(fontFamilySelect, activeArticle);
         assignValueFromStyle(aspectRatioSelect, activeArticle);
         if (opacityRange && activeDiv) {
- opacityRange.value = (1 - parseFloat(activeDiv.style.opacity)).toString();
-}
+            opacityRange.value = (1 - parseFloat(activeDiv.style.opacity)).toString();
+        }
         if (activeArticle && colorInput) {
- colorInput.value = ConvertRGBtoHex(activeArticle.style.color);
-}
+            colorInput.value = ConvertRGBtoHex(activeArticle.style.color);
+        }
         if (activeDiv && backgroundColorInput) {
- backgroundColorInput.value = ConvertRGBtoHex(activeDiv.style.backgroundColor);
-}
+            backgroundColorInput.value = ConvertRGBtoHex(activeDiv.style.backgroundColor);
+        }
         if (backdropFilterInput && activeForm) {
- backdropFilterInput.value = activeForm.style[backdropFilterInput.name] ? activeForm.style[backdropFilterInput.name].slice(5, -3) : '0';
-}
+            backdropFilterInput.value = activeForm.style[backdropFilterInput.name] ? activeForm.style[backdropFilterInput.name].slice(5, -3) : '0';
+        }
     });
 }, {
     root: mount,
@@ -357,12 +370,12 @@ function createPage(pageJson, isActive = true) {
     for (const tag in pageJson) {
         if (tag === 'STYLE') {
             for (const styleProp in pageJson[tag]) {
-                if ([ '-webkit-backdrop-filter', 'backdropFilter', 'textAlign', 'justifyContent' ].includes(styleProp)) {
+                if (['-webkit-backdrop-filter', 'backdropFilter', 'textAlign', 'justifyContent'].includes(styleProp)) {
                     form.style[styleProp] = pageJson[tag][styleProp];
 
                     continue;
                 }
-                if ([ 'backgroundColor', 'opacity' ].includes(styleProp)) {
+                if (['backgroundColor', 'opacity'].includes(styleProp)) {
                     div.style[styleProp] = pageJson[tag][styleProp];
 
                     continue;
@@ -381,9 +394,11 @@ function createPage(pageJson, isActive = true) {
 
             continue;
         }
-        createEditableElement({ tag,
-text: pageJson[tag],
-parent: form });
+        createEditableElement({
+            tag,
+            text: pageJson[tag],
+            parent: form
+        });
     }
     li.appendChild(article);
     observer.observe(li);
@@ -392,20 +407,21 @@ parent: form });
 }
 
 // Импорт
+/**
+ * @param {Record<string, any>[]} pagesJson
+ * @param {HTMLElement} mount
+ */
 function renderPages(pagesJson, mount) {
     const pages = [];
 
-    for (let i = 0; i < pagesJson.length; i++) {
-        const page = pagesJson[i];
-        const li = createPage(page, i === 0);
-
-        pages.push(li);
-    }
+    pagesJson.forEach(function createPages(page, index) {
+        pages.push(createPage(page, index === 0));
+    });
     mount.append(...pages);
 }
 
 if (mount) {
-    renderPages([ DEFAULTS.FIRST_PAGE, DEFAULTS.SECOND_PAGE ], mount);
+    renderPages([DEFAULTS.FIRST_PAGE, DEFAULTS.SECOND_PAGE], mount);
 }
 
 const importInput = document.getElementById('import');
@@ -456,7 +472,7 @@ if (deleteBtn) {
     deleteBtn.addEventListener('click', function handleDeleteClick() {
         const activeElement = getActiveElement();
 
-        if (activeElement && window.confirm(`Удалить элемент${ activeElement.innerText.trim() ? (' «' + activeElement.innerText + '»') : '' }?`)) {
+        if (activeElement && window.confirm(`Удалить элемент${activeElement.innerText.trim() ? (' «' + activeElement.innerText + '»') : ''}?`)) {
             const section = activeElement.closest('section');
             const li = activeElement.closest('li');
 
@@ -464,8 +480,8 @@ if (deleteBtn) {
             if (section && !section.innerText.trim()) {
                 section.remove();
                 if (backgroundImageInput) {
- backgroundImageInput.value = '';
-}
+                    backgroundImageInput.value = '';
+                }
             }
             if (li && !li.innerText.trim() && !li.classList.contains('active')) {
                 li.remove();
@@ -534,9 +550,11 @@ if (titleBtn) {
             if (existingTitle) {
                 existingTitle.focus();
             } else {
-                createEditableElement({ tag: 'H1',
-fromStart: true,
-parent: form });
+                createEditableElement({
+                    tag: 'H1',
+                    fromStart: true,
+                    parent: form
+                });
             }
         }
     });
@@ -554,8 +572,10 @@ if (subtitleBtn) {
             if (existingSubtitle) {
                 existingSubtitle.focus();
             } else {
-                createEditableElement({ tag: 'FOOTER',
-parent: form });
+                createEditableElement({
+                    tag: 'FOOTER',
+                    parent: form
+                });
             }
         }
     });
