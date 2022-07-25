@@ -22,14 +22,16 @@
             margin: 0;
             min-height: 100vh;
         }
+
         .rendering * {
             overflow: -moz-hidden-unscrollable;
-	        overflow: hidden;
+            overflow: hidden;
         }
+
         .rendering {
             width: 1080px;
             overflow: -moz-hidden-unscrollable;
-	        overflow: hidden;
+            overflow: hidden;
         }
 
         button,
@@ -135,7 +137,7 @@
             position: relative;
         }
 
-        .pages article > div {
+        .pages article>div {
             grid-column: 1/2;
             grid-row: 1/2;
             padding-bottom: 100%;
@@ -143,11 +145,11 @@
             min-height: 100%;
         }
 
-        .pages article[style*="aspect-ratio: 4 / 5;"] > div {
+        .pages article[style*="aspect-ratio: 4 / 5;"]>div {
             padding-bottom: 125%;
         }
 
-        .pages article[style*="aspect-ratio: 9 / 16;"] > div {
+        .pages article[style*="aspect-ratio: 9 / 16;"]>div {
             padding-bottom: calc(16 / 9 * 100%);
         }
 
@@ -228,7 +230,8 @@
             order: 1;
             padding-top: 1em;
         }
-        .pages section + footer {
+
+        .pages section+footer {
             margin-top: auto;
             text-align: left;
         }
@@ -254,6 +257,11 @@
             padding-right: 6px;
             padding-top: 2px;
             text-decoration: none;
+        }
+
+        #delete {
+            position: absolute;
+            z-index: 1;
         }
 
     </style>
@@ -358,7 +366,7 @@
             <button type="button" id="service">Услугу</button>
             <button type="button" id="subtitle">Подпись</button>
         </fieldset>
-        <button type="button" id="delete">Удалить последний выбранный элемент</button>
+        <button type="button" id="delete">Удалить</button>
         <button type="button" id="deletePage">Удалить страницу</button>
         <button type="button" id="duplicate">Дублировать страницу</button>
     </form>

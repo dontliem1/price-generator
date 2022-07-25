@@ -51,18 +51,6 @@ function createEditableElement({ tag, text, parent, fromStart }) {
     return elem;
 }
 
-/**
- * @param {FocusEvent} e
- */
-function handleFormFocusIn(e) {
-    const form = /** @type {HTMLFormElement} */ (e.currentTarget);
-    const editableElements = form.querySelectorAll('[contenteditable]');
-
-    for (const editableElement of editableElements) {
-        editableElement.classList.toggle('active', editableElement === e.target);
-    }
-}
-
 function handleFormInput(e) {
     const element = /** @type {HTMLElement} */ (e.target);
     if (!element.textContent) {
@@ -146,9 +134,7 @@ function getActiveDiv() {
 /**
  * @returns {HTMLElement | null} последний элемент страницы в фокусе
  */
-function getActiveElement() {
-    const form = getActiveForm();
-
+function getActiveElement(form = getActiveForm()) {
     return form ? form.querySelector('.active[contenteditable]') : null;
 }
 
@@ -167,6 +153,68 @@ function handleFormStylePropChange(e) {
 
     if (activeForm) {
         activeForm.style[e.target.name] = e.target.value;
+    }
+}
+
+/**
+ * @param {HTMLElement} el
+ */
+function getOffset(el) {
+    const rect = el.getBoundingClientRect();
+
+    return {
+        left: rect.left + window.scrollX,
+        top: rect.top + rect.height + window.scrollY,
+    };
+}
+
+// Удаление элемента
+const deleteBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('delete'));
+
+function repositionDeleteBtn(element = getActiveElement()) {
+    if (deleteBtn) {
+        if (element) {
+            const { left, top } = getOffset(element);
+
+            deleteBtn.style.left = left + 'px';
+            deleteBtn.style.top = top + 'px';
+            deleteBtn.hidden = false;
+        } else {
+            deleteBtn.hidden = true;
+        }
+    }
+}
+
+if (deleteBtn) {
+    deleteBtn.addEventListener('click', function handleDeleteClick() {
+        const activeElement = getActiveElement();
+
+        if (activeElement && window.confirm(`Удалить элемент${activeElement.innerText.trim() ? (' «' + activeElement.innerText + '»') : ''}?`)) {
+            const section = activeElement.closest('section');
+            const li = activeElement.closest('li');
+
+            activeElement.remove();
+            if (section && !section.innerText.trim()) {
+                section.remove();
+            }
+            if (li && !li.innerText.trim() && !li.classList.contains('active')) {
+                li.remove();
+            }
+            repositionDeleteBtn();
+        }
+    });
+}
+
+/**
+ * @param {FocusEvent} e
+ */
+function handleFormFocusIn(e) {
+    const form = /** @type {HTMLFormElement} */ (e.currentTarget);
+    const editableElements = /** @type {NodeListOf<HTMLElement>} */ (form.querySelectorAll('[contenteditable]'));
+
+    for (const editableElement of editableElements) {
+        editableElement.classList.toggle('active', editableElement === e.target);
+        if (editableElement === e.target) { repositionDeleteBtn(editableElement); }
     }
 }
 
@@ -314,6 +362,13 @@ function ConvertRGBtoHex(rgb) {
 // Создание страницы
 const observer = new IntersectionObserver(function onIntersect(entries) {
     entries.forEach(function handleEntryIntersection(entry) {
+        if (!entry.isIntersecting) {
+            const form = /** @type {HTMLFormElement} */ (entry.target);
+            const activeElement = getActiveElement(form);
+
+            if (activeElement) { activeElement.classList.remove('active'); }
+            return;
+        }
         entry.target.classList.toggle('active', entry.isIntersecting);
         const activeArticle = getActiveArticle();
         const activeDiv = getActiveDiv();
@@ -350,10 +405,12 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
         if (backdropFilterInput && activeForm) {
             backdropFilterInput.value = activeForm.style[backdropFilterInput.name] ? activeForm.style[backdropFilterInput.name].slice(5, -3) : '0';
         }
+
+        repositionDeleteBtn();
     });
 }, {
     root: mount,
-    threshold: 0.75,
+    threshold: 0.6,
 });
 
 function createPage(pageJson, isActive = true) {
@@ -456,36 +513,11 @@ if (importInput && mount) {
 const deletePageBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('deletePage'));
 
 if (deletePageBtn) {
-    deletePageBtn.addEventListener('click', function handleDeleteClick() {
+    deletePageBtn.addEventListener('click', function handleDeletePageClick() {
         const activePage = getActiveLi();
 
         if (activePage && window.confirm('Удалить страницу?')) {
             activePage.remove();
-        }
-    });
-}
-
-// Удаление элемента
-const deleteBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('delete'));
-
-if (deleteBtn) {
-    deleteBtn.addEventListener('click', function handleDeleteClick() {
-        const activeElement = getActiveElement();
-
-        if (activeElement && window.confirm(`Удалить элемент${activeElement.innerText.trim() ? (' «' + activeElement.innerText + '»') : ''}?`)) {
-            const section = activeElement.closest('section');
-            const li = activeElement.closest('li');
-
-            activeElement.remove();
-            if (section && !section.innerText.trim()) {
-                section.remove();
-                if (backgroundImageInput) {
-                    backgroundImageInput.value = '';
-                }
-            }
-            if (li && !li.innerText.trim() && !li.classList.contains('active')) {
-                li.remove();
-            }
         }
     });
 }
