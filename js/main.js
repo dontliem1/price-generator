@@ -187,7 +187,9 @@ function repositionDeleteBtn(element = getActiveElement()) {
 
 if (deleteBtn) {
     deleteBtn.addEventListener('click', function handleDeleteClick() {
+        console.log('delete');
         const activeElement = getActiveElement();
+        console.log(activeElement);
 
         if (activeElement && window.confirm(`Удалить элемент${activeElement.innerText.trim() ? (' «' + activeElement.innerText + '»') : ''}?`)) {
             const section = activeElement.closest('section');
@@ -362,6 +364,7 @@ function ConvertRGBtoHex(rgb) {
 // Создание страницы
 const observer = new IntersectionObserver(function onIntersect(entries) {
     entries.forEach(function handleEntryIntersection(entry) {
+        entry.target.classList.toggle('active', entry.isIntersecting);
         if (!entry.isIntersecting) {
             const form = /** @type {HTMLFormElement} */ (entry.target);
             const activeElement = getActiveElement(form);
@@ -369,7 +372,6 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
             if (activeElement) { activeElement.classList.remove('active'); }
             return;
         }
-        entry.target.classList.toggle('active', entry.isIntersecting);
         const activeArticle = getActiveArticle();
         const activeDiv = getActiveDiv();
         const activeForm = getActiveForm();
