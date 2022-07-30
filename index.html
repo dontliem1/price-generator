@@ -8,12 +8,14 @@
     <meta name="description" content="Create an image of price for instagram or facebook post or stories online for free">
     <style>
         html {
-            color-scheme: dark light;
+            color-scheme: dark;
             font-family: system-ui, sans-serif;
             -webkit-text-size-adjust: 100%;
         }
 
         body {
+            background-color: black;
+            color: #fff;
             display: grid;
             grid-template-columns: auto 1fr;
             grid-template-rows: auto 1fr;
@@ -36,32 +38,19 @@
         button,
         input,
         select {
-            color: inherit;
             font-size: inherit;
             max-width: 100%;
         }
 
-        button,
         [type="range"],
-        [type="color"],
-        select {
+        [type="color"] {
             cursor: pointer;
-        }
-
-        a {
-            align-items: center;
-            color: inherit;
-            display: inline-flex;
-        }
-
-        button {
-            margin: 0;
         }
 
         button,
         a,
         select,
-        summary,
+        .settings summary,
         label span,
         [type="color"],
         [type="number"] {
@@ -69,6 +58,10 @@
             min-height: 48px;
             min-width: 48px;
             vertical-align: middle;
+        }
+        [type="color"] {
+            border: 0;
+            border-radius: 5px;
         }
 
         canvas,
@@ -240,14 +233,26 @@
             grid-column: 1/3;
             grid-row: 1/3;
         }
-        body > details {
-            background-color: Canvas;
+        .settings {
+            color: #fff;
             grid-column: 1/2;
             grid-row: 1/2;
-        }
-        body > details {
-            z-index: 1;
             touch-action: manipulation;
+            z-index: 1;
+        }
+
+        .settings summary {
+            align-items: center;
+            background-color: #222;
+            cursor: pointer;
+            display: inline-flex;
+            padding: 2px 6px 3px;
+            vertical-align: bottom;
+        }
+
+        .settings form {
+            background-color: #222;
+            padding: 5px;
         }
 
         .settings label,
@@ -255,18 +260,30 @@
             display: inline-block;
         }
 
-        #export,
-        .visually-hidden+span {
-            -webkit-appearance: button;
+        .settings fieldset {
+            border-radius: 14px;
+        }
+
+        .btn {
             align-items: center;
-            appearance: button;
+            background-color: #555;
+            border: 0;
+            border-radius: 5px;
+            color: #fff;
             cursor: pointer;
+            padding: 2px 6px 3px;
+        }
+
+        .btn:not([hidden]) {
             display: inline-flex;
-            padding-bottom: 3px;
-            padding-left: 6px;
-            padding-right: 6px;
-            padding-top: 2px;
+        }
+
+        a.btn {
             text-decoration: none;
+        }
+
+        .file {
+            vertical-align: middle;
         }
 
         #delete {
@@ -274,24 +291,28 @@
             z-index: 1;
         }
 
+        .file:focus-within .btn {
+            outline: auto;
+        }
+
     </style>
 </head>
 
 <body>
     <h1 class="visually-hidden">Price constructor</h1>
-    <details>
+    <details class="settings">
         <summary>Settings</summary>
-        <form class="settings">
-            <label><input class="visually-hidden" id="import" type="file" accept="application/json" /><span>Import JSON</span></label>
-            <a href="./" download='price.json' id="export">Export JSON</a>
-            <button type="button" id="save">Save images</button>
+        <form>
+            <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json" /><span class="btn">Import JSON</span></label>
+            <a class="btn" href="./" download='price.json' id="export">Export JSON</a>
+            <button class="btn" type="button" id="save">Save images</button>
             <h2 class="visually-hidden">Current page's settings</h2>
-            <select name="aspectRatio" aria-label="Aspect ratio">
+            <select class="btn" name="aspectRatio" aria-label="Aspect ratio">
                 <option value="1 / 1">1:1</option>
                 <option value="4 / 5" selected>4:5</option>
                 <option value="9 / 16">9:16</option>
             </select>
-            <select name="fontFamily" aria-label="Font">
+            <select class="btn" name="fontFamily" aria-label="Font">
                 <option value="system-ui, sans-serif" selected>System font</option>
                 <optgroup label="Serif">
                     <option value='Alegreya, serif'>Alegreya</option>
@@ -345,15 +366,15 @@
                     <option value='"Yeseva One", serif'>Yeseva One</option>
                 </optgroup>
             </select>
-            <label><input type="color" name="color"> Text color</label>
+            <label><input class="btn" type="color" name="color"> Text color</label>
             <fieldset>
                 <legend>Title</legend>
-                <select name="textAlign" aria-label="Horizontal alignment">
+                <select class="btn" name="textAlign" aria-label="Horizontal alignment">
                     <option value="left">Left</option>
                     <option value="center">Center</option>
                     <option value="right">Right</option>
                 </select>
-                <select name="justifyContent" aria-label="Vertical alignment">
+                <select class="btn" name="justifyContent" aria-label="Vertical alignment">
                     <option value="flex-start">Top</option>
                     <option value="center">Center</option>
                     <option value="flex-end">Bottom</option>
@@ -361,26 +382,26 @@
             </fieldset>
             <fieldset>
                 <legend>Background</legend>
-                <label><input type="color" name="backgroundColor"> Color</label>
+                <label><input class="btn" type="color" name="backgroundColor"> Color</label>
                 <label>Transparency <br><input type="range" name="opacity" min="0" max="1" step="0.1"></label>
                 <fieldset>
                     <legend>Image</legend>
                     <label>Blur<br><input type="range" name="backdropFilter" min="0" max="50" step="1" value="0"></label>
-                    <label><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span>Upload</span></label>
-                    <button type="button" id="deleteBackgroundImage">Remove</button>
+                    <label class="file"><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span class="btn">Upload</span></label>
+                    <button class="btn" type="button" id="deleteBackgroundImage" hidden>Remove</button>
                 </fieldset>
             </fieldset>
             <fieldset>
                 <legend>Add</legend>
-                <button type="button" id="page">Page</button>
-                <button type="button" id="title">Title</button>
-                <button type="button" id="group">Category</button>
-                <button type="button" id="service">Service</button>
-                <button type="button" id="subtitle">Footer</button>
+                <button class="btn" type="button" id="page">Page</button>
+                <button class="btn" type="button" id="title">Title</button>
+                <button class="btn" type="button" id="group">Category</button>
+                <button class="btn" type="button" id="service">Service</button>
+                <button class="btn" type="button" id="subtitle">Footer</button>
             </fieldset>
-            <button type="button" id="delete">Remove</button>
-            <button type="button" id="deletePage">Remove the page</button>
-            <button type="button" id="duplicate">Duplicate the page</button>
+            <button class="btn" type="button" id="delete">Remove</button>
+            <button class="btn" type="button" id="deletePage">Remove the page</button>
+            <button class="btn" type="button" id="duplicate">Duplicate the page</button>
         </form>
     </details>
     <main>
