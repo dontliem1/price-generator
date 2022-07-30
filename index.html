@@ -19,6 +19,7 @@
             grid-template-rows: auto 1fr;
             line-height: 1.2;
             margin: 0;
+            min-height: 100vh;
         }
 
         .rendering * {
@@ -60,6 +61,7 @@
         button,
         a,
         select,
+        summary,
         label span,
         [type="color"],
         [type="number"] {
@@ -234,17 +236,17 @@
         }
 
         body > main {
+            align-self: center;
             grid-column: 1/3;
             grid-row: 1/3;
         }
         body > details {
+            background-color: Canvas;
             grid-column: 1/2;
             grid-row: 1/2;
         }
         body > details {
             z-index: 1;
-        }
-        .settings {
             touch-action: manipulation;
         }
 
