@@ -307,14 +307,22 @@ if (deleteBackgroundImage) {
 const textAlignSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="textAlign"]'));
 
 if (textAlignSelect) {
-    textAlignSelect.addEventListener('change', handleFormStylePropChange);
+    textAlignSelect.addEventListener('change', function handleTextAlignSelectChange(e) {
+        handleFormStylePropChange(e);
+        repositionTitleAlignment();
+        repositionDeleteBtn();
+    });
 }
 
 // Title vertical alignment
 const justifyContentSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="justifyContent"]'));
 
 if (justifyContentSelect) {
-    justifyContentSelect.addEventListener('change', handleFormStylePropChange);
+    justifyContentSelect.addEventListener('change', function handleJustifyContentSelectChange(e) {
+        handleFormStylePropChange(e);
+        repositionTitleAlignment();
+        repositionDeleteBtn();
+    });
 }
 
 // Font
