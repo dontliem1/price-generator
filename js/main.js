@@ -184,6 +184,23 @@ function repositionDeleteBtn(element = getActiveElement()) {
     }
 }
 
+// Alignment
+const titleAlignment = /** @type {HTMLFieldSetElement | null} */ (document.getElementById('titleAlignment'));
+
+function repositionTitleAlignment(element = getActiveElement()) {
+    if (titleAlignment) {
+        if (element && element.tagName === 'H1') {
+            const { left, top } = getOffset(element);
+
+            titleAlignment.style.left = left + (deleteBtn ? (deleteBtn.clientWidth + 5) : 0) + 'px';
+            titleAlignment.style.top = top + 'px';
+            titleAlignment.hidden = false;
+        } else {
+            titleAlignment.hidden = true;
+        }
+    }
+}
+
 if (deleteBtn) {
     deleteBtn.addEventListener('click', function handleDeleteClick() {
         const activeElement = getActiveElement();
@@ -213,7 +230,12 @@ function handleFormFocusIn(e) {
 
     for (const editableElement of editableElements) {
         editableElement.classList.toggle('active', editableElement === e.target);
-        if (editableElement === e.target) { repositionDeleteBtn(editableElement); }
+        if (editableElement === e.target) {
+            repositionDeleteBtn(editableElement);
+            if (editableElement.tagName === 'H1') {
+                repositionTitleAlignment(editableElement);
+            }
+        }
     }
 }
 
@@ -404,6 +426,7 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
         }
 
         repositionDeleteBtn();
+        repositionTitleAlignment();
     });
 }, {
     root: mount,
