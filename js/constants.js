@@ -41,7 +41,7 @@ function Defaults() {
     this.SECOND_PAGE = {
         SECTIONS: [
             {
-                H2: 'Brows',
+                H2: 'Makeup',
                 UL: [
                     {
                         H3: 'Full face makeup application',
