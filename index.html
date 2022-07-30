@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html lang="ru">
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-    <title>Генератор прайса</title>
-    <meta name="description" content="Создать картинку для прайса в инстаграм и вконтакте онлайн бесплатно">
+    <title>Price generator</title>
+    <meta name="description" content="Create an image of price for instagram or facebook post or stories online for free">
     <style>
         html {
             color-scheme: dark light;
@@ -15,12 +14,11 @@
         }
 
         body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            grid-template-rows: auto 1fr;
             line-height: 1.2;
             margin: 0;
-            min-height: 100vh;
         }
 
         .rendering * {
@@ -90,7 +88,7 @@
             width: 1px;
         }
 
-        /* Страницы */
+        /* Pages */
         .pages {
             align-items: center;
             display: flex;
@@ -112,7 +110,7 @@
             scroll-snap-align: center;
         }
 
-        /* Прайс */
+        /* Price */
         .pages article {
             background-color: #000;
             background-position: center;
@@ -122,7 +120,6 @@
             margin-left: auto;
             margin-right: auto;
             max-width: 1080px;
-            position: relative;
             display: grid;
             overflow: hidden;
         }
@@ -236,6 +233,17 @@
             text-align: left;
         }
 
+        body > main {
+            grid-column: 1/3;
+            grid-row: 1/3;
+        }
+        body > details {
+            grid-column: 1/2;
+            grid-row: 1/2;
+        }
+        body > details {
+            z-index: 1;
+        }
         .settings {
             touch-action: manipulation;
         }
@@ -268,113 +276,115 @@
 </head>
 
 <body>
-    <h1 class="visually-hidden">Конструктор прайс-листа</h1>
-    <form class="settings">
-        <label><input class="visually-hidden" id="import" type="file" accept="application/json" /><span>Импорт</span></label>
-        <a href="./" download='price.json' id="export">Сохранить</a>
-        <button type="button" id="save">Экспорт в фото</button>
-        <h2 class="visually-hidden">Настройка страницы</h2>
-        <select name="aspectRatio" aria-label="Соотношение сторон" title="Выбрать соотношение сторон">
-            <option value="1 / 1">1:1</option>
-            <option value="4 / 5" selected>4:5</option>
-            <option value="9 / 16">9:16</option>
-        </select>
-        <select name="fontFamily" aria-label="Шрифт" title="Выбрать шрифт">
-            <option value="system-ui, sans-serif" selected>Системный шрифт</option>
-            <optgroup label="Антиквы">
-                <option value='Alegreya, serif'>Alegreya</option>
-                <option value='Alice, serif'>Alice</option>
-                <option value='Bitter, serif'>Bitter</option>
-                <option value='Cormorant, serif'>Cormorant</option>
-                <option value='"EB Garamond", serif'>EB Garamond</option>
-                <option value='"IBM Plex Serif", serif'>IBM Plex Serif</option>
-                <option value='Literata, serif'>Literata</option>
-                <option value='Lora, serif'>Lora</option>
-                <option value='Merriweather, serif'>Merriweather</option>
-                <option value='"Old Standard TT", serif'>Old Standard TT</option>
-                <option value='Piazzolla, serif'>Piazzolla</option>
-                <option value='"Playfair Display", serif'>Playfair Display</option>
-                <option value='Prata, serif'>Prata</option>
-                <option value='"PT Serif", serif'>PT Serif</option>
-                <option value='"PT Serif Caption", serif'>PT Serif Caption</option>
-                <option value='"Source Serif Pro", serif'>Source Serif Pro</option>
-                <option value='Spectral, serif'>Spectral</option>
-            </optgroup>
-            <optgroup label="Гротески">
-                <option value='"Alegreya Sans", sans-serif'>Alegreya Sans</option>
-                <option value='Arsenal, sans-serif'>Arsenal</option>
-                <option value='Commissioner, sans-serif'>Commissioner</option>
-                <option value='"IBM Plex Sans", sans-serif'>IBM Plex Sans</option>
-                <option value='Inter, sans-serif'>Inter</option>
-                <option value='Montserrat, sans-serif'>Montserrat</option>
-                <option value='"PT Sans", sans-serif'>PT Sans</option>
-                <option value='Raleway, sans-serif'>Raleway</option>
-                <option value='Roboto, sans-serif'>Roboto</option>
-                <option value='"Roboto Condensed", sans-serif'>Roboto Condensed</option>
-                <option value='Rubik, sans-serif'>Rubik</option>
-                <option value='"Yanone Kaffeesatz", sans-serif'>Yanone Kaffeesatz</option>
-            </optgroup>
-            <optgroup label="Моноширинные">
-                <option value='"IBM Plex Mono", monospace'>IBM Plex Mono</option>
-                <option value='"JetBrains Mono", monospace'>JetBrains Mono</option>
-                <option value='"PT Mono", monospace'>PT Mono</option>
-                <option value='"Roboto Mono", monospace'>Roboto Mono</option>
-            </optgroup>
-            <optgroup label="Акциденция">
-                <option value='Caveat, cursive'>Caveat</option>
-                <option value='Lobster, cursive'>Lobster</option>
-                <option value='Pacifico, cursive'>Pacifico</option>
-                <option value='Pangolin, cursive'>Pangolin</option>
-                <option value='Podkova, serif'>Podkova</option>
-                <option value='"Press Start 2P", serif'>Press Start 2P</option>
-                <option value='"Ruslan Display", serif'>Ruslan Display</option>
-                <option value='"Russo One", sans-serif'>Russo One</option>
-                <option value='Underdog, cursive'>Underdog</option>
-                <option value='"Yeseva One", serif'>Yeseva One</option>
-            </optgroup>
-        </select>
-        <label><input type="color" name="color"> Текст</label>
-        <fieldset>
-            <legend>Заголовок</legend>
-            <select name="textAlign" aria-label="Выравнивание текста" title="Выбрать горизонтальное выравнивание">
-                <option value="left">Слева</option>
-                <option value="center">По центру</option>
-                <option value="right">Справа</option>
+    <h1 class="visually-hidden">Price constructor</h1>
+    <details>
+        <summary>Settings</summary>
+        <form class="settings">
+            <label><input class="visually-hidden" id="import" type="file" accept="application/json" /><span>Import JSON</span></label>
+            <a href="./" download='price.json' id="export">Export JSON</a>
+            <button type="button" id="save">Save images</button>
+            <h2 class="visually-hidden">Current page's settings</h2>
+            <select name="aspectRatio" aria-label="Aspect ratio">
+                <option value="1 / 1">1:1</option>
+                <option value="4 / 5" selected>4:5</option>
+                <option value="9 / 16">9:16</option>
             </select>
-            <select name="justifyContent" aria-label="Расположение по вертикали" title="Выбрать вертикальное расположение">
-                <option value="flex-start">Сверху</option>
-                <option value="center">По центру</option>
-                <option value="flex-end">Снизу</option>
+            <select name="fontFamily" aria-label="Font">
+                <option value="system-ui, sans-serif" selected>System font</option>
+                <optgroup label="Serif">
+                    <option value='Alegreya, serif'>Alegreya</option>
+                    <option value='Alice, serif'>Alice</option>
+                    <option value='Bitter, serif'>Bitter</option>
+                    <option value='Cormorant, serif'>Cormorant</option>
+                    <option value='"EB Garamond", serif'>EB Garamond</option>
+                    <option value='"IBM Plex Serif", serif'>IBM Plex Serif</option>
+                    <option value='Literata, serif'>Literata</option>
+                    <option value='Lora, serif'>Lora</option>
+                    <option value='Merriweather, serif'>Merriweather</option>
+                    <option value='"Old Standard TT", serif'>Old Standard TT</option>
+                    <option value='Piazzolla, serif'>Piazzolla</option>
+                    <option value='"Playfair Display", serif'>Playfair Display</option>
+                    <option value='Prata, serif'>Prata</option>
+                    <option value='"PT Serif", serif'>PT Serif</option>
+                    <option value='"PT Serif Caption", serif'>PT Serif Caption</option>
+                    <option value='"Source Serif Pro", serif'>Source Serif Pro</option>
+                    <option value='Spectral, serif'>Spectral</option>
+                </optgroup>
+                <optgroup label="Sans serif">
+                    <option value='"Alegreya Sans", sans-serif'>Alegreya Sans</option>
+                    <option value='Arsenal, sans-serif'>Arsenal</option>
+                    <option value='Commissioner, sans-serif'>Commissioner</option>
+                    <option value='"IBM Plex Sans", sans-serif'>IBM Plex Sans</option>
+                    <option value='Inter, sans-serif'>Inter</option>
+                    <option value='Montserrat, sans-serif'>Montserrat</option>
+                    <option value='"PT Sans", sans-serif'>PT Sans</option>
+                    <option value='Raleway, sans-serif'>Raleway</option>
+                    <option value='Roboto, sans-serif'>Roboto</option>
+                    <option value='"Roboto Condensed", sans-serif'>Roboto Condensed</option>
+                    <option value='Rubik, sans-serif'>Rubik</option>
+                    <option value='"Yanone Kaffeesatz", sans-serif'>Yanone Kaffeesatz</option>
+                </optgroup>
+                <optgroup label="Monospace">
+                    <option value='"IBM Plex Mono", monospace'>IBM Plex Mono</option>
+                    <option value='"JetBrains Mono", monospace'>JetBrains Mono</option>
+                    <option value='"PT Mono", monospace'>PT Mono</option>
+                    <option value='"Roboto Mono", monospace'>Roboto Mono</option>
+                </optgroup>
+                <optgroup label="Decorative">
+                    <option value='Caveat, cursive'>Caveat</option>
+                    <option value='Lobster, cursive'>Lobster</option>
+                    <option value='Pacifico, cursive'>Pacifico</option>
+                    <option value='Pangolin, cursive'>Pangolin</option>
+                    <option value='Podkova, serif'>Podkova</option>
+                    <option value='"Press Start 2P", serif'>Press Start 2P</option>
+                    <option value='"Ruslan Display", serif'>Ruslan Display</option>
+                    <option value='"Russo One", sans-serif'>Russo One</option>
+                    <option value='Underdog, cursive'>Underdog</option>
+                    <option value='"Yeseva One", serif'>Yeseva One</option>
+                </optgroup>
             </select>
-        </fieldset>
-        <fieldset>
-            <legend>Фон</legend>
-            <label><input type="color" name="backgroundColor"> Цвет</label>
-            <label>Прозрачность<br><input type="range" name="opacity" min="0" max="1" step="0.1"></label>
+            <label><input type="color" name="color"> Text color</label>
             <fieldset>
-                <legend>Картинка</legend>
-                <label>Размытие<br><input type="range" name="backdropFilter" min="0" max="50" step="1" value="0"></label>
-                <label><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span>Загрузить</span></label>
-                <button type="button" id="deleteBackgroundImage">Удалить</button>
+                <legend>Title</legend>
+                <select name="textAlign" aria-label="Horizontal alignment">
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                </select>
+                <select name="justifyContent" aria-label="Vertical alignment">
+                    <option value="flex-start">Top</option>
+                    <option value="center">Center</option>
+                    <option value="flex-end">Bottom</option>
+                </select>
             </fieldset>
-        </fieldset>
-        <fieldset>
-            <legend>Добавить</legend>
-            <button type="button" id="page">Страницу</button>
-            <button type="button" id="title">Заголовок</button>
-            <button type="button" id="group">Группу</button>
-            <button type="button" id="service">Услугу</button>
-            <button type="button" id="subtitle">Подпись</button>
-        </fieldset>
-        <button type="button" id="delete">Удалить</button>
-        <button type="button" id="deletePage">Удалить страницу</button>
-        <button type="button" id="duplicate">Дублировать страницу</button>
-    </form>
+            <fieldset>
+                <legend>Background</legend>
+                <label><input type="color" name="backgroundColor"> Color</label>
+                <label>Transparency <br><input type="range" name="opacity" min="0" max="1" step="0.1"></label>
+                <fieldset>
+                    <legend>Image</legend>
+                    <label>Blur<br><input type="range" name="backdropFilter" min="0" max="50" step="1" value="0"></label>
+                    <label><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span>Upload</span></label>
+                    <button type="button" id="deleteBackgroundImage">Remove</button>
+                </fieldset>
+            </fieldset>
+            <fieldset>
+                <legend>Add</legend>
+                <button type="button" id="page">Page</button>
+                <button type="button" id="title">Title</button>
+                <button type="button" id="group">Category</button>
+                <button type="button" id="service">Service</button>
+                <button type="button" id="subtitle">Footer</button>
+            </fieldset>
+            <button type="button" id="delete">Remove</button>
+            <button type="button" id="deletePage">Remove the page</button>
+            <button type="button" id="duplicate">Duplicate the page</button>
+        </form>
+    </details>
     <main>
-        <h2 class="visually-hidden">Страницы и содержимое</h2>
+        <h2 class="visually-hidden">Pages and content</h2>
         <ol id="pages" class="pages"></ol>
     </main>
-
     <script src="js/main.js" type="module"></script>
     <script src="js/export.js" type="module"></script>
 </body>

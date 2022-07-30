@@ -3,12 +3,12 @@
 function Defaults() {
     this.aspectRatio = '4 / 5';
     this.opacity = '0.5';
-    this.H1 = 'Заголовок страницы';
-    this.H2 = 'Категория';
-    this.H3 = 'Название услуги';
-    this.P = 'Цена';
-    this.SPAN = 'Описание услуги';
-    this.FOOTER = 'Подпись страницы';
+    this.H1 = 'Title';
+    this.H2 = 'Category';
+    this.H3 = 'Service name';
+    this.P = 'Price';
+    this.SPAN = 'Service description';
+    this.FOOTER = 'Page footer';
     this.LI = {
         H3: this.H3,
         P: this.P,
@@ -28,7 +28,7 @@ function Defaults() {
         opacity: this.opacity,
     };
     this.FIRST_PAGE = {
-        H1: 'ПРАЙС',
+        H1: 'PRICE',
         STYLE: {
             aspectRatio: this.aspectRatio,
             backgroundColor: 'rgb(0, 0, 0)',
@@ -41,24 +41,24 @@ function Defaults() {
     this.SECOND_PAGE = {
         SECTIONS: [
             {
-                H2: 'Брови',
+                H2: 'Brows',
                 UL: [
                     {
-                        H3: 'Архитектура бровей',
-                        P: '1100',
-                        SPAN: 'моделирование + окрашивание краской/хной + коррекция',
+                        H3: 'Full face makeup application',
+                        P: '£45',
+                        SPAN: 'lashes included',
                     },
                     {
-                        H3: 'Архитектура + долговременная укладка/ламинирование бровей',
-                        P: '1700',
+                        H3: 'Eye Makeup only',
+                        P: '£30',
                     },
                     {
-                        H3: 'Долго­временная укладка/ламинирование бровей',
-                        P: '1000',
+                        H3: 'Strip lashes',
+                        P: '£5',
                     },
                 ],
             }],
-        FOOTER: 'Источник картинки с первой страницы: https://unsplash.com/photos/hSlmasb-tuE',
+        FOOTER: 'The title picture is from https://unsplash.com/photos/hSlmasb-tuE',
         STYLE: this.STYLE,
     };
     this.PAGE = {

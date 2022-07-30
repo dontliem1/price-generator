@@ -4,9 +4,8 @@ import { DEFAULTS } from './constants.js';
 
 /** @typedef {{tag: string; text?: string; parent?: HTMLElement; fromStart?: boolean}} editableElementParams */
 /**
- * Создает редактируемый элемент и добавляет к родителю
- * @param {editableElementParams} params Параметры
- * @returns {HTMLElement} Созданный элемент
+ * @param {editableElementParams} params
+ * @returns {HTMLElement} Created element
  */
 function createEditableElement({ tag, text, parent, fromStart }) {
     const elem = document.createElement(tag);
@@ -22,7 +21,7 @@ function createEditableElement({ tag, text, parent, fromStart }) {
     }
 
 
-    elem.addEventListener('paste', function (e) {
+    elem.addEventListener('paste', function stripTags(e) {
         e.preventDefault();
 
         const text = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
@@ -56,7 +55,7 @@ function handleFormInput(e) {
     if (!element.textContent) {
         element.innerHTML = ' ';
     }
-    // Сделать что-нибудь с переполнением
+    // If overflow
     // const page = e.currentTarget.parentElement;
     // if (page && (page.scrollHeight - page.clientHeight > 16)) {
     //     window.alert(page.scrollHeight + ' ' + page.clientHeight);
@@ -104,35 +103,35 @@ function createSection(sectionJson = DEFAULTS.SECTION) {
 }
 
 /**
- * @returns {HTMLLIElement | null} `<li>` активной страницы
+ * @returns {HTMLLIElement | null} `<li>` of current page
  */
 function getActiveLi() {
     return document.querySelector('li.active');
 }
 
 /**
- * @returns {HTMLElement | null} `<article>` активной страницы
+ * @returns {HTMLElement | null} `<article>` of current page
  */
 function getActiveArticle() {
     return document.querySelector('li.active > article');
 }
 
 /**
- * @returns {HTMLFormElement | null} `<form>` активной страницы
+ * @returns {HTMLFormElement | null} `<form>` of current page
  */
 function getActiveForm() {
     return document.querySelector('li.active form');
 }
 
 /**
- * @returns {HTMLDivElement | null} `<div>` подложка активной страницы
+ * @returns {HTMLDivElement | null} `<div>` of current page
  */
 function getActiveDiv() {
     return document.querySelector('li.active div');
 }
 
 /**
- * @returns {HTMLElement | null} последний элемент страницы в фокусе
+ * @returns {HTMLElement | null} last focused element
  */
 function getActiveElement(form = getActiveForm()) {
     return form ? form.querySelector('.active[contenteditable]') : null;
@@ -168,7 +167,7 @@ function getOffset(el) {
     };
 }
 
-// Удаление элемента
+// Remove element
 const deleteBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('delete'));
 
 function repositionDeleteBtn(element = getActiveElement()) {
@@ -187,11 +186,9 @@ function repositionDeleteBtn(element = getActiveElement()) {
 
 if (deleteBtn) {
     deleteBtn.addEventListener('click', function handleDeleteClick() {
-        console.log('delete');
         const activeElement = getActiveElement();
-        console.log(activeElement);
 
-        if (activeElement && window.confirm(`Удалить элемент${activeElement.innerText.trim() ? (' «' + activeElement.innerText + '»') : ''}?`)) {
+        if (activeElement && window.confirm(`Remove element${activeElement.innerText.trim() ? (' "' + activeElement.innerText + '"') : ''}?`)) {
             const section = activeElement.closest('section');
             const li = activeElement.closest('li');
 
@@ -220,7 +217,7 @@ function handleFormFocusIn(e) {
     }
 }
 
-// Размытие фона
+// Background blur
 const backdropFilterInput = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="backdropFilter"]'));
 
 if (backdropFilterInput) {
@@ -236,7 +233,7 @@ if (backdropFilterInput) {
     });
 }
 
-// Прозрачность подложки
+// Background opacity
 const opacityRange = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="opacity"]'));
 
 if (opacityRange) {
@@ -250,7 +247,7 @@ if (opacityRange) {
     });
 }
 
-// Фоновая картинка
+// Background image
 const backgroundImageInput = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="backgroundImage"]'));
 
 if (backgroundImageInput) {
@@ -284,21 +281,21 @@ if (deleteBackgroundImage) {
     });
 }
 
-// Выключка заголовка
+// Title justify
 const textAlignSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="textAlign"]'));
 
 if (textAlignSelect) {
     textAlignSelect.addEventListener('change', handleFormStylePropChange);
 }
 
-// Вертикальное выравнивание заголовка
+// Title vertical alignment
 const justifyContentSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="justifyContent"]'));
 
 if (justifyContentSelect) {
     justifyContentSelect.addEventListener('change', handleFormStylePropChange);
 }
 
-// Шрифт
+// Font
 const fontFamilySelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="fontFamily"]'));
 
 if (fontFamilySelect) {
@@ -316,14 +313,14 @@ if (fontFamilySelect) {
     });
 }
 
-// Соотношение сторон
+// Aspect ratio
 const aspectRatioSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="aspectRatio"]'));
 
 if (aspectRatioSelect) {
     aspectRatioSelect.addEventListener('change', handleArticleStylePropChange);
 }
 
-// Цвета
+// Colors
 const colorInput = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="color"]'));
 
 if (colorInput) {
@@ -344,7 +341,7 @@ if (backgroundColorInput) {
 }
 
 /**
- * @param {string} color октет
+ * @param {string} color octet
  */
 function ColorToHex(color) {
     const hexadecimal = parseInt(color, 10).toString(16);
@@ -353,7 +350,7 @@ function ColorToHex(color) {
 }
 
 /**
- * @param {string} rgb запись цвета вида `rgb(255, 255, 255)`
+ * @param {string} rgb e.g. `rgb(255, 255, 255)`
  */
 function ConvertRGBtoHex(rgb) {
     const colors = rgb.slice(4, -1).split(', ');
@@ -361,7 +358,20 @@ function ConvertRGBtoHex(rgb) {
     return '#' + ColorToHex(colors[0]) + ColorToHex(colors[1]) + ColorToHex(colors[2]);
 }
 
-// Создание страницы
+/**
+ * @param {HTMLSelectElement} select to pass the value
+ * @param {HTMLElement} from take a style value
+ * @returns {void}
+ */
+function assignValueFromStyle(select, from) {
+    if (from.style[select.name]) {
+        select.value = from.style[select.name];
+    } else {
+        select.selectedIndex = 0;
+    }
+}
+
+// Page creation
 const observer = new IntersectionObserver(function onIntersect(entries) {
     entries.forEach(function handleEntryIntersection(entry) {
         entry.target.classList.toggle('active', entry.isIntersecting);
@@ -376,36 +386,21 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
         const activeDiv = getActiveDiv();
         const activeForm = getActiveForm();
 
-        /**
-         * @param {HTMLSelectElement | null} select Куда вставить значение
-         * @param {HTMLElement | null} from Откуда брать значение из style
-         * @returns {void}
-         */
-        function assignValueFromStyle(select, from) {
-            if (select && from) {
-                if (from.style[select.name]) {
-                    select.value = from.style[select.name];
-                } else {
-                    select.selectedIndex = 0;
-                }
-            }
+        if (activeForm) {
+            if (textAlignSelect) { assignValueFromStyle(textAlignSelect, activeForm); }
+            if (justifyContentSelect) { assignValueFromStyle(justifyContentSelect, activeForm); }
+            if (backdropFilterInput) { backdropFilterInput.value = activeForm.style[backdropFilterInput.name] ? activeForm.style[backdropFilterInput.name].slice(5, -3) : '0'; }
         }
-
-        assignValueFromStyle(textAlignSelect, activeForm);
-        assignValueFromStyle(justifyContentSelect, activeForm);
-        assignValueFromStyle(fontFamilySelect, activeArticle);
-        assignValueFromStyle(aspectRatioSelect, activeArticle);
-        if (opacityRange && activeDiv) {
-            opacityRange.value = (1 - parseFloat(activeDiv.style.opacity)).toString();
+        if (activeArticle) {
+            if (fontFamilySelect) { assignValueFromStyle(fontFamilySelect, activeArticle); }
+            if (aspectRatioSelect) { assignValueFromStyle(aspectRatioSelect, activeArticle); }
+        }
+        if (activeDiv) {
+            if (opacityRange) { opacityRange.value = (1 - parseFloat(activeDiv.style.opacity)).toString(); }
+            if (backgroundColorInput) { backgroundColorInput.value = ConvertRGBtoHex(activeDiv.style.backgroundColor); }
         }
         if (activeArticle && colorInput) {
             colorInput.value = ConvertRGBtoHex(activeArticle.style.color);
-        }
-        if (activeDiv && backgroundColorInput) {
-            backgroundColorInput.value = ConvertRGBtoHex(activeDiv.style.backgroundColor);
-        }
-        if (backdropFilterInput && activeForm) {
-            backdropFilterInput.value = activeForm.style[backdropFilterInput.name] ? activeForm.style[backdropFilterInput.name].slice(5, -3) : '0';
         }
 
         repositionDeleteBtn();
@@ -465,7 +460,7 @@ function createPage(pageJson, isActive = true) {
     return li;
 }
 
-// Импорт
+// Import
 /**
  * @param {Record<string, any>[]} pagesJson
  * @param {HTMLElement} mount
@@ -487,7 +482,7 @@ const importInput = document.getElementById('import');
 
 if (importInput && mount) {
     importInput.addEventListener('click', function handleImportClick(e) {
-        if (!window.confirm('Это сотрет текущий прайс. Продолжить?')) {
+        if (!window.confirm('This will replace the current price. Continue?')) {
             e.preventDefault();
         }
     });
@@ -503,7 +498,7 @@ if (importInput && mount) {
                     mount.innerHTML = '';
                     renderPages(JSON.parse(e.target.result), mount);
                 } else {
-                    window.alert('Не удалось загрузить файл');
+                    window.alert("Couldn't load the file");
                 }
             };
             fileReader.readAsText(input.files[0], 'UTF-8');
@@ -511,20 +506,20 @@ if (importInput && mount) {
     });
 }
 
-// Удаление страницы
+// Delete page
 const deletePageBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('deletePage'));
 
 if (deletePageBtn) {
     deletePageBtn.addEventListener('click', function handleDeletePageClick() {
         const activePage = getActiveLi();
 
-        if (activePage && window.confirm('Удалить страницу?')) {
+        if (activePage && window.confirm('Remove current page?')) {
             activePage.remove();
         }
     });
 }
 
-// Добавить страницу
+// Add page
 const pageBtn = document.getElementById('page');
 
 if (pageBtn && mount) {
@@ -537,7 +532,7 @@ if (pageBtn && mount) {
     );
 }
 
-// Дублировать страницу
+// Duplicate page
 const duplicateBtn = document.getElementById('duplicate');
 
 if (duplicateBtn) {
@@ -553,7 +548,7 @@ if (duplicateBtn) {
                 let newPageTitle = newPage.querySelector('h1');
 
                 if (newPageTitle) {
-                    newPageTitle.innerText += ' копия';
+                    newPageTitle.innerText += ' copy';
                 }
 
                 let newPageForm = newPage.querySelector('form');
@@ -572,7 +567,7 @@ if (duplicateBtn) {
     });
 }
 
-// Добавить заголвок
+// Add title
 const titleBtn = document.getElementById('title');
 
 if (titleBtn) {
@@ -594,7 +589,7 @@ if (titleBtn) {
     });
 }
 
-// Добавить подпись
+// Add footer
 const subtitleBtn = document.getElementById('subtitle');
 
 if (subtitleBtn) {
@@ -615,7 +610,7 @@ if (subtitleBtn) {
     });
 }
 
-// Добавить группу услуг
+// Add group
 const groupBtn = document.getElementById('group');
 
 if (groupBtn) {
@@ -635,7 +630,7 @@ if (groupBtn) {
     });
 }
 
-// Добавить услугу
+// Add service
 const serviceBtn = document.getElementById('service');
 
 if (serviceBtn) {
