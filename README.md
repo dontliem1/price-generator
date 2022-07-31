@@ -11,4 +11,5 @@ Built on vanilla HTML, CSS and JS.
 - Allow reordering services and pages
 - Fix blurred image export
 - Autosave and restore
+- Multi languages
 - PWA
