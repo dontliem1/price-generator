@@ -217,6 +217,7 @@ if (deleteBtn) {
                 li.remove();
             }
             repositionDeleteBtn();
+            if (activeElement.tagName === 'H1') { repositionTitleAlignment(); }
         }
     });
 }
@@ -546,6 +547,19 @@ if (deletePageBtn) {
 
         if (activePage && window.confirm('Remove current page?')) {
             activePage.remove();
+        }
+    });
+}
+
+// Add btns
+const addBtns = document.querySelectorAll('.add .btn');
+
+for (const addBtn of addBtns) {
+    addBtn.addEventListener('click', function handleAddBtnClick(e) {
+        const btn = /** @type {HTMLButtonElement | null} */ (e.target);
+
+        if (btn && btn.parentElement) {
+            btn.parentElement.removeAttribute('open');
         }
     });
 }

@@ -50,6 +50,7 @@
         button,
         a,
         select,
+        .add summary,
         .settings summary,
         label span,
         [type="color"],
@@ -241,6 +242,7 @@
             z-index: 1;
         }
 
+        .add summary,
         .settings summary {
             align-items: center;
             background-color: #222;
@@ -271,7 +273,9 @@
             border-radius: 5px;
             color: #fff;
             cursor: pointer;
+            justify-content: center;
             padding: 2px 6px 3px;
+            text-align: center;
         }
 
         .btn:not([hidden]) {
@@ -303,6 +307,19 @@
             z-index: 1;
         }
 
+        .add {
+            background-color: #222;
+            display: flex;
+            flex-direction: column;
+            min-width: 92px;
+            position: absolute;
+            right: 0;
+            top: 0;
+            z-index: 1;
+        }
+        .add .btn {
+            width: 100%;
+        }
     </style>
 </head>
 
@@ -375,6 +392,7 @@
                 </optgroup>
             </select>
             <label><input class="btn" type="color" name="color"> Text color</label>
+            <button class="btn" type="button" id="deletePage">Remove the page</button>
             <fieldset>
                 <legend>Background</legend>
                 <label><input class="btn" type="color" name="backgroundColor"> Color</label>
@@ -386,17 +404,16 @@
                     <button class="btn" type="button" id="deleteBackgroundImage" hidden>Remove</button>
                 </fieldset>
             </fieldset>
-            <fieldset>
-                <legend>Add</legend>
-                <button class="btn" type="button" id="page">Page</button>
-                <button class="btn" type="button" id="title">Title</button>
-                <button class="btn" type="button" id="group">Category</button>
-                <button class="btn" type="button" id="service">Service</button>
-                <button class="btn" type="button" id="subtitle">Footer</button>
-            </fieldset>
-            <button class="btn" type="button" id="deletePage">Remove the page</button>
-            <button class="btn" type="button" id="duplicate">Duplicate the page</button>
         </form>
+    </details>
+    <details class="add">
+        <summary>Add</summary>
+        <button class="btn" type="button" id="page">Blank page</button>
+        <button class="btn" type="button" id="duplicate">Page copy</button>
+        <button class="btn" type="button" id="title">Title</button>
+        <button class="btn" type="button" id="group">Category</button>
+        <button class="btn" type="button" id="service">Service</button>
+        <button class="btn" type="button" id="subtitle">Footer</button>
     </details>
     <div>
         <button class="btn" type="button" id="delete" hidden>Remove</button>
