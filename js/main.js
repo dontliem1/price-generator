@@ -175,8 +175,7 @@ function repositionDeleteBtn(element = getActiveElement()) {
         if (element) {
             const { left, top } = getOffset(element);
 
-            deleteBtn.style.left = left + 'px';
-            deleteBtn.style.top = top + 'px';
+            deleteBtn.style.transform = `translate(${left}px, ${top}px)`;
             deleteBtn.hidden = false;
         } else {
             deleteBtn.hidden = true;
@@ -192,8 +191,7 @@ function repositionTitleAlignment(element = getActiveElement()) {
         if (element && element.tagName === 'H1') {
             const { left, top } = getOffset(element);
 
-            titleAlignment.style.left = left + (deleteBtn ? (deleteBtn.clientWidth + 5) : 0) + 'px';
-            titleAlignment.style.top = top + 'px';
+            titleAlignment.style.transform = `translate(${left}px, ${top}px)`;
             titleAlignment.hidden = false;
         } else {
             titleAlignment.hidden = true;
@@ -308,11 +306,7 @@ if (deleteBackgroundImage) {
 const textAlignSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="textAlign"]'));
 
 if (textAlignSelect) {
-    textAlignSelect.addEventListener('change', function handleTextAlignSelectChange(e) {
-        handleFormStylePropChange(e);
-        repositionTitleAlignment();
-        repositionDeleteBtn();
-    });
+    textAlignSelect.addEventListener('change', handleFormStylePropChange);
 }
 
 // Title vertical alignment
@@ -410,7 +404,10 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
             const form = /** @type {HTMLFormElement} */ (entry.target);
             const activeElement = getActiveElement(form);
 
-            if (activeElement) { activeElement.classList.remove('active'); }
+            if (activeElement) {
+                activeElement.blur();
+                activeElement.classList.remove('active');
+            }
             return;
         }
         const activeArticle = getActiveArticle();

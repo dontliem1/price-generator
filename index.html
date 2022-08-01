@@ -290,21 +290,23 @@
             vertical-align: middle;
         }
 
-        #delete {
-            position: absolute;
-            z-index: 1;
-        }
-
         .file:focus-within .btn {
             outline: auto;
+        }
+
+        #delete {
+            z-index: 1;
         }
 
         #titleAlignment {
             margin: 0;
             padding: 0;
             border: 0;
-            position: absolute;
             z-index: 1;
+        }
+
+        #titleAlignment:not([hidden]) {
+            display: inline-block;
         }
 
         .add {
@@ -320,11 +322,33 @@
         .add .btn {
             width: 100%;
         }
+
+        .float {
+            grid-column: 1/3;
+            grid-row: 1/2;
+            z-index: 1;
+        }
     </style>
 </head>
 
 <body>
     <h1 class="visually-hidden">Price constructor</h1>
+    <div class="float">
+        <button class="btn" type="button" id="delete" hidden>Remove</button>
+        <fieldset id="titleAlignment" hidden>
+            <legend class="visually-hidden">Alignment</legend>
+            <select class="btn" name="textAlign" aria-label="Horizontal">
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+            </select>
+            <select class="btn" name="justifyContent" aria-label="Vertical">
+                <option value="flex-start">Top</option>
+                <option value="center">Center</option>
+                <option value="flex-end">Bottom</option>
+            </select>
+        </fieldset>
+    </div>
     <details class="settings">
         <summary>Settings</summary>
         <form>
@@ -415,22 +439,6 @@
         <button class="btn" type="button" id="service">Service</button>
         <button class="btn" type="button" id="subtitle">Footer</button>
     </details>
-    <div>
-        <button class="btn" type="button" id="delete" hidden>Remove</button>
-        <fieldset id="titleAlignment" hidden>
-            <legend class="visually-hidden">Alignment</legend>
-            <select class="btn" name="textAlign" aria-label="Horizontal">
-                <option value="left">Left</option>
-                <option value="center">Center</option>
-                <option value="right">Right</option>
-            </select>
-            <select class="btn" name="justifyContent" aria-label="Vertical">
-                <option value="flex-start">Top</option>
-                <option value="center">Center</option>
-                <option value="flex-end">Bottom</option>
-            </select>
-        </fieldset>
-    </div>
     <main>
         <h2 class="visually-hidden">Pages and content</h2>
         <ol id="pages" class="pages"></ol>

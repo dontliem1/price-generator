@@ -8,6 +8,7 @@ Built on vanilla HTML, CSS and JS.
 ## Roadmap
 
 - UI/UX enhancements
+- Write tests
 - Allow reordering services and pages
 - Fix blurred image export
 - Autosave and restore
