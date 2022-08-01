@@ -61,9 +61,8 @@
             min-width: 48px;
             vertical-align: middle;
         }
-        [type="color"] {
-            border: 0;
-            border-radius: 5px;
+        .btn[type="color"] {
+            padding: 6px;
         }
 
         canvas,
@@ -246,7 +245,7 @@
         .add summary,
         .settings summary {
             align-items: center;
-            background-color: #222;
+            background-color: #121212;
             cursor: pointer;
             display: inline-flex;
             padding: 2px 6px 3px;
@@ -254,7 +253,7 @@
         }
 
         .settings form {
-            background-color: #222;
+            background-color: #121212;
             padding: 5px;
         }
 
@@ -269,12 +268,13 @@
 
         .btn {
             align-items: center;
-            background-color: #555;
+            background-color: #3d3d3d;
             border: 0;
             border-radius: 5px;
             color: #fff;
             cursor: pointer;
             justify-content: center;
+            margin: 0;
             padding: 2px 6px 3px;
             text-align: center;
         }
@@ -311,7 +311,7 @@
         }
 
         .add {
-            background-color: #222;
+            background-color: #121212;
             display: flex;
             flex-direction: column;
             min-width: 92px;
@@ -353,9 +353,6 @@
     <details class="settings">
         <summary>Settings</summary>
         <form>
-            <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json" /><span class="btn">Import JSON</span></label>
-            <a class="btn" href="./" download='price.json' id="export">Export JSON</a>
-            <button class="btn" type="button" id="save">Save images</button>
             <h2 class="visually-hidden">Current page's settings</h2>
             <select class="btn" name="aspectRatio" aria-label="Aspect ratio">
                 <option value="1 / 1">1:1</option>
@@ -417,7 +414,10 @@
                 </optgroup>
             </select>
             <label><input class="btn" type="color" name="color"> Text color</label>
-            <button class="btn" type="button" id="deletePage">Remove the page</button>
+            <button class="btn" type="button" id="save">Save</button>
+            <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json" /><span class="btn">Import JSON</span></label>
+            <a class="btn" href="./" download='price.json' id="export">Export JSON</a>
+            <button class="btn" type="button" id="deletePage">Remove page</button>
             <fieldset>
                 <legend>Background</legend>
                 <label><input class="btn" type="color" name="backgroundColor"> Color</label>
@@ -426,7 +426,7 @@
                     <legend>Image</legend>
                     <label>Blur<br><input type="range" name="backdropFilter" min="0" max="50" step="1" value="0"></label>
                     <label class="file"><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span class="btn">Upload</span></label>
-                    <button class="btn" type="button" id="deleteBackgroundImage" hidden>Remove</button>
+                    <button class="btn" type="button" id="deleteBackgroundImage">Remove</button>
                 </fieldset>
             </fieldset>
         </form>
