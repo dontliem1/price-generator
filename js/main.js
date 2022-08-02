@@ -441,10 +441,7 @@ function handleFormFocusIn(e) {
     }
 }
 
-/**
- * @param {FocusEvent} e
- */
-function handleFormFocusOut(e) {
+function handleFormFocusOut() {
     if (deleteBtn) {
         deleteBtn.hidden = true;
     }
