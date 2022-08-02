@@ -2,7 +2,7 @@
 
 import { DEFAULTS } from './constants.js';
 
-/** @typedef {{tag: string; text?: string; parent?: HTMLElement; fromStart?: boolean}} editableElementParams */
+/** @typedef {{tag: string; text?: string; parent?: HTMLElement | null; fromStart?: boolean}} editableElementParams */
 /**
  * @param {editableElementParams} params
  * @returns {HTMLElement} Created element
@@ -52,6 +52,7 @@ function createEditableElement({ tag, text, parent, fromStart }) {
 
 function handleFormInput(e) {
     const element = /** @type {HTMLElement} */ (e.target);
+
     if (!element.textContent) {
         element.innerHTML = ' ';
     }
@@ -242,14 +243,13 @@ function handleFormFocusIn(e) {
 const backdropFilterInput = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="backdropFilter"]'));
 
 if (backdropFilterInput) {
-    backdropFilterInput.addEventListener('input', function handleBackdropFilterInput(e) {
-        const input = /** @type {HTMLInputElement | null} */ (e.target);
+    backdropFilterInput.addEventListener('input', function handleBackdropFilterInput() {
         const activeForm = getActiveForm();
 
-        if (input && activeForm) {
-            const value = `blur(${input.value}px)`;
+        if (activeForm) {
+            const value = `blur(${this.value}px)`;
 
-            activeForm.style[input.name] = activeForm.style['-webkit-backdrop-filter'] = value;
+            activeForm.style[this.name] = activeForm.style['-webkit-backdrop-filter'] = value;
         }
     });
 }
@@ -258,26 +258,24 @@ if (backdropFilterInput) {
 const opacityRange = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="opacity"]'));
 
 if (opacityRange) {
-    opacityRange.addEventListener('input', function handleOpacityRangeChange(e) {
+    opacityRange.addEventListener('input', function handleOpacityRangeChange() {
         const activeDiv = getActiveDiv();
-        const input = /** @type {HTMLInputElement | null} */ (e.target);
 
-        if (input && activeDiv) {
-            activeDiv.style[input.name] = (1 - parseFloat(input.value)).toString();
+        if (activeDiv) {
+            activeDiv.style[this.name] = (1 - parseFloat(this.value)).toString();
         }
     });
 }
 
 // Background image
-const backgroundImageInput = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="backgroundImage"]'));
+const backgroundImageInput = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="backgroundImage"]'));
 
 if (backgroundImageInput) {
-    backgroundImageInput.addEventListener('change', function handleBackgroundImageChange(e) {
-        const input = /** @type {HTMLInputElement} */ (e.target);
+    backgroundImageInput.addEventListener('change', function handleBackgroundImageChange() {
         const activeArticle = getActiveArticle();
 
-        if (input && input.files && activeArticle) {
-            const file = input.files[0];
+        if (this.files && activeArticle) {
+            const file = this.files[0];
             const reader = new FileReader();
 
             reader.onloadend = function () {
@@ -355,12 +353,11 @@ if (colorInput) {
 const backgroundColorInput = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="backgroundColor"]'));
 
 if (backgroundColorInput) {
-    backgroundColorInput.addEventListener('change', function handleDivStylePropChange(e) {
+    backgroundColorInput.addEventListener('change', function handleDivStylePropChange() {
         const activeDiv = getActiveDiv();
-        const input = /** @type {HTMLInputElement | null} */ (e.target);
 
-        if (activeDiv && input) {
-            activeDiv.style[input.name] = input.value;
+        if (activeDiv) {
+            activeDiv.style[this.name] = this.value;
         }
     });
 }
@@ -429,6 +426,9 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
         }
         if (activeArticle && colorInput) {
             colorInput.value = ConvertRGBtoHex(activeArticle.style.color);
+        }
+        if (backgroundImageInput) {
+            backgroundImageInput.value = '';
         }
 
         repositionDeleteBtn();
@@ -507,7 +507,7 @@ if (mount) {
     renderPages([DEFAULTS.FIRST_PAGE, DEFAULTS.SECOND_PAGE], mount);
 }
 
-const importInput = document.getElementById('import');
+const importInput = /** @type {HTMLInputElement | null} */ (document.getElementById('import'));
 
 if (importInput && mount) {
     importInput.addEventListener('click', function handleImportClick(e) {
@@ -516,10 +516,8 @@ if (importInput && mount) {
         }
     });
 
-    importInput.addEventListener('change', function handleImportChange(e) {
-        const input = /** @type {HTMLInputElement} */ (e.target);
-
-        if (input.files) {
+    importInput.addEventListener('change', function handleImportChange() {
+        if (this.files) {
             const fileReader = new FileReader();
 
             fileReader.onload = function handleFileLoad(e) {
@@ -530,7 +528,7 @@ if (importInput && mount) {
                     window.alert("Couldn't load the file");
                 }
             };
-            fileReader.readAsText(input.files[0], 'UTF-8');
+            fileReader.readAsText(this.files[0], 'UTF-8');
         }
     });
 }
@@ -549,14 +547,12 @@ if (deletePageBtn) {
 }
 
 // Add btns
-const addBtns = document.querySelectorAll('.add .btn');
+const addBtns = /** @type {NodeListOf<HTMLButtonElement>} */ (document.querySelectorAll('.add .btn'));
 
 for (const addBtn of addBtns) {
-    addBtn.addEventListener('click', function handleAddBtnClick(e) {
-        const btn = /** @type {HTMLButtonElement | null} */ (e.target);
-
-        if (btn && btn.parentElement) {
-            btn.parentElement.removeAttribute('open');
+    addBtn.addEventListener('click', function handleAddBtnClick() {
+        if (this.parentElement) {
+            this.parentElement.removeAttribute('open');
         }
     });
 }
@@ -615,6 +611,7 @@ const titleBtn = document.getElementById('title');
 if (titleBtn) {
     titleBtn.addEventListener('click', function handleAddTitleClick() {
         const form = getActiveForm();
+
         if (form) {
             const existingTitle = form.querySelector('h1');
 
@@ -637,6 +634,7 @@ const subtitleBtn = document.getElementById('subtitle');
 if (subtitleBtn) {
     subtitleBtn.addEventListener('click', function handleAddSubtitleClick() {
         const form = getActiveForm();
+
         if (form) {
             const existingSubtitle = form.querySelector('footer');
 
