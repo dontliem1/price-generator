@@ -5,9 +5,13 @@ import { DEFAULTS } from './constants.js';
 /** @typedef {{tag: string; text?: string; parent?: HTMLElement | null; fromStart?: boolean}} editableElementParams */
 /**
  * @param {editableElementParams} params
- * @returns {HTMLElement} Created element
+ * @returns {HTMLElement?} Created element
  */
 function createEditableElement({ tag, text, parent, fromStart }) {
+    if (!['H1', 'H2', 'H3', 'P', 'FOOTER', 'SPAN'].includes(tag)) {
+        return null;
+    }
+
     const elem = document.createElement(tag);
 
     elem.setAttribute('contenteditable', 'true');
@@ -19,7 +23,6 @@ function createEditableElement({ tag, text, parent, fromStart }) {
             parent.appendChild(elem);
         }
     }
-
 
     elem.addEventListener('paste', function stripTags(e) {
         e.preventDefault();
@@ -219,24 +222,6 @@ if (deleteBtn) {
             if (activeElement.tagName === 'H1') { repositionTitleAlignment(); }
         }
     });
-}
-
-/**
- * @param {FocusEvent} e
- */
-function handleFormFocusIn(e) {
-    const form = /** @type {HTMLFormElement} */ (e.currentTarget);
-    const editableElements = /** @type {NodeListOf<HTMLElement>} */ (form.querySelectorAll('[contenteditable]'));
-
-    for (const editableElement of editableElements) {
-        editableElement.classList.toggle('active', editableElement === e.target);
-        if (editableElement === e.target) {
-            repositionDeleteBtn(editableElement);
-            if (editableElement.tagName === 'H1') {
-                repositionTitleAlignment(editableElement);
-            }
-        }
-    }
 }
 
 // Background blur
@@ -439,6 +424,35 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
     threshold: 0.6,
 });
 
+/**
+ * @param {FocusEvent} e
+ */
+function handleFormFocusIn(e) {
+    const editableElements = /** @type {NodeListOf<HTMLElement>} */ (this.querySelectorAll('[contenteditable]'));
+
+    for (const editableElement of editableElements) {
+        editableElement.classList.toggle('active', editableElement === e.target);
+        if (editableElement === e.target) {
+            repositionDeleteBtn(editableElement);
+            if (editableElement.tagName === 'H1') {
+                repositionTitleAlignment(editableElement);
+            }
+        }
+    }
+}
+
+/**
+ * @param {FocusEvent} e
+ */
+function handleFormFocusOut(e) {
+    if (deleteBtn) {
+        deleteBtn.hidden = true;
+    }
+    if (titleAlignment) {
+        titleAlignment.hidden = true;
+    }
+}
+
 function createPage(pageJson, isActive = true) {
     const li = document.createElement('li');
     const article = document.createElement('article');
@@ -447,6 +461,7 @@ function createPage(pageJson, isActive = true) {
 
     li.classList.toggle('active', isActive);
     form.addEventListener('focusin', handleFormFocusIn);
+    form.addEventListener('focusout', handleFormFocusOut);
     form.addEventListener('input', handleFormInput);
     article.append(div, form);
 
@@ -592,6 +607,7 @@ if (duplicateBtn) {
                 let newPageForm = newPage.querySelector('form');
                 if (newPageForm) {
                     newPageForm.addEventListener('focusin', handleFormFocusIn);
+                    newPageForm.addEventListener('focusout', handleFormFocusOut);
                     newPageForm.addEventListener('input', handleFormInput);
                 }
             } else {
@@ -680,6 +696,7 @@ if (serviceBtn) {
         if (form) {
             const li = createService();
             const activeElement = getActiveElement();
+
             if (activeElement) {
                 const closestSection = activeElement.closest('section');
 

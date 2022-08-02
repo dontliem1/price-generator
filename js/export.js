@@ -65,6 +65,7 @@ if (exportBtn) {
                         sectionJson[sectionElem.tagName] = sectionElem.textContent;
                     }
                     pageJson.SECTIONS.push(sectionJson);
+
                     continue;
                 }
                 pageJson[priceElem.tagName] = priceElem.textContent;
@@ -86,6 +87,7 @@ if (exportBtn) {
 function checkBasicFileShare() {
     const txt = new Blob(['Hello, world!'], { type: 'text/plain' });
     const file = new File([txt], 'test.txt');
+
     return navigator.canShare({ files: [file] });
 }
 
