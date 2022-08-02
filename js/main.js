@@ -1,174 +1,22 @@
 'use strict';
 
 import { DEFAULTS } from './constants.js';
+import { bindListener, createEditableElement, createService, getActiveArticle, getActiveDiv, getActiveElement, getActiveForm, getActiveLi, getMount, getOffset, handleArticleStylePropChange, handleFormStylePropChange } from './utils.js';
 
-/** @typedef {{tag: string; text?: string; parent?: HTMLElement | null; fromStart?: boolean}} editableElementParams */
-/**
- * @param {editableElementParams} params
- * @returns {HTMLElement?} Created element
- */
-function createEditableElement({ tag, text, parent, fromStart }) {
-    if (!['H1', 'H2', 'H3', 'P', 'FOOTER', 'SPAN'].includes(tag)) {
-        return null;
-    }
+// Alignment
+const titleAlignment = /** @type {HTMLFieldSetElement | null} */ (document.getElementById('titleAlignment'));
 
-    const elem = document.createElement(tag);
+function repositionTitleAlignment(element = getActiveElement()) {
+    if (titleAlignment) {
+        if (element && element.tagName === 'H1') {
+            const { left, top } = getOffset(element);
 
-    elem.setAttribute('contenteditable', 'true');
-    elem.innerText = text ?? DEFAULTS[tag];
-    if (parent) {
-        if (fromStart) {
-            parent.prepend(elem);
+            titleAlignment.style.transform = `translate(${left}px, ${top}px)`;
+            titleAlignment.hidden = false;
         } else {
-            parent.appendChild(elem);
+            titleAlignment.hidden = true;
         }
     }
-
-    elem.addEventListener('paste', function stripTags(e) {
-        e.preventDefault();
-
-        const text = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
-        const oldSelection = document.getSelection();
-
-        if (oldSelection) {
-            const range = oldSelection.getRangeAt(0);
-
-            range.deleteContents();
-
-            const textNode = document.createTextNode(text);
-
-            range.insertNode(textNode);
-            range.selectNodeContents(textNode);
-            range.collapse(false);
-
-            const selection = window.getSelection();
-
-            if (selection) {
-                selection.removeAllRanges();
-                selection.addRange(range);
-            }
-        }
-    });
-
-    return elem;
-}
-
-function handleFormInput(e) {
-    const element = /** @type {HTMLElement} */ (e.target);
-
-    if (!element.textContent) {
-        element.innerHTML = ' ';
-    }
-    // If overflow
-    // const page = e.currentTarget.parentElement;
-    // if (page && (page.scrollHeight - page.clientHeight > 16)) {
-    //     window.alert(page.scrollHeight + ' ' + page.clientHeight);
-    // }
-}
-
-function createService(serviceJson = DEFAULTS.LI) {
-    const li = document.createElement('li');
-
-    for (const liTag in serviceJson) {
-        createEditableElement({
-            tag: liTag,
-            text: serviceJson[liTag],
-            parent: li
-        });
-    }
-
-    return li;
-}
-
-function createSection(sectionJson = DEFAULTS.SECTION) {
-    const section = document.createElement('section');
-
-    for (const sectionTag in sectionJson) {
-        if (sectionTag === 'UL') {
-            const ul = document.createElement('ul');
-
-            for (const liJson of sectionJson[sectionTag]) {
-                const li = createService(liJson);
-
-                ul.appendChild(li);
-            }
-            section.appendChild(ul);
-
-            continue;
-        }
-        createEditableElement({
-            tag: sectionTag,
-            text: sectionJson[sectionTag],
-            parent: section
-        });
-    }
-
-    return section;
-}
-
-/**
- * @returns {HTMLLIElement | null} `<li>` of current page
- */
-function getActiveLi() {
-    return document.querySelector('li.active');
-}
-
-/**
- * @returns {HTMLElement | null} `<article>` of current page
- */
-function getActiveArticle() {
-    return document.querySelector('li.active > article');
-}
-
-/**
- * @returns {HTMLFormElement | null} `<form>` of current page
- */
-function getActiveForm() {
-    return document.querySelector('li.active form');
-}
-
-/**
- * @returns {HTMLDivElement | null} `<div>` of current page
- */
-function getActiveDiv() {
-    return document.querySelector('li.active div');
-}
-
-/**
- * @returns {HTMLElement | null} last focused element
- */
-function getActiveElement(form = getActiveForm()) {
-    return form ? form.querySelector('.active[contenteditable]') : null;
-}
-
-const mount = document.getElementById('pages');
-
-function handleArticleStylePropChange(e) {
-    const activeArticle = getActiveArticle();
-
-    if (activeArticle) {
-        activeArticle.style[e.target.name] = e.target.value;
-    }
-}
-
-function handleFormStylePropChange(e) {
-    const activeForm = getActiveForm();
-
-    if (activeForm) {
-        activeForm.style[e.target.name] = e.target.value;
-    }
-}
-
-/**
- * @param {HTMLElement} el
- */
-function getOffset(el) {
-    const rect = el.getBoundingClientRect();
-
-    return {
-        left: rect.left + window.scrollX,
-        top: rect.top + rect.height + window.scrollY,
-    };
 }
 
 // Remove element
@@ -187,376 +35,325 @@ function repositionDeleteBtn(element = getActiveElement()) {
     }
 }
 
-// Alignment
-const titleAlignment = /** @type {HTMLFieldSetElement | null} */ (document.getElementById('titleAlignment'));
+bindListener(deleteBtn, function handleDeleteClick() {
+    const activeElement = getActiveElement();
 
-function repositionTitleAlignment(element = getActiveElement()) {
-    if (titleAlignment) {
-        if (element && element.tagName === 'H1') {
-            const { left, top } = getOffset(element);
+    if (activeElement && window.confirm(`Remove element${activeElement.innerText.trim() ? (' "' + activeElement.innerText + '"') : ''}?`)) {
+        const parent = activeElement.parentElement;
 
-            titleAlignment.style.transform = `translate(${left}px, ${top}px)`;
-            titleAlignment.hidden = false;
-        } else {
+        activeElement.remove();
+        if (parent && parent.tagName === 'DIV' && !parent.innerText.trim()) {
+            parent.remove();
+        }
+        repositionDeleteBtn();
+        if (titleAlignment) {
             titleAlignment.hidden = true;
         }
     }
-}
-
-if (deleteBtn) {
-    deleteBtn.addEventListener('click', function handleDeleteClick() {
-        const activeElement = getActiveElement();
-
-        if (activeElement && window.confirm(`Remove element${activeElement.innerText.trim() ? (' "' + activeElement.innerText + '"') : ''}?`)) {
-            const section = activeElement.closest('section');
-            const li = activeElement.closest('li');
-
-            activeElement.remove();
-            if (section && !section.innerText.trim()) {
-                section.remove();
-            }
-            if (li && !li.innerText.trim() && !li.classList.contains('active')) {
-                li.remove();
-            }
-            repositionDeleteBtn();
-            if (activeElement.tagName === 'H1') { repositionTitleAlignment(); }
-        }
-    });
-}
+}, 'click');
 
 // Background blur
-const backdropFilterInput = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="backdropFilter"]'));
+const backdropFilterInput = bindListener('backdropFilter', function handleBackdropFilterInput() {
+    const activeForm = getActiveForm();
 
-if (backdropFilterInput) {
-    backdropFilterInput.addEventListener('input', function handleBackdropFilterInput() {
-        const activeForm = getActiveForm();
+    if (activeForm) {
+        const value = `blur(${this.value}px)`;
 
-        if (activeForm) {
-            const value = `blur(${this.value}px)`;
-
-            activeForm.style[this.name] = activeForm.style['-webkit-backdrop-filter'] = value;
-        }
-    });
-}
+        activeForm.style[this.name] = value;
+        activeForm.style['-webkit-backdrop-filter'] = value;
+    }
+}, 'input');
 
 // Background opacity
-const opacityRange = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="opacity"]'));
+const opacityRange = bindListener('opacity', function handleOpacityRangeChange() {
+    const activeDiv = getActiveDiv();
 
-if (opacityRange) {
-    opacityRange.addEventListener('input', function handleOpacityRangeChange() {
-        const activeDiv = getActiveDiv();
-
-        if (activeDiv) {
-            activeDiv.style[this.name] = (1 - parseFloat(this.value)).toString();
-        }
-    });
-}
+    if (activeDiv) {
+        activeDiv.style[this.name] = (1 - parseFloat(this.value)).toString();
+    }
+}, 'input');
 
 // Background image
-const backgroundImageInput = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="backgroundImage"]'));
+const backgroundImageInput = bindListener('backgroundImage', function handleBackgroundImageChange() {
+    const activeArticle = getActiveArticle();
 
-if (backgroundImageInput) {
-    backgroundImageInput.addEventListener('change', function handleBackgroundImageChange() {
-        const activeArticle = getActiveArticle();
+    if (this.files && activeArticle) {
+        const file = this.files[0];
+        const reader = new FileReader();
 
-        if (this.files && activeArticle) {
-            const file = this.files[0];
-            const reader = new FileReader();
+        reader.onloadend = function handleImageLoadEnd() {
+            activeArticle.style.backgroundImage = 'url("' + reader.result + '")';
+        };
+        reader.readAsDataURL(file);
+    }
+});
 
-            reader.onloadend = function () {
-                activeArticle.style.backgroundImage = 'url("' + reader.result + '")';
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-}
+bindListener('deleteBackgroundImage', function handleDeleteBackgroundImageClick() {
+    const activeArticle = getActiveArticle();
 
-const deleteBackgroundImage = document.getElementById('deleteBackgroundImage');
-
-if (deleteBackgroundImage) {
-    deleteBackgroundImage.addEventListener('click', function handleDeleteBackgroundImageClick() {
-        if (deleteBackgroundImage) {
-            const activeArticle = getActiveArticle();
-
-            if (activeArticle) {
-                activeArticle.style.backgroundImage = '';
-            }
-        }
-    });
-}
+    if (activeArticle) {
+        activeArticle.style.backgroundImage = '';
+    }
+    if (backgroundImageInput) {
+        backgroundImageInput.value = '';
+    }
+}, 'click');
 
 // Title justify
-const textAlignSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="textAlign"]'));
-
-if (textAlignSelect) {
-    textAlignSelect.addEventListener('change', handleFormStylePropChange);
-}
+const textAlignSelect = /** @type {HTMLSelectElement | null} */ (bindListener('textAlign', handleFormStylePropChange));
 
 // Title vertical alignment
-const justifyContentSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="justifyContent"]'));
-
-if (justifyContentSelect) {
-    justifyContentSelect.addEventListener('change', function handleJustifyContentSelectChange(e) {
-        handleFormStylePropChange(e);
-        repositionTitleAlignment();
-        repositionDeleteBtn();
-    });
-}
+const justifyContentSelect = /** @type {HTMLSelectElement | null} */ (bindListener('justifyContent', function handleJustifyContentSelectChange(e) {
+    handleFormStylePropChange(e);
+    repositionTitleAlignment();
+    repositionDeleteBtn();
+}));
 
 // Font
-const fontFamilySelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="fontFamily"]'));
+let fontsAdded = false;
+const fontFamilySelect = /** @type {HTMLSelectElement | null} */ (bindListener('fontFamily', function handleFontChange(e) {
+    if (!fontsAdded) {
+        const link = document.createElement('link');
 
-if (fontFamilySelect) {
-    let fontsAdded = false;
-    fontFamilySelect.addEventListener('change', function handleFontChange(e) {
-        if (!fontsAdded) {
-            const link = document.createElement('link');
-
-            link.rel = 'stylesheet';
-            link.href = 'https://fonts.googleapis.com/css2?family=Alegreya&family=Alice&family=Bitter&family=Cormorant&family=EB+Garamond&family=IBM+Plex+Serif&family=Literata:opsz@7..72&family=Lora&family=Merriweather&family=Old+Standard+TT&family=PT+Serif&family=PT+Serif+Caption&family=Piazzolla:opsz@8..30&family=Playfair+Display&family=Prata&family=Source+Serif+Pro&family=Spectral&family=Alegreya+Sans&family=Arsenal&family=Commissioner&family=IBM+Plex+Mono&family=IBM+Plex+Sans&family=Inter&family=JetBrains+Mono&family=Montserrat&family=PT+Mono&family=PT+Sans&family=Raleway&family=Roboto&family=Roboto+Condensed&family=Roboto+Mono&family=Rubik&family=Yanone+Kaffeesatz&family=Caveat&family=Lobster&family=Pacifico&family=Pangolin&family=Podkova&family=Press+Start+2P&family=Ruslan+Display&family=Russo+One&family=Underdog&family=Yeseva+One&display=swap';
-            document.head.appendChild(link);
-            fontsAdded = true;
-        }
-        handleArticleStylePropChange(e);
-    });
-}
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Alegreya&family=Alice&family=Bitter&family=Cormorant&family=EB+Garamond&family=IBM+Plex+Serif&family=Literata:opsz@7..72&family=Lora&family=Merriweather&family=Old+Standard+TT&family=PT+Serif&family=PT+Serif+Caption&family=Piazzolla:opsz@8..30&family=Playfair+Display&family=Prata&family=Source+Serif+Pro&family=Spectral&family=Alegreya+Sans&family=Arsenal&family=Commissioner&family=IBM+Plex+Mono&family=IBM+Plex+Sans&family=Inter&family=JetBrains+Mono&family=Montserrat&family=PT+Mono&family=PT+Sans&family=Raleway&family=Roboto&family=Roboto+Condensed&family=Roboto+Mono&family=Rubik&family=Yanone+Kaffeesatz&family=Caveat&family=Lobster&family=Pacifico&family=Pangolin&family=Podkova&family=Press+Start+2P&family=Ruslan+Display&family=Russo+One&family=Underdog&family=Yeseva+One&display=swap';
+        document.head.appendChild(link);
+        fontsAdded = true;
+    }
+    handleArticleStylePropChange(e);
+}));
 
 // Aspect ratio
-const aspectRatioSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector('[name="aspectRatio"]'));
-
-if (aspectRatioSelect) {
-    aspectRatioSelect.addEventListener('change', handleArticleStylePropChange);
-}
+const aspectRatioSelect = /** @type {HTMLSelectElement | null} */ (bindListener('aspectRatio', handleArticleStylePropChange));
 
 // Colors
-const colorInput = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="color"]'));
+const colorInput = bindListener('color', handleArticleStylePropChange);
+const backgroundColorInput = bindListener('backgroundColor', function handleDivStylePropChange() {
+    const activeDiv = getActiveDiv();
 
-if (colorInput) {
-    colorInput.addEventListener('change', handleArticleStylePropChange);
-}
-
-const backgroundColorInput = /** @type {HTMLInputElement | null} */ (document.querySelector('[name="backgroundColor"]'));
-
-if (backgroundColorInput) {
-    backgroundColorInput.addEventListener('change', function handleDivStylePropChange() {
-        const activeDiv = getActiveDiv();
-
-        if (activeDiv) {
-            activeDiv.style[this.name] = this.value;
-        }
-    });
-}
+    if (activeDiv) {
+        activeDiv.style[this.name] = this.value;
+    }
+});
 
 /**
- * @param {string} color octet
- */
-function ColorToHex(color) {
-    const hexadecimal = parseInt(color, 10).toString(16);
-
-    return hexadecimal.length === 1 ? '0' + hexadecimal : hexadecimal;
-}
-
-/**
- * @param {string} rgb e.g. `rgb(255, 255, 255)`
- */
-function ConvertRGBtoHex(rgb) {
-    const colors = rgb.slice(4, -1).split(', ');
-
-    return '#' + ColorToHex(colors[0]) + ColorToHex(colors[1]) + ColorToHex(colors[2]);
-}
-
-/**
- * @param {HTMLSelectElement} select to pass the value
- * @param {HTMLElement} from take a style value
+ * @param {HTMLSelectElement | null} select to pass the value
+ * @param {HTMLElement | null} from take a style value
  * @returns {void}
  */
 function assignValueFromStyle(select, from) {
-    if (from.style[select.name]) {
-        select.value = from.style[select.name];
-    } else {
-        select.selectedIndex = 0;
+    if (select && from) {
+        if (from.style[select.name]) {
+            select.value = from.style[select.name];
+        } else {
+            select.selectedIndex = 0;
+        }
     }
 }
 
 // Page creation
 const observer = new IntersectionObserver(function onIntersect(entries) {
-    entries.forEach(function handleEntryIntersection(entry) {
-        entry.target.classList.toggle('active', entry.isIntersecting);
-        if (!entry.isIntersecting) {
-            const form = /** @type {HTMLFormElement} */ (entry.target);
-            const activeElement = getActiveElement(form);
+    for (const entry of entries) {
+        const page = /** @type {HTMLLIElement} */ (entry.target);
+
+        if (entry.isIntersecting) {
+            page.classList.add('active');
+
+            const activeArticle = getActiveArticle(page);
+            const activeDiv = getActiveDiv(activeArticle);
+            const activeForm = getActiveForm(activeArticle);
+            const convertRGBtoHex = (rgb) => {
+                const colorToHex = (/** @type {string} */ color) => {
+                    const hexadecimal = parseInt(color, 10).toString(16);
+
+                    return hexadecimal.length === 1 ? '0' + hexadecimal : hexadecimal;
+                };
+                const colors = rgb.slice(4, -1).split(', ');
+
+                return '#' + colorToHex(colors[0]) + colorToHex(colors[1]) + colorToHex(colors[2]);
+            };
+
+            assignValueFromStyle(textAlignSelect, activeForm);
+            assignValueFromStyle(justifyContentSelect, activeForm);
+            if (backdropFilterInput && activeForm) {
+                backdropFilterInput.value = activeForm.style[backdropFilterInput.name] ? activeForm.style[backdropFilterInput.name].slice(5, -3) : '0';
+            }
+            assignValueFromStyle(fontFamilySelect, activeArticle);
+            assignValueFromStyle(aspectRatioSelect, activeArticle);
+            if (colorInput && activeArticle) {
+                colorInput.value = convertRGBtoHex(activeArticle.style.color);
+            }
+            if (opacityRange && activeDiv) {
+                opacityRange.value = (1 - parseFloat(activeDiv.style.opacity)).toString();
+            }
+            if (backgroundColorInput && activeDiv) {
+                backgroundColorInput.value = convertRGBtoHex(activeDiv.style.backgroundColor);
+            }
+            if (backgroundImageInput) {
+                backgroundImageInput.value = '';
+            }
+        } else {
+            const activeElement = getActiveElement(page);
 
             if (activeElement) {
                 activeElement.blur();
                 activeElement.classList.remove('active');
             }
-            return;
-        }
-        const activeArticle = getActiveArticle();
-        const activeDiv = getActiveDiv();
-        const activeForm = getActiveForm();
-
-        if (activeForm) {
-            if (textAlignSelect) { assignValueFromStyle(textAlignSelect, activeForm); }
-            if (justifyContentSelect) { assignValueFromStyle(justifyContentSelect, activeForm); }
-            if (backdropFilterInput) { backdropFilterInput.value = activeForm.style[backdropFilterInput.name] ? activeForm.style[backdropFilterInput.name].slice(5, -3) : '0'; }
-        }
-        if (activeArticle) {
-            if (fontFamilySelect) { assignValueFromStyle(fontFamilySelect, activeArticle); }
-            if (aspectRatioSelect) { assignValueFromStyle(aspectRatioSelect, activeArticle); }
-        }
-        if (activeDiv) {
-            if (opacityRange) { opacityRange.value = (1 - parseFloat(activeDiv.style.opacity)).toString(); }
-            if (backgroundColorInput) { backgroundColorInput.value = ConvertRGBtoHex(activeDiv.style.backgroundColor); }
-        }
-        if (activeArticle && colorInput) {
-            colorInput.value = ConvertRGBtoHex(activeArticle.style.color);
-        }
-        if (backgroundImageInput) {
-            backgroundImageInput.value = '';
+            page.classList.remove('active');
         }
 
         repositionDeleteBtn();
         repositionTitleAlignment();
-    });
+    }
 }, {
-    root: mount,
+    root: getMount(),
     threshold: 0.6,
 });
 
 /**
- * @param {FocusEvent} e
+ * @param {HTMLFormElement} form
  */
-function handleFormFocusIn(e) {
-    const editableElements = /** @type {NodeListOf<HTMLElement>} */ (this.querySelectorAll('[contenteditable]'));
+function bindFormListeners(form) {
+    form.addEventListener('focusin', function handleFormFocusIn(e) {
+        const editableElements = /** @type {NodeListOf<HTMLElement>} */ (this.querySelectorAll('[contenteditable]'));
 
-    for (const editableElement of editableElements) {
-        editableElement.classList.toggle('active', editableElement === e.target);
-        if (editableElement === e.target) {
-            repositionDeleteBtn(editableElement);
-            if (editableElement.tagName === 'H1') {
-                repositionTitleAlignment(editableElement);
+        for (const editableElement of editableElements) {
+            editableElement.classList.toggle('active', editableElement === e.target);
+            if (editableElement === e.target) {
+                repositionDeleteBtn(editableElement);
+                if (editableElement.tagName === 'H1') {
+                    repositionTitleAlignment(editableElement);
+                }
             }
         }
-    }
+    });
+    form.addEventListener('input', function handleFormInput(e) {
+        const element = /** @type {HTMLElement} */ (e.target);
+
+        if (!element.innerText) {
+            element.textContent = ' ';
+        }
+        // If overflow
+        // const page = e.currentTarget.parentElement;
+        // if (page && (page.scrollHeight - page.clientHeight > 16)) {
+        //     window.alert(page.scrollHeight + ' ' + page.clientHeight);
+        // }
+    });
 }
 
-function handleFormFocusOut() {
-    if (deleteBtn) {
-        deleteBtn.hidden = true;
+bindListener('settings', function handleSettingsClick() {
+    const add = document.getElementById('add');
+
+    if (add) {
+        add.removeAttribute('open');
     }
-    if (titleAlignment) {
-        titleAlignment.hidden = true;
-    }
+    [deleteBtn, titleAlignment].forEach(function hideControl(control) {
+        if (control) {
+            control.hidden = true;
+        }
+    });
+}, 'click');
+
+function attachStyleFromJson({ form, div, article }, props = {}) {
+    const { backdropFilter, justifyContent, textAlign, backgroundColor, opacity, aspectRatio, backgroundImage, color, fontFamily } = props;
+    const assignFilteredStyle = function (element, object) {
+        Object.assign(element.style, Object.fromEntries(Object.entries(object).filter(function filterEmpty([, value]) {
+            return value;
+        })));
+    };
+
+    assignFilteredStyle(form, { backdropFilter, justifyContent, textAlign });
+    assignFilteredStyle(div, { backgroundColor, opacity });
+    assignFilteredStyle(article, { aspectRatio, backgroundImage, color, fontFamily });
 }
 
-function createPage(pageJson, isActive = true) {
+function createPage(pageJson = {}, isActive = true) {
     const li = document.createElement('li');
     const article = document.createElement('article');
     const form = document.createElement('form');
     const div = document.createElement('div');
 
     li.classList.toggle('active', isActive);
-    form.addEventListener('focusin', handleFormFocusIn);
-    form.addEventListener('focusout', handleFormFocusOut);
-    form.addEventListener('input', handleFormInput);
+    bindFormListeners(form);
     article.append(div, form);
 
-    for (const tag in pageJson) {
-        if (tag === 'STYLE') {
-            for (const styleProp in pageJson[tag]) {
-                if (['-webkit-backdrop-filter', 'backdropFilter', 'textAlign', 'justifyContent'].includes(styleProp)) {
-                    form.style[styleProp] = pageJson[tag][styleProp];
+    attachStyleFromJson({ form, div, article }, pageJson.STYLE);
+    createEditableElement({
+        tag: 'H1',
+        text: pageJson.H1,
+        parent: form
+    }, false);
+    if (pageJson.ITEMS) {
+        pageJson.ITEMS.map(function createItem(item) {
+            switch (item.type) {
+                case 'CATEGORY':
+                    createEditableElement({ tag: 'H2', text: item.text, parent: form }, false);
 
-                    continue;
-                }
-                if (['backgroundColor', 'opacity'].includes(styleProp)) {
-                    div.style[styleProp] = pageJson[tag][styleProp];
+                    break;
+                case 'SERVICE':
+                    form.appendChild(createService(item));
 
-                    continue;
-                }
-                article.style[styleProp] = pageJson[tag][styleProp];
+                    break;
             }
-
-            continue;
-        }
-        if (tag === 'SECTIONS') {
-            for (const sectionJson of pageJson[tag]) {
-                const section = createSection(sectionJson);
-
-                form.appendChild(section);
-            }
-
-            continue;
-        }
-        createEditableElement({
-            tag,
-            text: pageJson[tag],
-            parent: form
         });
     }
+    createEditableElement({
+        tag: 'FOOTER',
+        text: pageJson.FOOTER,
+        parent: form
+    }, false);
     li.appendChild(article);
     observer.observe(li);
 
     return li;
 }
 
-// Import
 /**
  * @param {Record<string, any>[]} pagesJson
- * @param {HTMLElement} mount
+ * @param {HTMLElement | null} mount
  */
-function renderPages(pagesJson, mount) {
-    const pages = [];
+export function renderPages(pagesJson, mount = getMount()) {
+    if (mount) {
+        const pages = [];
 
-    pagesJson.forEach(function createPages(page, index) {
-        pages.push(createPage(page, index === 0));
-    });
-    mount.append(...pages);
+        pagesJson.forEach(function createPages(page, index) {
+            pages.push(createPage(page, index === 0));
+        });
+        mount.textContent = '';
+        mount.append(...pages);
+    }
 }
 
-if (mount) {
-    renderPages([DEFAULTS.FIRST_PAGE, DEFAULTS.SECOND_PAGE], mount);
-}
+// Import
+const importInput = bindListener('import', function handleImportClick(e) {
+    if (!window.confirm('This will replace the current price. Continue?')) {
+        e.preventDefault();
+    }
+}, 'click');
 
-const importInput = /** @type {HTMLInputElement | null} */ (document.getElementById('import'));
+bindListener(importInput, function handleImportChange() {
+    if (this.files) {
+        const fileReader = new FileReader();
 
-if (importInput && mount) {
-    importInput.addEventListener('click', function handleImportClick(e) {
-        if (!window.confirm('This will replace the current price. Continue?')) {
-            e.preventDefault();
-        }
-    });
-
-    importInput.addEventListener('change', function handleImportChange() {
-        if (this.files) {
-            const fileReader = new FileReader();
-
-            fileReader.onload = function handleFileLoad(e) {
-                if (e.target && typeof e.target.result === 'string') {
-                    mount.innerHTML = '';
-                    renderPages(JSON.parse(e.target.result), mount);
-                } else {
-                    window.alert("Couldn't load the file");
-                }
-            };
-            fileReader.readAsText(this.files[0], 'UTF-8');
-        }
-    });
-}
+        fileReader.onload = function handleFileLoad(e) {
+            if (e.target && typeof e.target.result === 'string') {
+                renderPages(JSON.parse(e.target.result));
+            } else {
+                window.alert("Couldn't load the file");
+            }
+        };
+        fileReader.readAsText(this.files[0], 'UTF-8');
+    }
+});
 
 // Delete page
-const deletePageBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('deletePage'));
+bindListener('deletePage', function handleDeletePageClick() {
+    const activePage = getActiveLi();
 
-if (deletePageBtn) {
-    deletePageBtn.addEventListener('click', function handleDeletePageClick() {
-        const activePage = getActiveLi();
-
-        if (activePage && window.confirm('Remove current page?')) {
-            activePage.remove();
-        }
-    });
-}
+    if (activePage && window.confirm('Remove current page?')) {
+        activePage.remove();
+    }
+}, 'click');
 
 // Add btns
 const addBtns = /** @type {NodeListOf<HTMLButtonElement>} */ (document.querySelectorAll('.add .btn'));
@@ -569,162 +366,108 @@ for (const addBtn of addBtns) {
     });
 }
 
-// Add page
-const pageBtn = document.getElementById('page');
+bindListener('page', function handleAddPageClick() {
+    const mount = getMount();
 
-if (pageBtn && mount) {
-    pageBtn.addEventListener('click', function handleAddPageClick() {
+    if (mount) {
         const newPage = createPage();
 
         mount.appendChild(newPage);
         newPage.scrollIntoView();
-    },
-    );
-}
+    }
+}, 'click');
 
-// Duplicate page
-const duplicateBtn = document.getElementById('duplicate');
+bindListener('duplicate', function handleAddPageClick() {
+    const pages = document.getElementById('pages');
+    if (pages) {
+        let newPage;
+        const activePage = getActiveLi();
 
-if (duplicateBtn) {
-    duplicateBtn.addEventListener('click', function handleAddPageClick() {
-        const pages = document.getElementById('pages');
-        if (pages) {
-            let newPage;
-            const activePage = getActiveLi();
+        if (activePage) {
+            newPage = /** @type {HTMLLIElement} */ (activePage.cloneNode(true));
 
-            if (activePage) {
-                newPage = /** @type {HTMLLIElement} */ (activePage.cloneNode(true));
+            let newPageTitle = newPage.querySelector('h1');
+            let newPageForm = getActiveForm(newPage);
 
-                let newPageTitle = newPage.querySelector('h1');
-
-                if (newPageTitle) {
-                    newPageTitle.innerText += ' copy';
-                }
-
-                let newPageForm = newPage.querySelector('form');
-                if (newPageForm) {
-                    newPageForm.addEventListener('focusin', handleFormFocusIn);
-                    newPageForm.addEventListener('focusout', handleFormFocusOut);
-                    newPageForm.addEventListener('input', handleFormInput);
-                }
-            } else {
-                newPage = createPage();
+            if (newPageTitle) {
+                newPageTitle.innerText += ' copy';
             }
-
-            pages.appendChild(newPage);
-            observer.observe(newPage);
-            newPage.scrollIntoView();
+            if (newPageForm) {
+                bindFormListeners(newPageForm);
+            }
+        } else {
+            newPage = createPage();
         }
-    });
-}
 
-// Add title
-const titleBtn = document.getElementById('title');
+        pages.appendChild(newPage);
+        observer.observe(newPage);
+        newPage.scrollIntoView();
+    }
+}, 'click');
 
-if (titleBtn) {
-    titleBtn.addEventListener('click', function handleAddTitleClick() {
-        const form = getActiveForm();
+bindListener('title', function handleAddTitleClick() {
+    const form = getActiveForm();
 
-        if (form) {
-            const existingTitle = form.querySelector('h1');
+    if (form) {
+        const existingTitle = form.querySelector('h1');
 
-            if (existingTitle) {
-                existingTitle.focus();
-            } else {
-                createEditableElement({
-                    tag: 'H1',
-                    fromStart: true,
-                    parent: form
-                });
-            }
+        if (existingTitle) {
+            existingTitle.focus();
+        } else {
+            createEditableElement({
+                tag: 'H1',
+                fromStart: true,
+                parent: form
+            });
         }
-    });
-}
+    }
+}, 'click');
 
-// Add footer
-const subtitleBtn = document.getElementById('subtitle');
+bindListener('footer', function handleAddFooterClick() {
+    const form = getActiveForm();
 
-if (subtitleBtn) {
-    subtitleBtn.addEventListener('click', function handleAddSubtitleClick() {
-        const form = getActiveForm();
+    if (form) {
+        const existingFooter = form.querySelector('footer');
 
-        if (form) {
-            const existingSubtitle = form.querySelector('footer');
-
-            if (existingSubtitle) {
-                existingSubtitle.focus();
-            } else {
-                createEditableElement({
-                    tag: 'FOOTER',
-                    parent: form
-                });
-            }
+        if (existingFooter) {
+            existingFooter.focus();
+        } else {
+            createEditableElement({
+                tag: 'FOOTER',
+                parent: form
+            });
         }
-    });
-}
+    }
+}, 'click');
 
-// Add group
-const groupBtn = document.getElementById('group');
+bindListener('category', function handleAddCategoryClick() {
+    const form = getActiveForm();
+    const category = createEditableElement({ tag: 'H2' });
 
-if (groupBtn) {
-    groupBtn.addEventListener('click', function handleAddGroupClick() {
-        const form = getActiveForm();
+    if (form && category) {
+        const existingFooter = form.querySelector('footer');
 
-        if (form) {
-            const existingSubtitle = form.querySelector('footer');
-            const group = createSection();
-
-            if (existingSubtitle) {
-                form.insertBefore(group, existingSubtitle);
-            } else {
-                form.appendChild(group);
-            }
+        if (existingFooter) {
+            form.insertBefore(category, existingFooter);
+        } else {
+            form.appendChild(category);
         }
-    });
-}
+    }
+}, 'click');
 
-// Add service
-const serviceBtn = document.getElementById('service');
+bindListener('service', function handleAddServiceClick() {
+    const form = getActiveForm();
+    const service = createService();
 
-if (serviceBtn) {
-    serviceBtn.addEventListener('click', function handleAddServiceClick() {
-        const form = getActiveForm();
+    if (form && service) {
+        const existingFooter = form.querySelector('footer');
 
-        if (form) {
-            const li = createService();
-            const activeElement = getActiveElement();
-
-            if (activeElement) {
-                const closestSection = activeElement.closest('section');
-
-                if (closestSection) {
-                    const sectionsUl = closestSection.querySelector('ul');
-
-                    if (sectionsUl) {
-                        sectionsUl.append(li);
-                    } else {
-                        const ul = document.createElement('ul');
-
-                        ul.appendChild(li);
-                        closestSection.appendChild(ul);
-                    }
-
-                    return;
-                }
-            }
-
-            const existingGroups = form.querySelectorAll('ul');
-
-            if (existingGroups.length > 0) {
-                existingGroups[existingGroups.length - 1].appendChild(li);
-            } else {
-                const section = document.createElement('section');
-                const ul = document.createElement('ul');
-
-                ul.appendChild(li);
-                section.appendChild(ul);
-                form.appendChild(section);
-            }
+        if (existingFooter) {
+            form.insertBefore(service, existingFooter);
+        } else {
+            form.appendChild(service);
         }
-    });
-}
+    }
+}, 'click');
+
+renderPages([DEFAULTS.FIRST_PAGE, DEFAULTS.SECOND_PAGE]);

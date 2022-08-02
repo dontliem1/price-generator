@@ -2,30 +2,23 @@
 
 const exportBtn = /** @type {HTMLAnchorElement | null} */ (document.getElementById('export'));
 
+/**
+* @param {Object} params
+* @param {HTMLElement | null} params.page
+* @param {HTMLElement | null} params.form
+* @param {HTMLElement | null} params.div
+*/
 function parseStyles({ page, form, div }) {
-    const result = {};
+    // @ts-ignore
+    const { aspectRatio, backgroundImage, color, fontFamily } = page ? page.style : {};
+    // @ts-ignore
+    const { backdropFilter, justifyContent, textAlign } = form ? form.style : {};
+    // @ts-ignore
+    const { backgroundColor, opacity } = div ? div.style : {};
 
-    ['aspectRatio', 'color', 'fontFamily'].forEach(function addPageProps(prop) {
-        if (page.style[prop]) {
-            result[prop] = page.style[prop];
-        }
-    });
-    if (form) {
-        ['-webkit-backdrop-filter', 'backdropFilter', 'justifyContent', 'textAlign'].forEach(function addFormProps(prop) {
-            if (form.style[prop]) {
-                result[prop] = form.style[prop];
-            }
-        });
-    }
-    if (div) {
-        ['backgroundColor', 'opacity'].forEach(function addFormProps(prop) {
-            if (div.style[prop]) {
-                result[prop] = div.style[prop];
-            }
-        });
-    }
-
-    return result;
+    return Object.fromEntries(Object.entries({ aspectRatio, backgroundImage, color, fontFamily, backdropFilter, justifyContent, textAlign, backgroundColor, opacity }).filter(function filterEmpty([, value]) {
+        return value;
+    }));
 }
 
 if (exportBtn) {
@@ -34,41 +27,42 @@ if (exportBtn) {
         const pages = document.getElementsByTagName('article');
 
         for (const page of pages) {
+            /**
+             * @type {{ITEMS: {type: string, text?: string, H3?: string, P?: string, SPAN?: string}[], H1?: string, FOOTER?: string, STYLE?: {[prop: string]: string}}}
+             */
             const pageJson = {};
             const div = /** @type {HTMLDivElement | null} */ (page.firstElementChild);
             const form = /** @type {HTMLFormElement | null} */ (page.lastElementChild);
-            const priceElems = form ? form.children : [];
+            const priceElems = form ? /** @type {HTMLCollectionOf<HTMLElement>} */ (form.children) : [];
 
             for (const priceElem of priceElems) {
-                if (priceElem.tagName === 'SECTION') {
-                    if (!pageJson.SECTIONS) {
-                        pageJson.SECTIONS = [];
-                    }
-                    const sectionJson = {};
+                switch (priceElem.tagName) {
+                    case 'H1':
+                    case 'FOOTER':
+                        pageJson[priceElem.tagName] = priceElem.innerText;
 
-                    for (const sectionElem of priceElem.children) {
-                        if (sectionElem.tagName === 'UL') {
-                            if (!sectionJson[sectionElem.tagName]) {
-                                sectionJson[sectionElem.tagName] = [];
+                        break;
+                    case 'H2':
+                        const category = { type: 'CATEGORY', text: priceElem.innerText };
+
+                        pageJson.ITEMS = pageJson.ITEMS ? [...pageJson.ITEMS, category] : [category];
+
+                        break;
+                    case 'DIV':
+                        const serviceItems = /** @type {HTMLCollectionOf<HTMLElement>} */ (priceElem.children);
+
+                        if (serviceItems.length) {
+                            const service = { type: "SERVICE" };
+
+                            for (const item of serviceItems) {
+                                service[item.tagName] = item.innerText;
                             }
-                            for (const li of sectionElem.children) {
-                                const liJson = {};
 
-                                for (const prop of li.children) {
-                                    liJson[prop.tagName] = prop.textContent;
-                                }
-                                sectionJson[sectionElem.tagName].push(liJson);
-                            }
-
-                            continue;
+                            pageJson.ITEMS = pageJson.ITEMS ? [...pageJson.ITEMS, service] : [service];
                         }
-                        sectionJson[sectionElem.tagName] = sectionElem.textContent;
-                    }
-                    pageJson.SECTIONS.push(sectionJson);
 
-                    continue;
+                        break;
                 }
-                pageJson[priceElem.tagName] = priceElem.textContent;
             }
             pageJson.STYLE = parseStyles({
                 page,
@@ -80,7 +74,7 @@ if (exportBtn) {
         const stringified = JSON.stringify(json);
         const exportJson = new Blob([stringified], { type: 'text/json' });
 
-        exportBtn.href = URL.createObjectURL(exportJson);
+        this.href = URL.createObjectURL(exportJson);
     });
 }
 
@@ -113,14 +107,17 @@ if (saveBtn) {
                 });
             }
 
-            setTimeout(async () => {
+            setTimeout(async function downloadImages() {
                 for (let i = 0; i < canvases.length; i++) {
                     link.href = canvases[i];
                     link.download = (i + 1) + '.png';
                     link.click();
                 }
                 link.remove();
-            }, 0);
+
+                document.body.classList.remove('rendering');
+                saveBtn.disabled = false;
+            }, 1000);
         } else {
             const files = /** @type {File[]} */ ([]);
 
@@ -134,14 +131,14 @@ if (saveBtn) {
                 });
             }
 
-            setTimeout(async () => {
+            setTimeout(async function shareImages() {
                 await navigator.share({ files }).catch(function handleError(error) {
                     window.console.error(error);
                 });
-            }, 1);
-        }
 
-        document.body.classList.remove('rendering');
-        saveBtn.disabled = false;
+                document.body.classList.remove('rendering');
+                saveBtn.disabled = false;
+            }, 1000);
+        }
     });
 }

@@ -154,7 +154,7 @@
             grid-row: 1/2;
         }
 
-        .pages section+section {
+        .pages div+h2 {
             margin-top: 5.5%;
         }
 
@@ -162,24 +162,13 @@
             font-size: min(9vw, 100px);
         }
 
-        .pages ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            text-align: left;
-        }
-
-        .pages li li {
+        .pages form div {
             align-items: end;
             display: grid;
             font-size: min(5.5vw, 60px);
             grid-auto-flow: dense;
             grid-template-columns: 1fr auto;
             margin-top: 1em;
-        }
-
-        .pages ul:first-child li:first-child {
-            margin-top: 0;
         }
 
         .pages h1,
@@ -195,7 +184,7 @@
         }
 
         .pages h1:only-child,
-        .pages form:not(:has(section)) h1 {
+        .pages form:has(h2):has(div) h1 {
             font-size: min(16.5vw, 180px);
             padding-bottom: 4%;
             padding-top: 10%;
@@ -224,7 +213,7 @@
             padding-top: 1em;
         }
 
-        .pages section+footer {
+        .pages *:not(h1)+footer {
             margin-top: auto;
             text-align: left;
         }
@@ -334,32 +323,32 @@
 
 <body>
     <h1 class="visually-hidden">Price constructor</h1>
-    <div class="float">
+    <div class="float" id="float">
         <button class="btn" type="button" id="delete" hidden>Remove</button>
         <fieldset id="titleAlignment" hidden>
             <legend class="visually-hidden">Alignment</legend>
-            <select class="btn" name="textAlign" aria-label="Horizontal">
+            <select class="btn" name="textAlign" aria-label="Horizontal" id="textAlign">
                 <option value="left">Left</option>
                 <option value="center">Center</option>
                 <option value="right">Right</option>
             </select>
-            <select class="btn" name="justifyContent" aria-label="Vertical">
+            <select class="btn" name="justifyContent" aria-label="Vertical" id="justifyContent">
                 <option value="flex-start">Top</option>
                 <option value="center">Center</option>
                 <option value="flex-end">Bottom</option>
             </select>
         </fieldset>
     </div>
-    <details class="settings">
+    <details class="settings" id="settings">
         <summary>Settings</summary>
         <form>
             <h2 class="visually-hidden">Current page's settings</h2>
-            <select class="btn" name="aspectRatio" aria-label="Aspect ratio">
+            <select class="btn" name="aspectRatio" aria-label="Aspect ratio" id="aspectRatio">
                 <option value="1 / 1">1:1</option>
                 <option value="4 / 5" selected>4:5</option>
                 <option value="9 / 16">9:16</option>
             </select>
-            <select class="btn" name="fontFamily" aria-label="Font">
+            <select class="btn" name="fontFamily" aria-label="Font" id="fontFamily">
                 <option value="system-ui, sans-serif" selected>System font</option>
                 <optgroup label="Serif">
                     <option value='Alegreya, serif'>Alegreya</option>
@@ -413,32 +402,32 @@
                     <option value='"Yeseva One", serif'>Yeseva One</option>
                 </optgroup>
             </select>
-            <label><input class="btn" type="color" name="color"> Text color</label>
+            <label><input class="btn" type="color" name="color" id="color"> Text color</label>
             <button class="btn" type="button" id="save">Save</button>
             <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json" /><span class="btn">Import JSON</span></label>
             <a class="btn" href="./" download='price.json' id="export">Export JSON</a>
             <button class="btn" type="button" id="deletePage">Remove page</button>
             <fieldset>
                 <legend>Background</legend>
-                <label><input class="btn" type="color" name="backgroundColor"> Color</label>
-                <label>Transparency <br><input type="range" name="opacity" min="0" max="1" step="0.1"></label>
+                <label><input class="btn" type="color" name="backgroundColor" id="backgroundColor"> Color</label>
+                <label>Transparency <br><input type="range" name="opacity" min="0" max="1" step="0.1" id="opacity"></label>
                 <fieldset>
                     <legend>Image</legend>
-                    <label>Blur<br><input type="range" name="backdropFilter" min="0" max="50" step="1" value="0"></label>
+                    <label>Blur<br><input type="range" name="backdropFilter" min="0" max="50" step="1" value="0" id="backdropFilter"></label>
                     <label class="file"><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span class="btn">Upload</span></label>
                     <button class="btn" type="button" id="deleteBackgroundImage">Remove</button>
                 </fieldset>
             </fieldset>
         </form>
     </details>
-    <details class="add">
+    <details class="add" id="add">
         <summary>Add</summary>
         <button class="btn" type="button" id="page">Blank page</button>
         <button class="btn" type="button" id="duplicate">Page copy</button>
         <button class="btn" type="button" id="title">Title</button>
-        <button class="btn" type="button" id="group">Category</button>
+        <button class="btn" type="button" id="category">Category</button>
         <button class="btn" type="button" id="service">Service</button>
-        <button class="btn" type="button" id="subtitle">Footer</button>
+        <button class="btn" type="button" id="footer">Footer</button>
     </details>
     <main>
         <h2 class="visually-hidden">Pages and content</h2>
