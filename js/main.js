@@ -13,9 +13,9 @@ const titleAlignment = /** @type {HTMLFieldSetElement | null} */ (document.getEl
 function repositionTitleAlignment(element = getActiveElement()) {
     if (titleAlignment) {
         if (element && element === document.activeElement && element.tagName === 'H1') {
-            const { left, top } = getOffset(element);
+            const { left, height, top } = getOffset(element);
 
-            titleAlignment.style.transform = `translate(${left}px, ${top}px)`;
+            titleAlignment.style.transform = `translate(${left}px, ${top + height}px)`;
             titleAlignment.hidden = false;
         } else {
             titleAlignment.hidden = true;
@@ -29,9 +29,9 @@ const deleteBtn = /** @type {HTMLButtonElement | null} */ (document.getElementBy
 function repositionDeleteBtn(element = getActiveElement()) {
     if (deleteBtn) {
         if (element && element === document.activeElement && ['H1', 'H2', 'H3', 'SPAN', 'P', 'FOOTER'].includes(element.tagName)) {
-            const { left, top } = getOffset(element);
+            const { left, height, top } = getOffset(element);
 
-            deleteBtn.style.transform = `translate(${left}px, ${top}px)`;
+            deleteBtn.style.transform = `translate(${left}px, ${top + height}px)`;
             deleteBtn.hidden = false;
         } else {
             deleteBtn.hidden = true;
@@ -49,14 +49,35 @@ function repositionBackground(form = getActiveForm()) {
             if (left < window.innerWidth) {
                 background.hidden = false;
             }
-            const rect = background.getBoundingClientRect();
 
-            background.style.transform = `translate(${left}px, ${top - rect.height}px)`;
+            background.style.transform = `translate(${left}px, ${Math.max(60, top)}px)`;
         } else {
             background.hidden = true;
         }
     }
 }
+
+const float = bindListener('float', function handleFloatClick(e) {
+    const floatElements = /** @type {HTMLCollectionOf<HTMLButtonElement | HTMLFieldSetElement>} */ (this.children);
+    const clicked = /** @type {HTMLElement | null} */ (e.target);
+
+    if (clicked && clicked.tagName === 'DIV') {
+        for (const element of floatElements) {
+            element.hidden = true;
+        }
+    }
+}, 'click');
+
+document.body.addEventListener('click', function handleBodyClick(e) {
+    const floatElements = float ? /** @type {HTMLCollectionOf<HTMLButtonElement | HTMLFieldSetElement>} */ (float.children) : null;
+    const clicked = /** @type {HTMLElement | null} */ (e.target);
+
+    if (floatElements && clicked && clicked.tagName === 'BODY') {
+        for (const element of floatElements) {
+            element.hidden = true;
+        }
+    }
+});
 
 /**
  * SETTINGS

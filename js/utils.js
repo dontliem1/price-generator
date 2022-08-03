@@ -54,8 +54,8 @@ export function getOffset(el) {
 
     return {
         left: rect.left + window.scrollX,
-        top: rect.top + rect.height + window.scrollY,
-        bottom: rect.top + rect.height
+        top: rect.top + window.scrollY,
+        height: rect.height,
     };
 }
 

@@ -75,13 +75,17 @@
             margin-inline-end: 6px;
         }
 
-        select.btn {
+        select.btn,
+        summary.btn {
             appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z'%3E%3C/path%3E%3C/svg%3E");
             background-size: 24px;
             background-position: right;
             background-repeat: no-repeat;
             padding-right: 24px;
+        }
+        details[open] > summary.btn {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z'%3E%3C/path%3E%3C/svg%3E");
         }
 
         canvas,
@@ -314,11 +318,12 @@
         }
 
         .float__fieldset {
-            margin: 0;
-            padding: 0;
             border: 0;
-            z-index: 2;
+            box-sizing: border-box;
+            margin: 0;
             max-width: min(100vw, 1080px);
+            padding: 0 6px;
+            z-index: 2;
         }
 
         .float__fieldset label.btn {
@@ -471,17 +476,19 @@
                     <option value='"Yeseva One", serif'>Yeseva One</option>
                 </optgroup>
             </select>
-            <select class="btn" name="aspectRatio" aria-label="Aspect ratio" id="aspectRatio">
-                <option value="1 / 1">1:1</option>
-                <option value="4 / 5" selected>4:5</option>
-                <option value="9 / 16">9:16</option>
-            </select>
             <button class="btn" type="button" id="deletePage">Remove page</button>
         </fieldset>
     </div>
-    <div class="settings btn--group" id="settings">
-        <button class="btn" type="button" id="save">Image</button>
-        <a class="btn" href="./" download='price.json' id="export">File</a>
+    <div class="settings" id="settings">
+        <span class="btn--group">
+            <button class="btn" type="button" id="save">Image</button>
+            <a class="btn" href="./" download='price.json' id="export">JSON</a>
+        </span>
+        <select class="btn" name="aspectRatio" aria-label="Aspect ratio" id="aspectRatio">
+            <option value="1 / 1">1:1</option>
+            <option value="4 / 5" selected>4:5</option>
+            <option value="9 / 16">9:16</option>
+        </select>
     </div>
     <details class="add" id="add">
         <summary class="btn">Add</summary>
