@@ -251,6 +251,7 @@
             color: #fff;
             grid-column: 1/2;
             grid-row: 1/2;
+            margin-bottom: auto;
             touch-action: manipulation;
             z-index: 1;
             padding-inline-start: 6px;
@@ -372,6 +373,7 @@
         .btn--group {
             display: inline-flex;
         }
+        .btn--group > .btn:first-child,
         .btn--group > :first-child .btn {
             border-top-right-radius: 0;
             border-bottom-right-radius: 0;
@@ -413,7 +415,7 @@
             <span class="btn--group">
                 <label class="file"><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span class="btn">Image</span></label>
                 <button class="btn" type="button" id="deleteBackgroundImage" aria-label="Remove image">Remove</button>
-            </span><br>
+            </span>
             <label class="btn"><input type="color" name="color" id="color"> Text</label>
             <select class="btn" name="fontFamily" aria-label="Font" id="fontFamily">
                 <option value="system-ui, sans-serif" selected>System font</option>
@@ -474,15 +476,12 @@
                 <option value="4 / 5" selected>4:5</option>
                 <option value="9 / 16">9:16</option>
             </select>
+            <button class="btn" type="button" id="deletePage">Remove page</button>
         </fieldset>
     </div>
-    <div class="settings" id="settings">
-        <button class="btn" type="button" id="save">Save</button>
-        <span class="btn--group">
-        <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json" /><span class="btn">Import</span></label>
-        <a class="btn" href="./" download='price.json' id="export">Export</a>
-        </span>
-        <button class="btn" type="button" id="deletePage">Remove page</button>
+    <div class="settings btn--group" id="settings">
+        <button class="btn" type="button" id="save">Image</button>
+        <a class="btn" href="./" download='price.json' id="export">File</a>
     </div>
     <details class="add" id="add">
         <summary class="btn">Add</summary>
@@ -492,6 +491,7 @@
         <button class="btn" type="button" id="category">Category</button>
         <button class="btn" type="button" id="service">Service</button>
         <button class="btn" type="button" id="footer">Footer</button>
+        <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json" /><span class="btn">Import...</span></label>
     </details>
     <main>
         <h2 class="visually-hidden">Pages and content</h2>
