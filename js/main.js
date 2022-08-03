@@ -1,7 +1,7 @@
 'use strict';
 
 import { DEFAULTS } from './constants.js';
-import { bindListener, createEditableElement, createService, getActiveArticle, getActiveDiv, getActiveElement, getActiveForm, getActiveLi, getMount, getOffset, handleArticleStylePropChange, handleFormStylePropChange } from './utils.js';
+import { bindListener, createCategory, createEditableElement, createService, getActiveArticle, getActiveDiv, getActiveElement, getActiveForm, getActiveLi, getMount, getOffset, handleArticleStylePropChange, handleFormStylePropChange } from './utils.js';
 
 /**
  * FLOAT
@@ -183,7 +183,7 @@ const backgroundColorInput = bindListener('backgroundColor', function handleDivS
 bindListener('deletePage', function handleDeletePageClick() {
     const activePage = getActiveLi();
 
-    if (activePage && window.confirm('Remove current page?')) {
+    if (activePage && window.confirm('Remove the current page?')) {
         activePage.remove();
     }
 }, 'click');
@@ -218,11 +218,7 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
             const activeDiv = getActiveDiv(activeArticle);
             const activeForm = getActiveForm(activeArticle);
             const convertRGBtoHex = (rgb) => {
-                const colorToHex = (/** @type {string} */ color) => {
-                    const hexadecimal = parseInt(color, 10).toString(16);
-
-                    return hexadecimal.length === 1 ? '0' + hexadecimal : hexadecimal;
-                };
+                const colorToHex = (color) => parseInt(color, 10).toString(16).padStart(2, '0');
                 const colors = rgb.slice(4, -1).split(', ');
 
                 return '#' + colorToHex(colors[0]) + colorToHex(colors[1]) + colorToHex(colors[2]);
@@ -317,7 +313,7 @@ function attachStyleFromJson({ form, div, article }, props = {}) {
     assignFilteredStyle(article, { backgroundImage, color, fontFamily });
 }
 
-/** @typedef {{ STYLE?: Record<string, string>, ITEMS?: {type: string; H3?: string; SPAN?: string; P?: string; H2?: string}[], H1?: string, FOOTER?: string }} Page */
+/** @typedef {{ STYLE?: Record<string, string>, ITEMS?: ({type: 'CATEGORY'; H2?: string} | {type: 'SERVICE'; H3?: string; SPAN?: string; P?: string;})[], H1?: string, FOOTER?: string }} Page */
 /**
  * @param {Page} pageJson
  * @param {boolean} [isActive]
@@ -344,7 +340,9 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
         pageJson.ITEMS.map(function createItem(item) {
             switch (item.type) {
                 case 'CATEGORY':
-                    createEditableElement({ tag: 'H2', text: item.H2, parent: form }, false);
+                    const category = createCategory(item);
+
+                    if (category) { form.appendChild(category); }
 
                     break;
                 case 'SERVICE':
@@ -379,7 +377,7 @@ export function renderPages(pagesJson, mount = getMount()) {
             });
         }
         if (pagesJson.STYLE) {
-            mount.dataset.aspectRatio = pagesJson.STYLE.aspectRatio ?? DEFAULTS.aspectRatio;
+            mount.dataset.aspectRatio = pagesJson.STYLE.aspectRatio ? pagesJson.STYLE.aspectRatio : DEFAULTS.aspectRatio;
         }
         mount.textContent = '';
         mount.append(...pages);
@@ -496,7 +494,7 @@ bindListener('footer', function handleAddFooterClick() {
 
 bindListener('category', function handleAddCategoryClick() {
     const form = getActiveForm();
-    const category = createEditableElement({ tag: 'H2' });
+    const category = createCategory();
 
     if (form && category) {
         const existingFooter = form.querySelector('footer');

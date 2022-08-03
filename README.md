@@ -8,9 +8,8 @@ Built on vanilla HTML, CSS and JS.
 ## Roadmap
 
 - UI/UX enhancements
-- Write tests
-- Allow reordering services and pages
-- Fix blurred image export
+- Blurred image export
+- Allow reordering pages
 - Autosave and restore
 - Multi languages
-- PWA
+- PWA + offline

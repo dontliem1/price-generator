@@ -208,6 +208,21 @@
             grid-auto-flow: dense;
             grid-template-columns: 1fr auto;
             margin-block-start: 1em;
+            transition: transform .2s, opacity .2s, box-shadow .2s;
+        }
+
+        .dragging {
+            outline: none;
+            transform: scale(.95);
+        }
+
+        .dragging * {
+            outline: none;
+        }
+
+        .dragover:not(.dragging) {
+            opacity: .5;
+            box-shadow: 0 -2px;
         }
 
         .pages h1,
@@ -299,10 +314,15 @@
             margin: 2px 0;
             padding: 2px 6px 3px;
             text-align: center;
+            transition: background-color .2s;
         }
 
         .btn:not(:disabled) {
             cursor: pointer;
+        }
+
+        .btn:hover:not(:disabled) {
+            background-color: #515151;
         }
 
         .btn:disabled {

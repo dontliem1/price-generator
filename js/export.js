@@ -23,9 +23,14 @@ function parseStyles({ page, form, div }) {
 
 if (exportBtn) {
     exportBtn.addEventListener('click', function handleExportClick() {
-        const json = [];
+        /** @type {{PAGES: { STYLE?: Record<string, string>, ITEMS?: {type: string; H3?: string; SPAN?: string; P?: string; H2?: string}[], H1?: string, FOOTER?: string }[], STYLE: {aspectRatio?: string}}} */
+        const json = { PAGES: [], STYLE: {} };
         const pages = document.getElementsByTagName('article');
+        const mount = document.getElementById('pages');
 
+        if (mount && mount.dataset.aspectRatio) {
+            json.STYLE.aspectRatio = mount.dataset.aspectRatio;
+        }
         for (const page of pages) {
             /**
              * @type {{ITEMS: {type: string, text?: string, H3?: string, P?: string, SPAN?: string}[], H1?: string, FOOTER?: string, STYLE?: {[prop: string]: string}}}
@@ -69,7 +74,7 @@ if (exportBtn) {
                 form,
                 div,
             });
-            json.push(pageJson);
+            json.PAGES.push(pageJson);
         }
         const stringified = JSON.stringify(json);
         const exportJson = new Blob([stringified], { type: 'text/json' });

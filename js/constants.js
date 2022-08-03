@@ -1,16 +1,33 @@
 'use strict';
-
+/**
+ * @typedef {{backgroundColor?: string, backgroundImage?: string, color?: string, justifyContent?: string, opacity?: string}} PageStyle
+ * @typedef {{H1?: string, STYLE?: PageStyle, FOOTER?: string}} Page
+ */
 class Defaults {
     constructor() {
         this.aspectRatio = '4 / 5';
         this.opacity = '0.5';
         this.H1 = 'Title';
+        /**
+         * @type {'Category'}
+         * @const
+         */
         this.H2 = 'Category';
         this.H3 = 'Service name';
+        /**
+         * @typedef {{type: 'CATEGORY', H2?: string}} Category
+         * @type {{type: 'CATEGORY', H2: 'Category'}}
+         * @const
+         */
         this.CATEGORY = { type: 'CATEGORY', H2: this.H2 };
         this.P = 'Price';
         this.SPAN = 'Service description';
         this.FOOTER = 'Page footer';
+        /**
+         * @typedef {{type: 'SERVICE', H3?: string, P?: string, SPAN?: string}} Service
+         * @type {Service}
+         * @const
+         */
         this.SERVICE = {
             type: 'SERVICE',
             H3: this.H3,
@@ -22,11 +39,19 @@ class Defaults {
             this.SERVICE,
             this.SERVICE,
         ];
+        /**
+         * @type {PageStyle}
+         * @const
+         */
         this.STYLE = {
             backgroundColor: 'rgb(50, 50, 50)',
             color: 'rgb(255, 255, 255)',
             opacity: this.opacity,
         };
+        /**
+         * @type {Page}
+         * @const
+         */
         this.FIRST_PAGE = {
             H1: 'PRICE',
             STYLE: {
@@ -39,7 +64,7 @@ class Defaults {
         };
         this.SECOND_PAGE = {
             ITEMS: [
-                { type: 'CATEGORY', text: 'Makeup' },
+                { type: 'CATEGORY', H2: 'Makeup' },
                 {
                     type: 'SERVICE',
                     H3: 'Full face makeup application',
@@ -61,8 +86,11 @@ class Defaults {
             STYLE: this.STYLE,
         };
     }
+    /**
+     * @return {{PAGES: Page[], STYLE: {aspectRatio?: string}}}
+     */
     get() {
-        return { PAGES: [this.FIRST_PAGE, this.SECOND_PAGE], STYLE: { aspectRatio: this.aspectRatio } };
+        return { PAGES: [this.SECOND_PAGE], STYLE: { aspectRatio: this.aspectRatio } };
     }
 }
 
