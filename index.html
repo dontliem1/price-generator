@@ -48,21 +48,40 @@
             cursor: pointer;
         }
 
+        [type="range"] {
+            width: 7em;
+        }
+
         button,
         a,
         select,
         .add summary,
         .settings summary,
         label span,
-        [type="color"],
         [type="number"] {
             box-sizing: border-box;
             min-height: 48px;
             min-width: 48px;
             vertical-align: middle;
         }
-        .btn[type="color"] {
-            padding: 6px;
+        .btn [type="color"] {
+            background: none;
+            border: 0;
+            color: inherit;
+            margin: 0;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            margin-inline-end: 6px;
+        }
+
+        select.btn {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z'%3E%3C/path%3E%3C/svg%3E");
+            background-size: 24px;
+            background-position: right;
+            background-repeat: no-repeat;
+            padding-right: 24px;
         }
 
         canvas,
@@ -130,6 +149,11 @@
             position: relative;
         }
 
+        .pages form:focus {
+            outline: auto;
+            outline-offset: -5px;
+        }
+
         .pages article>div {
             grid-column: 1/2;
             grid-row: 1/2;
@@ -155,7 +179,7 @@
         }
 
         .pages div+h2 {
-            margin-top: 5.5%;
+            margin-block-start: 5.5%;
         }
 
         .pages h2 {
@@ -168,7 +192,7 @@
             font-size: min(5.5vw, 60px);
             grid-auto-flow: dense;
             grid-template-columns: 1fr auto;
-            margin-top: 1em;
+            margin-block-start: 1em;
         }
 
         .pages h1,
@@ -186,17 +210,17 @@
         .pages h1:only-child,
         .pages form:has(h2):has(div) h1 {
             font-size: min(16.5vw, 180px);
-            padding-bottom: 4%;
-            padding-top: 10%;
+            padding-block-end: 4%;
+            padding-block-start: 10%;
             text-align: inherit;
         }
 
         .pages h1:not(:only-child) {
-            text-align: left;
+            text-align: start;
         }
 
         .pages h2 {
-            text-align: left;
+            text-align: start;
         }
 
         .pages p {
@@ -210,12 +234,12 @@
 
         .pages footer {
             order: 1;
-            padding-top: 1em;
+            padding-block-start: 1em;
         }
 
         .pages *:not(h1)+footer {
-            margin-top: auto;
-            text-align: left;
+            margin-block-start: auto;
+            text-align: start;
         }
 
         body > main {
@@ -229,16 +253,7 @@
             grid-row: 1/2;
             touch-action: manipulation;
             z-index: 1;
-        }
-
-        .add summary,
-        .settings summary {
-            align-items: center;
-            background-color: #121212;
-            cursor: pointer;
-            display: inline-flex;
-            padding: 2px 6px 3px;
-            vertical-align: bottom;
+            padding-inline-start: 6px;
         }
 
         .settings form {
@@ -306,9 +321,11 @@
         }
 
         .float__fieldset label.btn {
-            display: inline-block;
+            display: inline-flex;
             vertical-align: middle;
             cursor: auto;
+            box-sizing: border-box;
+            min-height: 48px;
         }
 
         #titleAlignment:not([hidden]) {
@@ -320,30 +337,30 @@
         }
 
         .add {
-            background-color: #121212;
             display: flex;
             flex-direction: column;
             min-width: 96px;
+            padding-inline-end: 6px;
             position: absolute;
             right: 0;
             top: 0;
             z-index: 1;
         }
-        .add button {
-            background-color: rgba(255, 255, 255, 0);
-            border-radius: 0;
-            border: 0;
-            box-sizing: border-box;
+        .add .btn {
             cursor: pointer;
-            margin: 0;
-            padding: 0;
-            padding: 2px 6px 3px;
-            text-align: left;
-            transition: background-color .2s;
+            margin-bottom: 0;
+            justify-content: flex-start;
             width: 100%;
         }
-        .add button:hover {
-            background-color: rgba(255, 255, 255, .2);
+        .add .btn:not(:first-child) {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+            border-top: 2px solid #333;
+            margin-top: 0;
+        }
+        .add[open] .btn:not(:last-child) {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
         }
 
         .float {
@@ -358,11 +375,15 @@
         .btn--group > :first-child .btn {
             border-top-right-radius: 0;
             border-bottom-right-radius: 0;
-            border-right: 2px solid #3d3d3d;
+            border-right: 2px solid #333;
         }
         .btn--group > .btn:last-child {
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
+        }
+
+        .fd-c {
+            flex-direction: column;
         }
     </style>
 </head>
@@ -385,24 +406,15 @@
             </select>
         </fieldset>
         <fieldset class="float__fieldset" id="background" hidden>
-            <legend class="visually-hidden">Background</legend>
-            <input class="btn" type="color" name="backgroundColor" id="backgroundColor" aria-label="color">
-            <label class="btn">Transparency <br><input type="range" name="opacity" min="0" max="1" step="0.1" id="opacity"></label>
-            <label class="btn">Blur<br><input type="range" name="backdropFilter" min="0" max="50" step="1" value="0" id="backdropFilter"></label>
+            <legend class="visually-hidden">Page settings</legend>
+            <label class="btn"><input type="color" name="backgroundColor" id="backgroundColor"> Bg</label>
+            <label class="btn fd-c">Transparency<input type="range" name="opacity" min="0" max="1" step="0.1" id="opacity"></label>
+            <label class="btn fd-c">Blur<input type="range" name="backdropFilter" min="0" max="50" step="1" value="0" id="backdropFilter"></label>
             <span class="btn--group">
                 <label class="file"><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span class="btn">Image</span></label>
                 <button class="btn" type="button" id="deleteBackgroundImage" aria-label="Remove image">Remove</button>
-            </span>
-        </fieldset>
-    </div>
-    <details class="settings" id="settings">
-        <summary>Settings</summary>
-        <form>
-            <select class="btn" name="aspectRatio" aria-label="Aspect ratio" id="aspectRatio">
-                <option value="1 / 1">1:1</option>
-                <option value="4 / 5" selected>4:5</option>
-                <option value="9 / 16">9:16</option>
-            </select>
+            </span><br>
+            <label class="btn"><input type="color" name="color" id="color"> Text</label>
             <select class="btn" name="fontFamily" aria-label="Font" id="fontFamily">
                 <option value="system-ui, sans-serif" selected>System font</option>
                 <optgroup label="Serif">
@@ -457,21 +469,29 @@
                     <option value='"Yeseva One", serif'>Yeseva One</option>
                 </optgroup>
             </select>
-            <label><input class="btn" type="color" name="color" id="color"> Text</label><br>
-            <button class="btn" type="button" id="save">Save</button>
-            <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json" /><span class="btn">Import JSON</span></label>
-            <a class="btn" href="./" download='price.json' id="export">Export JSON</a>
-            <button class="btn" type="button" id="deletePage">Remove page</button>
-        </form>
-    </details>
+            <select class="btn" name="aspectRatio" aria-label="Aspect ratio" id="aspectRatio">
+                <option value="1 / 1">1:1</option>
+                <option value="4 / 5" selected>4:5</option>
+                <option value="9 / 16">9:16</option>
+            </select>
+        </fieldset>
+    </div>
+    <div class="settings" id="settings">
+        <button class="btn" type="button" id="save">Save</button>
+        <span class="btn--group">
+        <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json" /><span class="btn">Import</span></label>
+        <a class="btn" href="./" download='price.json' id="export">Export</a>
+        </span>
+        <button class="btn" type="button" id="deletePage">Remove page</button>
+    </div>
     <details class="add" id="add">
-        <summary>Add</summary>
-        <button type="button" id="page">Blank page</button>
-        <button type="button" id="duplicate">Page copy</button>
-        <button type="button" id="title">Title</button>
-        <button type="button" id="category">Category</button>
-        <button type="button" id="service">Service</button>
-        <button type="button" id="footer">Footer</button>
+        <summary class="btn">Add</summary>
+        <button class="btn" type="button" id="page">Blank page</button>
+        <button class="btn" type="button" id="duplicate">Page copy</button>
+        <button class="btn" type="button" id="title">Title</button>
+        <button class="btn" type="button" id="category">Category</button>
+        <button class="btn" type="button" id="service">Service</button>
+        <button class="btn" type="button" id="footer">Footer</button>
     </details>
     <main>
         <h2 class="visually-hidden">Pages and content</h2>

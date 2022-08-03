@@ -46,7 +46,9 @@ function repositionBackground(form = getActiveForm()) {
     if (background && form) {
         if (form === document.activeElement) {
             const { left, top } = getOffset(form);
-            background.hidden = false;
+            if (left < window.innerWidth) {
+                background.hidden = false;
+            }
             const rect = background.getBoundingClientRect();
 
             background.style.transform = `translate(${left}px, ${top - rect.height}px)`;
@@ -75,19 +77,6 @@ bindListener(deleteBtn, function handleDeleteClick() {
             titleAlignment.hidden = true;
         }
     }
-}, 'click');
-
- const settings = bindListener('settings', function handleSettingsClick() {
-    const add = document.getElementById('add');
-
-    if (add) {
-        add.removeAttribute('open');
-    }
-    [deleteBtn, titleAlignment].forEach(function hideControl(control) {
-        if (control) {
-            control.hidden = true;
-        }
-    });
 }, 'click');
 
 // Background blur
@@ -192,7 +181,7 @@ bindListener('deletePage', function handleDeletePageClick() {
  * @param {HTMLElement | null} from take a style value
  * @returns {void}
  */
- function assignValueFromStyle(select, from) {
+function assignValueFromStyle(select, from) {
     if (select && from) {
         if (from.style[select.name]) {
             select.value = from.style[select.name];
@@ -244,17 +233,23 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
             }
         } else {
             const activeElement = getActiveElement(page);
+            const focusedElement =  /** @type {HTMLElement | null} */ (page.querySelector(':focus'));
 
             if (activeElement) {
-                activeElement.blur();
                 activeElement.classList.remove('active');
             }
+            if (focusedElement) {
+                focusedElement.blur();
+            }
+
             page.classList.remove('active');
         }
 
-        repositionBackground();
         repositionDeleteBtn();
         repositionTitleAlignment();
+        if (background) {
+            background.hidden = true;
+        }
     }
 }, {
     root: getMount(),
@@ -274,7 +269,7 @@ function bindFormListeners(form) {
         const editableElements = /** @type {NodeListOf<HTMLElement>} */ (this.querySelectorAll('[contenteditable]'));
 
         for (const editableElement of editableElements) {
-            editableElement.classList.toggle('active', editableElement ===focusedElement);
+            editableElement.classList.toggle('active', editableElement === focusedElement);
         }
         repositionDeleteBtn(focusedElement);
         repositionTitleAlignment(focusedElement);
@@ -294,7 +289,7 @@ function bindFormListeners(form) {
     });
 }
 
- function attachStyleFromJson({ form, div, article }, props = {}) {
+function attachStyleFromJson({ form, div, article }, props = {}) {
     const { backdropFilter, justifyContent, textAlign, backgroundColor, opacity, aspectRatio, backgroundImage, color, fontFamily } = props;
     const assignFilteredStyle = function (element, object) {
         Object.assign(element.style, Object.fromEntries(Object.entries(object).filter(function filterEmpty([, value]) {
@@ -394,9 +389,6 @@ bindListener(importInput, function handleImportChange() {
 bindListener('add', function handleAddClick(e) {
     const target = /** @type {HTMLElement | null} */ (e.target);
 
-    if (settings) {
-        settings.removeAttribute('open');
-    }
     if (target && target.tagName === 'BUTTON' && target.parentElement) {
         target.parentElement.removeAttribute('open');
     }
