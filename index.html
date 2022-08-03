@@ -199,6 +199,9 @@
 
         .pages h2 {
             font-size: min(9vw, 100px);
+            text-align: start;
+            transition: transform .4s .4s cubic-bezier(.5, -1, 1, .5), opacity .2s, box-shadow .2s;
+            touch-action: none;
         }
 
         .pages form div {
@@ -208,10 +211,16 @@
             grid-auto-flow: dense;
             grid-template-columns: 1fr auto;
             margin-block-start: 1em;
-            transition: transform .2s, opacity .2s, box-shadow .2s;
+            transition: transform .4s .4s cubic-bezier(.5, -1, 1, .5), opacity .2s, box-shadow .2s;
+        }
+
+        .to-drag {
+            outline: none;
+            transform: scale(.95);
         }
 
         .dragging {
+            cursor: grabbing;
             outline: none;
             transform: scale(.95);
         }
@@ -246,10 +255,6 @@
         }
 
         .pages h1:not(:only-child) {
-            text-align: start;
-        }
-
-        .pages h2 {
             text-align: start;
         }
 

@@ -127,6 +127,7 @@ let dragged;
 let draggedOver;
 let draggedSame;
 let draggedTarget;
+let timer;
 /**
  * @param {{type: 'SERVICE'; H3?: string; SPAN?: string; P?: string}} serviceJson
  * @returns {HTMLDivElement}
@@ -145,7 +146,36 @@ export function createService(serviceJson = DEFAULTS.SERVICE) {
             }, false);
         }
     }
-    div.draggable = true;
+
+    div.addEventListener("mousedown", (event) => {
+        const targetElement = /** @type {HTMLHeadingElement | null} */ (event.target);
+        const underDiv = targetElement && (targetElement.tagName === 'DIV' ? targetElement : targetElement.parentElement);
+
+        if (underDiv) {
+            underDiv.classList.add('to-drag');
+            timer = setTimeout(() => {
+                underDiv.draggable = true;
+            }, 800);
+        }
+    });
+    const clearThings = (element) => {
+        clearTimeout(timer);
+        if (element) {
+            element.draggable = false;
+            element.classList.remove('to-drag');
+        }
+    };
+
+    div.addEventListener("mouseleave", (event) => {
+        clearThings(event.target);
+    });
+    div.addEventListener("mouseup", (event) => {
+        console.log(event);
+        const targetElement = /** @type {HTMLElement | null} */ (event.target);
+        const underDiv = targetElement && (targetElement.tagName === 'DIV' ? targetElement : targetElement.parentElement);
+
+        clearThings(underDiv);
+    });
     div.addEventListener("dragstart", (event) => {
         const deleteBtn = document.getElementById('delete');
         const targetElement = /** @type {HTMLDivElement | null} */ (event.currentTarget);
@@ -190,7 +220,9 @@ export function createService(serviceJson = DEFAULTS.SERVICE) {
         event.preventDefault();
         if (underDiv) {
             underDiv.classList.remove("dragover");
-            underDiv.insertAdjacentElement('beforebegin', dragged);
+            if (underDiv !== dragged) {
+                underDiv.insertAdjacentElement('beforebegin', dragged);
+            }
         }
     });
 
@@ -207,7 +239,28 @@ export function createCategory(categoryJson = DEFAULTS.CATEGORY) {
     }, false);
 
     if (h2) {
-        h2.draggable = true;
+        h2.addEventListener("mousedown", (event) => {
+            const targetElement = /** @type {HTMLHeadingElement | null} */ (event.target);
+
+            if (targetElement) {
+                targetElement.classList.add('to-drag');
+                timer = setTimeout(() => {
+                    targetElement.draggable = true;
+                }, 800);
+            }
+        });
+        const clearThings = (event) => {
+            const targetElement = /** @type {HTMLHeadingElement | null} */ (event.target);
+
+            clearTimeout(timer);
+            if (targetElement) {
+                targetElement.draggable = false;
+                targetElement.classList.remove('to-drag');
+            }
+        };
+
+        h2.addEventListener("mouseleave", clearThings);
+        h2.addEventListener("mouseup", clearThings);
         h2.addEventListener("dragstart", (event) => {
             const deleteBtn = document.getElementById('delete');
             const dragEvent = /** @type {DragEvent} */ (event);
@@ -223,7 +276,8 @@ export function createCategory(categoryJson = DEFAULTS.CATEGORY) {
         });
 
         h2.addEventListener("dragend", () => {
-            dragged.classList.remove("dragging");
+            dragged.classList.remove("dragging", 'to-drag');
+            dragged.draggable = false;
         });
 
         h2.addEventListener("dragover", (event) => {
@@ -249,7 +303,9 @@ export function createCategory(categoryJson = DEFAULTS.CATEGORY) {
             event.preventDefault();
             if (targetElement) {
                 targetElement.classList.remove("dragover");
-                targetElement.insertAdjacentElement('beforebegin', dragged);
+                if (targetElement && targetElement !== dragged) {
+                    targetElement.insertAdjacentElement('beforebegin', dragged);
+                }
             }
         });
 

@@ -90,7 +90,7 @@ class Defaults {
      * @return {{PAGES: Page[], STYLE: {aspectRatio?: string}}}
      */
     get() {
-        return { PAGES: [this.SECOND_PAGE], STYLE: { aspectRatio: this.aspectRatio } };
+        return { PAGES: [this.FIRST_PAGE, this.SECOND_PAGE], STYLE: { aspectRatio: this.aspectRatio } };
     }
 }
 
