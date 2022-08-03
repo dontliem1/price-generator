@@ -4,10 +4,10 @@ class Defaults {
     constructor() {
         this.aspectRatio = '4 / 5';
         this.opacity = '0.5';
-        this.CATEGORY = {type: 'CATEGORY', text: this.H2};
         this.H1 = 'Title';
         this.H2 = 'Category';
         this.H3 = 'Service name';
+        this.CATEGORY = { type: 'CATEGORY', H2: this.H2 };
         this.P = 'Price';
         this.SPAN = 'Service description';
         this.FOOTER = 'Page footer';
@@ -23,7 +23,6 @@ class Defaults {
             this.SERVICE,
         ];
         this.STYLE = {
-            aspectRatio: this.aspectRatio,
             backgroundColor: 'rgb(50, 50, 50)',
             color: 'rgb(255, 255, 255)',
             opacity: this.opacity,
@@ -31,7 +30,6 @@ class Defaults {
         this.FIRST_PAGE = {
             H1: 'PRICE',
             STYLE: {
-                aspectRatio: this.aspectRatio,
                 backgroundColor: 'rgb(0, 0, 0)',
                 backgroundImage: 'url(images/example.webp)',
                 color: 'rgb(255, 228, 168)',
@@ -41,7 +39,7 @@ class Defaults {
         };
         this.SECOND_PAGE = {
             ITEMS: [
-                {type: 'CATEGORY', text: 'Makeup'},
+                { type: 'CATEGORY', text: 'Makeup' },
                 {
                     type: 'SERVICE',
                     H3: 'Full face makeup application',
@@ -57,11 +55,14 @@ class Defaults {
                     type: 'SERVICE',
                     H3: 'Strip lashes',
                     P: '£5',
-                        },
-                ],
+                },
+            ],
             FOOTER: 'The title picture is from https://unsplash.com/photos/hSlmasb-tuE',
             STYLE: this.STYLE,
         };
+    }
+    get() {
+        return { PAGES: [this.FIRST_PAGE, this.SECOND_PAGE], STYLE: { aspectRatio: this.aspectRatio } };
     }
 }
 

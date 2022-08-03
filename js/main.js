@@ -50,7 +50,7 @@ function repositionBackground(form = getActiveForm()) {
                 background.hidden = false;
             }
 
-            background.style.transform = `translate(${left}px, ${Math.max(60, top)}px)`;
+            background.style.transform = `translate(${left}px, ${Math.max(left > 200 ? 0 : 60, top)}px)`;
         } else {
             background.hidden = true;
         }
@@ -161,7 +161,13 @@ const fontFamilySelect = /** @type {HTMLSelectElement | null} */ (bindListener('
 }));
 
 // Aspect ratio
-const aspectRatioSelect = /** @type {HTMLSelectElement | null} */ (bindListener('aspectRatio', handleArticleStylePropChange));
+bindListener('aspectRatio', function handleAspectRatioChange() {
+    const mount = getMount();
+
+    if (mount) {
+        mount.dataset.aspectRatio = this.value;
+    }
+});
 
 // Colors
 const colorInput = bindListener('color', handleArticleStylePropChange);
@@ -228,7 +234,6 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
                 backdropFilterInput.value = activeForm.style[backdropFilterInput.name] ? activeForm.style[backdropFilterInput.name].slice(5, -3) : '0';
             }
             assignValueFromStyle(fontFamilySelect, activeArticle);
-            assignValueFromStyle(aspectRatioSelect, activeArticle);
             if (colorInput && activeArticle) {
                 colorInput.value = convertRGBtoHex(activeArticle.style.color);
             }
@@ -300,7 +305,7 @@ function bindFormListeners(form) {
 }
 
 function attachStyleFromJson({ form, div, article }, props = {}) {
-    const { backdropFilter, justifyContent, textAlign, backgroundColor, opacity, aspectRatio, backgroundImage, color, fontFamily } = props;
+    const { backdropFilter, justifyContent, textAlign, backgroundColor, opacity, backgroundImage, color, fontFamily } = props;
     const assignFilteredStyle = function (element, object) {
         Object.assign(element.style, Object.fromEntries(Object.entries(object).filter(function filterEmpty([, value]) {
             return value;
@@ -309,10 +314,16 @@ function attachStyleFromJson({ form, div, article }, props = {}) {
 
     assignFilteredStyle(form, { backdropFilter, justifyContent, textAlign });
     assignFilteredStyle(div, { backgroundColor, opacity });
-    assignFilteredStyle(article, { aspectRatio, backgroundImage, color, fontFamily });
+    assignFilteredStyle(article, { backgroundImage, color, fontFamily });
 }
 
-function createPage(pageJson = {}, isActive = true) {
+/** @typedef {{ STYLE?: Record<string, string>, ITEMS?: {type: string; H3?: string; SPAN?: string; P?: string; H2?: string}[], H1?: string, FOOTER?: string }} Page */
+/**
+ * @param {Page} pageJson
+ * @param {boolean} [isActive]
+ * @returns {HTMLLIElement}
+ */
+function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
     const li = document.createElement('li');
     const article = document.createElement('article');
     const form = document.createElement('form');
@@ -333,7 +344,7 @@ function createPage(pageJson = {}, isActive = true) {
         pageJson.ITEMS.map(function createItem(item) {
             switch (item.type) {
                 case 'CATEGORY':
-                    createEditableElement({ tag: 'H2', text: item.text, parent: form }, false);
+                    createEditableElement({ tag: 'H2', text: item.H2, parent: form }, false);
 
                     break;
                 case 'SERVICE':
@@ -355,16 +366,21 @@ function createPage(pageJson = {}, isActive = true) {
 }
 
 /**
- * @param {Record<string, any>[]} pagesJson
+ * @param {{PAGES?: Page[]; STYLE?: {aspectRatio?: string}}} pagesJson
  * @param {HTMLElement | null} mount
  */
 export function renderPages(pagesJson, mount = getMount()) {
     if (mount) {
         const pages = [];
 
-        pagesJson.forEach(function createPages(page, index) {
-            pages.push(createPage(page, index === 0));
-        });
+        if (pagesJson.PAGES) {
+            pagesJson.PAGES.forEach(function createPages(page, index) {
+                pages.push(createPage(page, index === 0));
+            });
+        }
+        if (pagesJson.STYLE) {
+            mount.dataset.aspectRatio = pagesJson.STYLE.aspectRatio ?? DEFAULTS.aspectRatio;
+        }
         mount.textContent = '';
         mount.append(...pages);
     }
@@ -508,4 +524,4 @@ bindListener('service', function handleAddServiceClick() {
     }
 }, 'click');
 
-renderPages([DEFAULTS.FIRST_PAGE, DEFAULTS.SECOND_PAGE]);
+renderPages(DEFAULTS.get());

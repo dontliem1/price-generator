@@ -117,7 +117,10 @@ export function createEditableElement({ tag, text, parent, fromStart }, useDefau
 
     return elem;
 }
-
+/**
+ * @param {{type: string; H3?: string; SPAN?: string; P?: string}} serviceJson
+ * @returns {HTMLDivElement}
+ */
 export function createService(serviceJson = DEFAULTS.SERVICE) {
     const div = document.createElement('div');
 
