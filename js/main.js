@@ -57,27 +57,16 @@ function repositionBackground(form = getActiveForm()) {
     }
 }
 
-const float = bindListener('float', function handleFloatClick(e) {
+bindListener('float', function handleFloatClick(e) {
     const floatElements = /** @type {HTMLCollectionOf<HTMLButtonElement | HTMLFieldSetElement>} */ (this.children);
     const clicked = /** @type {HTMLElement | null} */ (e.target);
 
-    if (clicked && clicked.tagName === 'DIV') {
+    if (clicked && clicked === this) {
         for (const element of floatElements) {
             element.hidden = true;
         }
     }
 }, 'click');
-
-document.body.addEventListener('click', function handleBodyClick(e) {
-    const floatElements = float ? /** @type {HTMLCollectionOf<HTMLButtonElement | HTMLFieldSetElement>} */ (float.children) : null;
-    const clicked = /** @type {HTMLElement | null} */ (e.target);
-
-    if (floatElements && clicked && clicked.tagName === 'BODY') {
-        for (const element of floatElements) {
-            element.hidden = true;
-        }
-    }
-});
 
 /**
  * SETTINGS
