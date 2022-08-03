@@ -116,10 +116,6 @@ export function createEditableElement({ tag, text, parent, fromStart }, useDefau
         }
     });
 
-    if (tag === 'P') {
-        elem.inputMode = 'numeric';
-    }
-
     return elem;
 }
 
@@ -170,7 +166,6 @@ export function createService(serviceJson = DEFAULTS.SERVICE) {
         clearThings(event.target);
     });
     div.addEventListener("mouseup", (event) => {
-        console.log(event);
         const targetElement = /** @type {HTMLElement | null} */ (event.target);
         const underDiv = targetElement && (targetElement.tagName === 'DIV' ? targetElement : targetElement.parentElement);
 

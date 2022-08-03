@@ -31,8 +31,8 @@ function repositionDeleteBtn(element = getActiveElement()) {
         if (element && element === document.activeElement && ['H1', 'H2', 'H3', 'SPAN', 'P', 'FOOTER'].includes(element.tagName)) {
             const { left, height, top } = getOffset(element);
 
-            deleteBtn.style.transform = `translate(${left}px, ${top + height}px)`;
             deleteBtn.hidden = false;
+            deleteBtn.style.transform = `translate(${left + Math.min(0, window.innerWidth - left - deleteBtn.clientWidth - 6)}px, ${top + height}px)`;
         } else {
             deleteBtn.hidden = true;
         }
@@ -166,6 +166,8 @@ bindListener('aspectRatio', function handleAspectRatioChange() {
 
     if (mount) {
         mount.dataset.aspectRatio = this.value;
+        if (deleteBtn) {deleteBtn.hidden = true;}
+        if (titleAlignment) {titleAlignment.hidden = true;}
     }
 });
 
@@ -415,6 +417,8 @@ bindListener('add', function handleAddClick(e) {
 
     if (target && target.tagName === 'BUTTON' && target.parentElement) {
         target.parentElement.removeAttribute('open');
+        if (deleteBtn) {deleteBtn.hidden = true;}
+        if (titleAlignment) {titleAlignment.hidden = true;}
     }
 }, 'click');
 
