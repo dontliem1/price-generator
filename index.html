@@ -25,7 +25,7 @@
             min-height: 100%;
         }
 
-        .rendering * {
+        .rendering > :not(.settings) * {
             overflow: -moz-hidden-unscrollable;
             overflow: hidden;
         }
@@ -243,7 +243,9 @@
 
         .settings form {
             background-color: #121212;
+            box-sizing: border-box;
             padding: 5px;
+            max-width: 100vw;
         }
 
         .settings label,
@@ -261,11 +263,18 @@
             border: 0;
             border-radius: 5px;
             color: #fff;
-            cursor: pointer;
             justify-content: center;
-            margin: 0;
+            margin: 2px 0;
             padding: 2px 6px 3px;
             text-align: center;
+        }
+
+        .btn:enabled {
+            cursor: pointer;
+        }
+
+        .btn:disabled {
+            opacity: .5;
         }
 
         .btn:not([hidden]) {
@@ -303,14 +312,27 @@
             background-color: #121212;
             display: flex;
             flex-direction: column;
-            min-width: 92px;
+            min-width: 96px;
             position: absolute;
             right: 0;
             top: 0;
             z-index: 1;
         }
-        .add .btn {
+        .add button {
+            background-color: rgba(255, 255, 255, 0);
+            border-radius: 0;
+            border: 0;
+            box-sizing: border-box;
+            cursor: pointer;
+            margin: 0;
+            padding: 0;
+            padding: 2px 6px 3px;
+            text-align: left;
+            transition: background-color .2s;
             width: 100%;
+        }
+        .add button:hover {
+            background-color: rgba(255, 255, 255, .2);
         }
 
         .float {
@@ -422,12 +444,12 @@
     </details>
     <details class="add" id="add">
         <summary>Add</summary>
-        <button class="btn" type="button" id="page">Blank page</button>
-        <button class="btn" type="button" id="duplicate">Page copy</button>
-        <button class="btn" type="button" id="title">Title</button>
-        <button class="btn" type="button" id="category">Category</button>
-        <button class="btn" type="button" id="service">Service</button>
-        <button class="btn" type="button" id="footer">Footer</button>
+        <button type="button" id="page">Blank page</button>
+        <button type="button" id="duplicate">Page copy</button>
+        <button type="button" id="title">Title</button>
+        <button type="button" id="category">Category</button>
+        <button type="button" id="service">Service</button>
+        <button type="button" id="footer">Footer</button>
     </details>
     <main>
         <h2 class="visually-hidden">Pages and content</h2>

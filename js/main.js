@@ -3,6 +3,10 @@
 import { DEFAULTS } from './constants.js';
 import { bindListener, createEditableElement, createService, getActiveArticle, getActiveDiv, getActiveElement, getActiveForm, getActiveLi, getMount, getOffset, handleArticleStylePropChange, handleFormStylePropChange } from './utils.js';
 
+/**
+ * FLOAT
+ * */
+
 // Alignment
 const titleAlignment = /** @type {HTMLFieldSetElement | null} */ (document.getElementById('titleAlignment'));
 
@@ -35,6 +39,10 @@ function repositionDeleteBtn(element = getActiveElement()) {
     }
 }
 
+/**
+ * SETTINGS
+ * */
+
 bindListener(deleteBtn, function handleDeleteClick() {
     const activeElement = getActiveElement();
 
@@ -45,11 +53,24 @@ bindListener(deleteBtn, function handleDeleteClick() {
         if (parent && parent.tagName === 'DIV' && !parent.innerText.trim()) {
             parent.remove();
         }
-        repositionDeleteBtn();
+        this.hidden = true;
         if (titleAlignment) {
             titleAlignment.hidden = true;
         }
     }
+}, 'click');
+
+ const settings = bindListener('settings', function handleSettingsClick() {
+    const add = document.getElementById('add');
+
+    if (add) {
+        add.removeAttribute('open');
+    }
+    [deleteBtn, titleAlignment].forEach(function hideControl(control) {
+        if (control) {
+            control.hidden = true;
+        }
+    });
 }, 'click');
 
 // Background blur
@@ -136,12 +157,25 @@ const backgroundColorInput = bindListener('backgroundColor', function handleDivS
     }
 });
 
+// Delete page
+bindListener('deletePage', function handleDeletePageClick() {
+    const activePage = getActiveLi();
+
+    if (activePage && window.confirm('Remove current page?')) {
+        activePage.remove();
+    }
+}, 'click');
+
+/**
+ * SCROLL OBSERVER
+ */
+
 /**
  * @param {HTMLSelectElement | null} select to pass the value
  * @param {HTMLElement | null} from take a style value
  * @returns {void}
  */
-function assignValueFromStyle(select, from) {
+ function assignValueFromStyle(select, from) {
     if (select && from) {
         if (from.style[select.name]) {
             select.value = from.style[select.name];
@@ -151,7 +185,6 @@ function assignValueFromStyle(select, from) {
     }
 }
 
-// Page creation
 const observer = new IntersectionObserver(function onIntersect(entries) {
     for (const entry of entries) {
         const page = /** @type {HTMLLIElement} */ (entry.target);
@@ -211,6 +244,10 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
 });
 
 /**
+ * IMPORT
+ */
+
+/**
  * @param {HTMLFormElement} form
  */
 function bindFormListeners(form) {
@@ -241,20 +278,7 @@ function bindFormListeners(form) {
     });
 }
 
-bindListener('settings', function handleSettingsClick() {
-    const add = document.getElementById('add');
-
-    if (add) {
-        add.removeAttribute('open');
-    }
-    [deleteBtn, titleAlignment].forEach(function hideControl(control) {
-        if (control) {
-            control.hidden = true;
-        }
-    });
-}, 'click');
-
-function attachStyleFromJson({ form, div, article }, props = {}) {
+ function attachStyleFromJson({ form, div, article }, props = {}) {
     const { backdropFilter, justifyContent, textAlign, backgroundColor, opacity, aspectRatio, backgroundImage, color, fontFamily } = props;
     const assignFilteredStyle = function (element, object) {
         Object.assign(element.style, Object.fromEntries(Object.entries(object).filter(function filterEmpty([, value]) {
@@ -346,25 +370,20 @@ bindListener(importInput, function handleImportChange() {
     }
 });
 
-// Delete page
-bindListener('deletePage', function handleDeletePageClick() {
-    const activePage = getActiveLi();
+/**
+ * ADD
+ * */
 
-    if (activePage && window.confirm('Remove current page?')) {
-        activePage.remove();
+bindListener('add', function handleAddClick(e) {
+    const target = /** @type {HTMLElement | null} */ (e.target);
+
+    if (settings) {
+        settings.removeAttribute('open');
+    }
+    if (target && target.tagName === 'BUTTON' && target.parentElement) {
+        target.parentElement.removeAttribute('open');
     }
 }, 'click');
-
-// Add btns
-const addBtns = /** @type {NodeListOf<HTMLButtonElement>} */ (document.querySelectorAll('.add .btn'));
-
-for (const addBtn of addBtns) {
-    addBtn.addEventListener('click', function handleAddBtnClick() {
-        if (this.parentElement) {
-            this.parentElement.removeAttribute('open');
-        }
-    });
-}
 
 bindListener('page', function handleAddPageClick() {
     const mount = getMount();
