@@ -269,7 +269,7 @@
             text-align: center;
         }
 
-        .btn:enabled {
+        .btn:not(:disabled) {
             cursor: pointer;
         }
 
@@ -297,14 +297,25 @@
             z-index: 1;
         }
 
-        #titleAlignment {
+        .float__fieldset {
             margin: 0;
             padding: 0;
             border: 0;
-            z-index: 1;
+            z-index: 2;
+            max-width: min(100vw, 1080px);
+        }
+
+        .float__fieldset label.btn {
+            display: inline-block;
+            vertical-align: middle;
+            cursor: auto;
         }
 
         #titleAlignment:not([hidden]) {
+            display: inline-block;
+        }
+
+        #background:not([hidden]) {
             display: inline-block;
         }
 
@@ -340,6 +351,19 @@
             grid-row: 1/2;
             z-index: 1;
         }
+
+        .btn--group {
+            display: inline-flex;
+        }
+        .btn--group > :first-child .btn {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            border-right: 2px solid #3d3d3d;
+        }
+        .btn--group > .btn:last-child {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
     </style>
 </head>
 
@@ -347,7 +371,7 @@
     <h1 class="visually-hidden">Price constructor</h1>
     <div class="float" id="float">
         <button class="btn" type="button" id="delete" hidden>Remove</button>
-        <fieldset id="titleAlignment" hidden>
+        <fieldset class="float__fieldset" id="titleAlignment" hidden>
             <legend class="visually-hidden">Alignment</legend>
             <select class="btn" name="textAlign" aria-label="Horizontal" id="textAlign">
                 <option value="left">Left</option>
@@ -360,11 +384,20 @@
                 <option value="flex-end">Bottom</option>
             </select>
         </fieldset>
+        <fieldset class="float__fieldset" id="background" hidden>
+            <legend class="visually-hidden">Background</legend>
+            <input class="btn" type="color" name="backgroundColor" id="backgroundColor" aria-label="color">
+            <label class="btn">Transparency <br><input type="range" name="opacity" min="0" max="1" step="0.1" id="opacity"></label>
+            <label class="btn">Blur<br><input type="range" name="backdropFilter" min="0" max="50" step="1" value="0" id="backdropFilter"></label>
+            <span class="btn--group">
+                <label class="file"><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span class="btn">Image</span></label>
+                <button class="btn" type="button" id="deleteBackgroundImage" aria-label="Remove image">Remove</button>
+            </span>
+        </fieldset>
     </div>
     <details class="settings" id="settings">
         <summary>Settings</summary>
         <form>
-            <h2 class="visually-hidden">Current page's settings</h2>
             <select class="btn" name="aspectRatio" aria-label="Aspect ratio" id="aspectRatio">
                 <option value="1 / 1">1:1</option>
                 <option value="4 / 5" selected>4:5</option>
@@ -424,22 +457,11 @@
                     <option value='"Yeseva One", serif'>Yeseva One</option>
                 </optgroup>
             </select>
-            <label><input class="btn" type="color" name="color" id="color"> Text color</label>
+            <label><input class="btn" type="color" name="color" id="color"> Text</label><br>
             <button class="btn" type="button" id="save">Save</button>
             <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json" /><span class="btn">Import JSON</span></label>
             <a class="btn" href="./" download='price.json' id="export">Export JSON</a>
             <button class="btn" type="button" id="deletePage">Remove page</button>
-            <fieldset>
-                <legend>Background</legend>
-                <label><input class="btn" type="color" name="backgroundColor" id="backgroundColor"> Color</label>
-                <label>Transparency <br><input type="range" name="opacity" min="0" max="1" step="0.1" id="opacity"></label>
-                <fieldset>
-                    <legend>Image</legend>
-                    <label>Blur<br><input type="range" name="backdropFilter" min="0" max="50" step="1" value="0" id="backdropFilter"></label>
-                    <label class="file"><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span class="btn">Upload</span></label>
-                    <button class="btn" type="button" id="deleteBackgroundImage">Remove</button>
-                </fieldset>
-            </fieldset>
         </form>
     </details>
     <details class="add" id="add">
