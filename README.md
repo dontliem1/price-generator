@@ -10,6 +10,5 @@ Built on vanilla HTML, CSS and JS.
 - UI/UX enhancements
 - Blurred image export
 - Allow reordering pages
-- Autosave and restore
 - Multi languages
 - PWA + offline

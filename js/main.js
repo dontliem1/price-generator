@@ -1,7 +1,15 @@
 'use strict';
 
 import { DEFAULTS } from './constants.js';
-import { bindListener, createCategory, createEditableElement, createService, getActiveArticle, getActiveDiv, getActiveElement, getActiveForm, getActiveLi, getMount, getOffset, handleArticleStylePropChange, handleFormStylePropChange } from './utils.js';
+import { bindListener, createCategory, createEditableElement, createService, getActiveArticle, getActiveDiv, getActiveElement, getActiveForm, getActiveLi, getMount, getOffset, handleArticleStylePropChange, handleFormStylePropChange, parsePages } from './utils.js';
+
+/**
+ * VARS
+ * */
+
+let justSaved = true;
+let sortingPollyfilled = false;
+let fontsAdded = false;
 
 /**
  * FLOAT
@@ -74,7 +82,7 @@ bindListener('float', function handleFloatClick(e) {
 /**
  * SETTINGS
  * */
-let sortingPollyfilled;
+
 const sorting = /** @type {HTMLInputElement | null} */ (bindListener('sorting', async function handleSortinChange() {
     const draggable = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('[draggable]'));
     const contentEditable = this.checked ? 'false' : 'true';
@@ -178,7 +186,6 @@ const justifyContentSelect = /** @type {HTMLSelectElement | null} */ (bindListen
 }));
 
 // Font
-let fontsAdded = false;
 const fontFamilySelect = /** @type {HTMLSelectElement | null} */ (bindListener('fontFamily', function handleFontChange(e) {
     if (!fontsAdded) {
         const link = document.createElement('link');
@@ -291,6 +298,79 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
     threshold: 0.6,
 });
 
+bindListener('export', function handleExportClick(e) {
+    const exportBtn = /** @type {HTMLAnchorElement | null} */ (e.currentTarget);
+    const exportJson = new Blob([parsePages()], { type: 'text/json' });
+
+    if (exportBtn) { exportBtn.href = URL.createObjectURL(exportJson); }
+    justSaved = true;
+}, 'click');
+
+function checkBasicFileShare() {
+    const txt = new Blob(['Hello, world!'], { type: 'text/plain' });
+    const file = new File([txt], 'test.txt');
+
+    return navigator.canShare({ files: [file] });
+}
+
+bindListener('save', async function handleSaveClick(e) {
+    const saveBtn = /** @type {HTMLButtonElement | null} */ (e.currentTarget);
+
+    if (saveBtn) { saveBtn.disabled = true; }
+
+    await import('./html2canvas.min.js');
+
+    const pages = document.getElementsByTagName('article');
+    const sorting = /** @type {HTMLInputElement | null} */ (document.getElementById('sorting'));
+
+    if (sorting) { sorting.checked = false; }
+    document.body.classList.add('rendering');
+    if (navigator.share === undefined || !navigator.canShare || !checkBasicFileShare()) {
+        const link = document.createElement('a');
+        const canvases = /** @type {string[]} */ ([]);
+
+        document.body.appendChild(link);
+        for (const page of pages) {
+            await html2canvas(page).then(function resolveCanvas(canvas) {
+                canvases.push(canvas.toDataURL());
+            });
+        }
+
+        setTimeout(async function downloadImages() {
+            for (let i = 0; i < canvases.length; i++) {
+                link.href = canvases[i];
+                link.download = (i + 1) + '.png';
+                link.click();
+            }
+            link.remove();
+
+            document.body.classList.remove('rendering');
+            if (saveBtn) { saveBtn.disabled = false; }
+        }, 1000);
+    } else {
+        const files = /** @type {File[]} */ ([]);
+
+        for (const page of pages) {
+            await html2canvas(page).then(function resolveCanvas(/** @type {HTMLCanvasElement} */ canvas) {
+                canvas.toBlob(function blobToFile(blob) {
+                    if (blob) {
+                        files.push(new File([blob], (files.length + 1) + '.png'));
+                    }
+                });
+            });
+        }
+
+        setTimeout(async function shareImages() {
+            await navigator.share({ files }).catch(function handleError(error) {
+                window.console.error(error);
+            });
+
+            document.body.classList.remove('rendering');
+            if (saveBtn) { saveBtn.disabled = false; }
+        }, 1000);
+    }
+}, 'click');
+
 // Delete page
 bindListener('deletePage', function handleDeletePageClick() {
     const activePage = getActiveLi();
@@ -298,6 +378,9 @@ bindListener('deletePage', function handleDeletePageClick() {
     if (activePage && window.confirm('Remove the current page?')) {
         observer.unobserve(activePage);
         activePage.remove();
+        if (background) {
+            background.hidden = true;
+        }
     }
 }, 'click');
 
@@ -327,6 +410,7 @@ function bindFormListeners(form) {
     form.addEventListener('input', function handleFormInput(e) {
         const element = /** @type {HTMLElement} */ (e.target);
 
+        justSaved = false;
         if (!element.innerText) {
             element.textContent = ' ';
         }
@@ -335,6 +419,9 @@ function bindFormListeners(form) {
         // if (page && (page.scrollHeight - page.clientHeight > 16)) {
         //     window.alert(page.scrollHeight + ' ' + page.clientHeight);
         // }
+    });
+    form.addEventListener('focusout', function handleFormInput() {
+        window.localStorage.setItem('price', parsePages());
     });
 }
 
@@ -563,8 +650,10 @@ bindListener('service', function handleAddServiceClick() {
     }
 }, 'click');
 
+renderPages(DEFAULTS.get());
+
 /**
- * GLOBALS
+ * GLOBAL LISTENERS
  */
 
 const resizeObserver = new ResizeObserver(() => {
@@ -574,6 +663,7 @@ const resizeObserver = new ResizeObserver(() => {
 });
 
 resizeObserver.observe(document.body);
+
 document.body.addEventListener('keyup', function sortWithArrows(e) {
     const targetElement = /** @type {HTMLElement | null} */ (e.target);
     const element = targetElement && (['H3', 'P', 'SPAN'].includes(targetElement.tagName) ? targetElement.parentElement : targetElement);
@@ -604,4 +694,21 @@ document.body.addEventListener('keyup', function sortWithArrows(e) {
         }
     }
 });
-renderPages(DEFAULTS.get());
+
+window.addEventListener('beforeunload', function (event) {
+    const pages = this.document.getElementsByTagName('article');
+
+    if (!justSaved && pages && pages.length && window.localStorage.getItem('price') !== DEFAULTS.hash) {
+        event.preventDefault();
+
+        return "You have some unsaved changes";
+    }
+});
+
+window.addEventListener('load', function () {
+    const savedCopy = window.localStorage.getItem('price');
+
+    if (savedCopy && savedCopy !== DEFAULTS.hash && this.confirm('There is a saved local copy of recent price made. Do you want to load it?')) {
+        renderPages(JSON.parse(savedCopy));
+    }
+});

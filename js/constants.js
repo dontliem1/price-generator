@@ -85,6 +85,7 @@ class Defaults {
             FOOTER: 'The title picture is from https://unsplash.com/photos/hSlmasb-tuE',
             STYLE: this.STYLE,
         };
+        this.hash = '{"PAGES":[{"H1":"PRICE","STYLE":{"backgroundImage":"url(\\"images/example.webp\\")","color":"rgb(255, 228, 168)","justifyContent":"flex-end","backgroundColor":"rgb(0, 0, 0)","opacity":"0.5"}},{"ITEMS":[{"type":"CATEGORY","text":"Makeup"},{"type":"SERVICE","H3":"Full face makeup application","P":"£45","SPAN":"lashes included"},{"type":"SERVICE","H3":"Eye Makeup only","P":"£30"},{"type":"SERVICE","H3":"Strip lashes","P":"£5"}],"FOOTER":"The title picture is from https://unsplash.com/photos/hSlmasb-tuE","STYLE":{"color":"rgb(255, 255, 255)","backgroundColor":"rgb(50, 50, 50)","opacity":"0.5"}}],"STYLE":{"aspectRatio":"4 / 5"}}';
     }
     /**
      * @return {{PAGES: Page[], STYLE: {aspectRatio?: string}}}

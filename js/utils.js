@@ -257,6 +257,80 @@ export function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
 }
 
 /**
+* @param {Object} params
+* @param {HTMLElement | null} params.page
+* @param {HTMLElement | null} params.form
+* @param {HTMLElement | null} params.div
+* @returns {Record<string, string> | undefined}
+*/
+function parseStyles({ page, form, div }) {
+    const { aspectRatio = '', backgroundImage = '', color = '', fontFamily = '' } = page ? page.style : {};
+    const { backdropFilter = '', justifyContent = '', textAlign = '' } = form ? form.style : { backdropFilter: '' };
+    const { backgroundColor = '', opacity = '' } = div ? div.style : {};
+
+    return Object.fromEntries(Object.entries({ aspectRatio, backgroundImage, color, fontFamily, backdropFilter, justifyContent, textAlign, backgroundColor, opacity }).filter(function filterEmpty([, value]) {
+        return value;
+    }));
+}
+
+export function parsePages() {
+    /** @type {{PAGES: { STYLE?: Record<string, string>, ITEMS?: {type: string; H3?: string; SPAN?: string; P?: string; H2?: string}[], H1?: string, FOOTER?: string }[], STYLE: {aspectRatio?: string}}} */
+    const json = { PAGES: [], STYLE: {} };
+    const pages = document.getElementsByTagName('article');
+    const mount = document.getElementById('pages');
+
+    if (mount && mount.dataset.aspectRatio) {
+        json.STYLE.aspectRatio = mount.dataset.aspectRatio;
+    }
+    for (const page of pages) {
+        /**
+         * @type {{ITEMS: {type: string, text?: string, H3?: string, P?: string, SPAN?: string}[], H1?: string, FOOTER?: string, STYLE?: Record<string,string>}}
+         */
+        const pageJson = {};
+        const div = /** @type {HTMLDivElement | null} */ (page.firstElementChild);
+        const form = /** @type {HTMLFormElement | null} */ (page.lastElementChild);
+        const priceElems = form ? /** @type {HTMLCollectionOf<HTMLElement>} */ (form.children) : [];
+
+        for (const priceElem of priceElems) {
+            switch (priceElem.tagName) {
+                case 'H1':
+                case 'FOOTER':
+                    pageJson[priceElem.tagName] = priceElem.innerText;
+
+                    break;
+                case 'H2':
+                    const category = { type: 'CATEGORY', text: priceElem.innerText };
+
+                    pageJson.ITEMS = pageJson.ITEMS ? [...pageJson.ITEMS, category] : [category];
+
+                    break;
+                case 'DIV':
+                    const serviceItems = /** @type {HTMLCollectionOf<HTMLElement>} */ (priceElem.children);
+
+                    if (serviceItems.length) {
+                        const service = { type: "SERVICE" };
+
+                        for (const item of serviceItems) {
+                            service[item.tagName] = item.innerText;
+                        }
+
+                        pageJson.ITEMS = pageJson.ITEMS ? [...pageJson.ITEMS, service] : [service];
+                    }
+
+                    break;
+            }
+        }
+        pageJson.STYLE = parseStyles({
+            page,
+            form,
+            div,
+        });
+        json.PAGES.push(pageJson);
+    }
+    return JSON.stringify(json);
+}
+
+/**
  * LISTENERS
  */
 
