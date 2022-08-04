@@ -439,14 +439,14 @@
             vertical-align: middle;
         }
 
-        .btn--group>.btn:first-child,
-        .btn--group> :first-child .btn {
+        .btn--group>.btn:not(:last-child),
+        .btn--group> :not(:last-child) .btn {
             border-bottom-right-radius: 0;
             border-right: 2px solid #333;
             border-top-right-radius: 0;
         }
 
-        .btn--group>.btn:last-child {
+        .btn--group>.btn:not(:first-child) {
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
         }
@@ -539,7 +539,9 @@
                     <option value='"Yeseva One", serif'>Yeseva One</option>
                 </optgroup>
             </select>
-            <button class="btn" type="button" id="deletePage">Remove page</button>
+            <button class="btn" type="button" id="moveLeft">Move left</button>
+            <button class="btn" type="button" id="moveRight">Move right</button>
+            <button class="btn" type="button" id="deletePage">Delete</button>
         </fieldset>
     </div>
     <div class="settings" id="settings">

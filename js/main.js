@@ -47,18 +47,43 @@ function repositionDeleteBtn(element = getActiveElement()) {
     }
 }
 
+const moveLeft = bindListener('moveLeft', function movePageLeft() {
+    const activePage = getActiveLi();
+    const leftPage = (activePage && activePage.previousElementSibling);
+
+    if (leftPage) {
+        leftPage.insertAdjacentElement('beforebegin', activePage);
+        activePage.scrollIntoView();
+    }
+}, 'click');
+const moveRight = bindListener('moveRight', function movePageRight() {
+    const activePage = getActiveLi();
+    const rightPage = (activePage && activePage.nextElementSibling);
+
+    if (rightPage) {
+        rightPage.insertAdjacentElement('afterend', activePage);
+        activePage.scrollIntoView();
+    }
+}, 'click');
+
 // Background
 const background = /** @type {HTMLFieldSetElement | null} */ (document.getElementById('background'));
 
 function repositionBackground(form = getActiveForm()) {
     if (background && form) {
         if (form === document.activeElement) {
+            const activeLi = getActiveLi();
             const settings = document.getElementById('settings');
             const { left, top } = getOffset(form);
             const [leftBorder, topBorder] = settings ? [settings.clientWidth, settings.clientHeight] : [0, 0];
 
             if (left < window.innerWidth) {
                 background.hidden = false;
+
+                if (activeLi && moveLeft && moveRight) {
+                    moveLeft.hidden = !activeLi.previousElementSibling;
+                    moveRight.hidden = !activeLi.nextElementSibling;
+                }
             }
 
             background.style.transform = `translate(${left}px, ${Math.max(left > leftBorder ? 0 : topBorder, top)}px)`;
