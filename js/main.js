@@ -50,7 +50,7 @@ function repositionBackground(form = getActiveForm()) {
                 background.hidden = false;
             }
 
-            background.style.transform = `translate(${left}px, ${Math.max(left > 200 ? 0 : 60, top)}px)`;
+            background.style.transform = `translate(${left}px, ${Math.max(left > 250 ? 0 : 60, top)}px)`;
         } else {
             background.hidden = true;
         }
@@ -71,6 +71,16 @@ bindListener('float', function handleFloatClick(e) {
 /**
  * SETTINGS
  * */
+
+const sorting = /** @type {HTMLInputElement | null} */ (bindListener('sorting', function handleSortinChange() {
+    const draggable = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('[draggable]'));
+
+    for (const element of draggable) {
+        element.draggable = this.checked;
+    }
+
+    if (deleteBtn) { deleteBtn.hidden = true; }
+}));
 
 bindListener(deleteBtn, function handleDeleteClick() {
     const activeElement = getActiveElement();
@@ -166,8 +176,8 @@ bindListener('aspectRatio', function handleAspectRatioChange() {
 
     if (mount) {
         mount.dataset.aspectRatio = this.value;
-        if (deleteBtn) {deleteBtn.hidden = true;}
-        if (titleAlignment) {titleAlignment.hidden = true;}
+        if (deleteBtn) { deleteBtn.hidden = true; }
+        if (titleAlignment) { titleAlignment.hidden = true; }
     }
 });
 
@@ -284,7 +294,11 @@ function bindFormListeners(form) {
         for (const editableElement of editableElements) {
             editableElement.classList.toggle('active', editableElement === focusedElement);
         }
-        repositionDeleteBtn(focusedElement);
+        if (!(['H2', 'H3', 'SPAN', 'P'].includes(focusedElement.tagName) && sorting && sorting.checked)) {
+            repositionDeleteBtn(focusedElement);
+        } else if (deleteBtn) {
+            deleteBtn.hidden = true;
+        }
         repositionTitleAlignment(focusedElement);
         repositionBackground(this);
     });
@@ -326,6 +340,7 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
     const article = document.createElement('article');
     const form = document.createElement('form');
     const div = document.createElement('div');
+    const draggable = sorting && sorting.checked;
 
     li.classList.toggle('active', isActive);
     form.tabIndex = 0;
@@ -342,13 +357,13 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
         pageJson.ITEMS.map(function createItem(item) {
             switch (item.type) {
                 case 'CATEGORY':
-                    const category = createCategory(item);
+                    const category = createCategory(draggable, item);
 
                     if (category) { form.appendChild(category); }
 
                     break;
                 case 'SERVICE':
-                    form.appendChild(createService(item));
+                    form.appendChild(createService(draggable, item));
 
                     break;
             }
@@ -417,8 +432,8 @@ bindListener('add', function handleAddClick(e) {
 
     if (target && target.tagName === 'BUTTON' && target.parentElement) {
         target.parentElement.removeAttribute('open');
-        if (deleteBtn) {deleteBtn.hidden = true;}
-        if (titleAlignment) {titleAlignment.hidden = true;}
+        if (deleteBtn) { deleteBtn.hidden = true; }
+        if (titleAlignment) { titleAlignment.hidden = true; }
     }
 }, 'click');
 
@@ -498,7 +513,7 @@ bindListener('footer', function handleAddFooterClick() {
 
 bindListener('category', function handleAddCategoryClick() {
     const form = getActiveForm();
-    const category = createCategory();
+    const category = createCategory(sorting && sorting.checked);
 
     if (form && category) {
         const existingFooter = form.querySelector('footer');
@@ -513,7 +528,7 @@ bindListener('category', function handleAddCategoryClick() {
 
 bindListener('service', function handleAddServiceClick() {
     const form = getActiveForm();
-    const service = createService();
+    const service = createService(sorting && sorting.checked);
 
     if (form && service) {
         const existingFooter = form.querySelector('footer');
@@ -527,3 +542,34 @@ bindListener('service', function handleAddServiceClick() {
 }, 'click');
 
 renderPages(DEFAULTS.get());
+
+document.body.addEventListener('keyup', function handleKeys(e) {
+    const targetElement = /** @type {HTMLElement | null} */ (e.target);
+    const element = targetElement && (['H3', 'P', 'SPAN'].includes(targetElement.tagName) ? targetElement.parentElement : targetElement);
+
+    if (element && element.draggable) {
+        const parentElement = element && element.parentElement;
+
+        switch (e.key) {
+            case 'ArrowUp':
+                const previousElement = /** @type {HTMLElement | null} */ (element.previousElementSibling);
+
+                if (parentElement && previousElement && previousElement.draggable) {
+                    parentElement.insertBefore(element, previousElement);
+                    targetElement.focus();
+                    e.preventDefault();
+                }
+
+                break;
+            case 'ArrowDown':
+                const nextElement = /** @type {HTMLElement | null} */ (element.nextElementSibling);
+
+                if (parentElement && nextElement && nextElement.draggable) {
+                    parentElement.insertBefore(nextElement, element);
+                    e.preventDefault();
+                }
+
+                break;
+        }
+    }
+});

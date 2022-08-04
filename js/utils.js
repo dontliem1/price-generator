@@ -90,6 +90,25 @@ export function createEditableElement({ tag, text, parent, fromStart }, useDefau
         }
     }
 
+    elem.addEventListener('drop', function handleDrop(e) {
+        e.preventDefault();
+
+        const text = e.dataTransfer ? e.dataTransfer.getData('text/plain') : '';
+        let range = document.caretRangeFromPoint && document.caretRangeFromPoint(e.clientX, e.clientY);
+
+        // @ts-ignore
+        if (!range && e.rangeParent) {
+            // firefox
+            range = document.createRange();
+            // @ts-ignore
+            range.setStart(e.rangeParent, e.rangeOffset);
+            // @ts-ignore
+            range.setEnd(e.rangeParent, e.rangeOffset);
+        }
+
+        if (range) { range.insertNode(document.createTextNode(text)); }
+    });
+
     elem.addEventListener('paste', function stripTags(e) {
         e.preventDefault();
 
@@ -119,18 +138,23 @@ export function createEditableElement({ tag, text, parent, fromStart }, useDefau
     return elem;
 }
 
-let dragged;
+/**
+ * @type {HTMLHeadingElement | HTMLDivElement | null}
+ */
+let dragged = null;
 let draggedOver;
 let draggedSame;
 let draggedTarget;
-let timer;
+
 /**
+ * @param {boolean | null} draggable
  * @param {{type: 'SERVICE'; H3?: string; SPAN?: string; P?: string}} serviceJson
  * @returns {HTMLDivElement}
  */
-export function createService(serviceJson = DEFAULTS.SERVICE) {
+export function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
     const div = document.createElement('div');
 
+    div.draggable = Boolean(draggable);
     for (const serviceProp in serviceJson) {
         if (['H3', 'SPAN', 'P'].includes(serviceProp)) {
             const tag = /** @type {'H3' | 'SPAN' | 'P'} */ (serviceProp);
@@ -142,80 +166,39 @@ export function createService(serviceJson = DEFAULTS.SERVICE) {
             }, false);
         }
     }
-
-    div.addEventListener("mousedown", (event) => {
-        const targetElement = /** @type {HTMLHeadingElement | null} */ (event.target);
-        const underDiv = targetElement && (targetElement.tagName === 'DIV' ? targetElement : targetElement.parentElement);
-
-        if (underDiv) {
-            underDiv.classList.add('to-drag');
-            timer = setTimeout(() => {
-                underDiv.draggable = true;
-            }, 800);
-        }
-    });
-    const clearThings = (element) => {
-        clearTimeout(timer);
-        if (element) {
-            element.draggable = false;
-            element.classList.remove('to-drag');
-        }
-    };
-
-    div.addEventListener("mouseleave", (event) => {
-        clearThings(event.target);
-    });
-    div.addEventListener("mouseup", (event) => {
-        const targetElement = /** @type {HTMLElement | null} */ (event.target);
-        const underDiv = targetElement && (targetElement.tagName === 'DIV' ? targetElement : targetElement.parentElement);
-
-        clearThings(underDiv);
-    });
     div.addEventListener("dragstart", (event) => {
-        const deleteBtn = document.getElementById('delete');
-        const targetElement = /** @type {HTMLDivElement | null} */ (event.currentTarget);
+        const dragEvent = /** @type {DragEvent} */ (event);
 
-        if (deleteBtn) { deleteBtn.hidden = true; }
-        dragged = event.target;
-
-        if (targetElement && event.dataTransfer) {
-            targetElement.classList.add("dragging");
-            event.dataTransfer.effectAllowed = "move";
+        dragged = /** @type {HTMLDivElement} */ (event.target);
+        if (dragEvent.dataTransfer) {
+            dragEvent.dataTransfer.effectAllowed = "move";
+            dragEvent.dataTransfer.dropEffect = "move";
         }
     });
-
     div.addEventListener("dragend", () => {
-        dragged.classList.remove("dragging");
+        dragged = null;
     });
-
     div.addEventListener("dragover", (event) => {
         event.preventDefault();
-        if (event.dataTransfer) {
-            event.dataTransfer.dropEffect = "move";
-        }
     }, false);
-
     div.addEventListener("dragenter", function (e) {
-        this.classList.add('dragover');
+        if (dragged && dragged.nextElementSibling !== this) {
+            this.classList.add('drag-over');
+        }
         draggedSame = this === draggedOver;
         draggedOver = this;
         draggedTarget = e.target;
     });
-
     div.addEventListener("dragleave", function (e) {
-        if (!draggedSame || (draggedTarget === e.target)) {
-            this.classList.remove('dragover');
-        }
+        if (!draggedSame || (draggedTarget === e.target)) { this.classList.remove('drag-over'); }
     });
-
     div.addEventListener("drop", (event) => {
-        const targetElement = /** @type {HTMLElement | null} */ (event.target);
+        const targetElement = /** @type {HTMLHeadingElement | null} */ (event.target);
         const underDiv = targetElement && (targetElement.tagName === 'DIV' ? targetElement : targetElement.parentElement);
 
-        event.preventDefault();
         if (underDiv) {
-            underDiv.classList.remove("dragover");
-            if (underDiv !== dragged) {
+            underDiv.classList.remove("drag-over");
+            if (dragged && underDiv !== dragged && underDiv !== dragged.nextElementSibling) {
                 underDiv.insertAdjacentElement('beforebegin', dragged);
             }
         }
@@ -224,86 +207,49 @@ export function createService(serviceJson = DEFAULTS.SERVICE) {
     return div;
 }
 /**
- * @param {{type: 'CATEGORY'; H2?: string}} categoryJson
+ * @param {boolean | null} draggable
+ * @param {{type: 'CATEGORY'; H2?: string}} [categoryJson]
  * @returns {HTMLElement | null}
  */
-export function createCategory(categoryJson = DEFAULTS.CATEGORY) {
+export function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
     const h2 = createEditableElement({
         tag: 'H2',
         ...(categoryJson.hasOwnProperty('H2') && { text: categoryJson.H2 }),
     }, false);
 
     if (h2) {
-        h2.addEventListener("mousedown", (event) => {
-            const targetElement = /** @type {HTMLHeadingElement | null} */ (event.target);
-
-            if (targetElement) {
-                targetElement.classList.add('to-drag');
-                timer = setTimeout(() => {
-                    targetElement.draggable = true;
-                }, 800);
-            }
-        });
-        const clearThings = (event) => {
-            const targetElement = /** @type {HTMLHeadingElement | null} */ (event.target);
-
-            clearTimeout(timer);
-            if (targetElement) {
-                targetElement.draggable = false;
-                targetElement.classList.remove('to-drag');
-            }
-        };
-
-        h2.addEventListener("mouseleave", clearThings);
-        h2.addEventListener("mouseup", clearThings);
+        h2.draggable = Boolean(draggable);
         h2.addEventListener("dragstart", (event) => {
-            const deleteBtn = document.getElementById('delete');
-            const dragEvent = /** @type {DragEvent} */ (event);
-            const targetElement = /** @type {HTMLHeadingElement | null} */ (event.currentTarget);
-
-            if (deleteBtn) { deleteBtn.hidden = true; }
-            dragged = event.target;
-
-            if (targetElement && dragEvent.dataTransfer) {
-                targetElement.classList.add("dragging");
-                dragEvent.dataTransfer.effectAllowed = "move";
-            }
-        });
-
-        h2.addEventListener("dragend", () => {
-            dragged.classList.remove("dragging", 'to-drag');
-            dragged.draggable = false;
-        });
-
-        h2.addEventListener("dragover", (event) => {
             const dragEvent = /** @type {DragEvent} */ (event);
 
-            dragEvent.preventDefault();
+            dragged = /** @type {HTMLHeadingElement} */ (event.target);
             if (dragEvent.dataTransfer) {
+                dragEvent.dataTransfer.effectAllowed = "move";
                 dragEvent.dataTransfer.dropEffect = "move";
             }
-        }, false);
-
-        h2.addEventListener("dragenter", function () {
-            this.classList.add('dragover');
         });
-
-        h2.addEventListener("dragleave", function () {
-            this.classList.remove('dragover');
+        h2.addEventListener("dragend", () => {
+            dragged = null;
         });
-
-        h2.addEventListener("drop", (event) => {
-            const targetElement = /** @type {HTMLElement | null} */ (event.target);
-
+        h2.addEventListener("dragover", (event) => {
             event.preventDefault();
+        }, false);
+        h2.addEventListener("dragenter", function () {
+            if (dragged && dragged.nextElementSibling !== this) { this.classList.add('drag-over'); }
+        });
+        h2.addEventListener("dragleave", function () {
+            this.classList.remove('drag-over');
+        });
+        h2.addEventListener("drop", (event) => {
+            const targetElement = /** @type {HTMLHeadingElement | null} */ (event.target);
+
             if (targetElement) {
-                targetElement.classList.remove("dragover");
-                if (targetElement && targetElement !== dragged) {
+                targetElement.classList.remove("drag-over");
+                if (dragged && targetElement !== dragged && targetElement !== dragged.nextElementSibling) {
                     targetElement.insertAdjacentElement('beforebegin', dragged);
                 }
             }
         });
-
     }
 
     return h2;

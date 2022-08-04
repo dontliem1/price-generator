@@ -200,7 +200,6 @@
         .pages h2 {
             font-size: min(9vw, 100px);
             text-align: start;
-            transition: transform .4s .4s cubic-bezier(.5, -1, 1, .5), opacity .2s, box-shadow .2s;
             touch-action: none;
         }
 
@@ -211,10 +210,54 @@
             grid-auto-flow: dense;
             grid-template-columns: 1fr auto;
             margin-block-start: 1em;
-            transition: transform .4s .4s cubic-bezier(.5, -1, 1, .5), opacity .2s, box-shadow .2s;
         }
 
+        [draggable] {
+            transition: transform .5s cubic-bezier(.5, -1, 1, .5);
+        }
+
+        @keyframes wiggle {
+            0% {
+                transform: rotate(-.4deg);
+            }
+
+            100% {
+                transform: rotate(.4deg);
+            }
+        }
+
+        [draggable="true"] {
+            animation-name: wiggle;
+            animation-duration: .15s;
+            animation-timing-function: ease-in-out;
+            animation-iteration-count: infinite;
+            animation-direction: alternate;
+            cursor: grab;
+            display: inline-block;
+        }
+
+        h2[draggable="true"] {
+            width: fit-content;
+        }
+
+        [draggable="true"]:nth-child(2n) {
+            animation-direction: alternate-reverse;
+        }
+
+        [draggable="true"]:active {
+            animation: none;
+            cursor: grabbing;
+            outline: none;
+        }
+
+        [draggable="true"]:active * {
+            outline: none;
+        }
+
+
         .to-drag {
+            caret-color: transparent;
+            cursor: default;
             outline: none;
             transform: scale(.95);
         }
@@ -223,13 +266,15 @@
             cursor: grabbing;
             outline: none;
             transform: scale(.95);
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .dragging * {
             outline: none;
         }
 
-        .dragover:not(.dragging) {
+        .drag-over:not(:active) {
             opacity: .5;
             box-shadow: 0 -2px;
         }
@@ -247,7 +292,7 @@
         }
 
         .pages h1:only-child,
-        .pages form:has(h2):has(div) h1 {
+        .pages form:not(:has(div)) h1 {
             font-size: min(16.5vw, 180px);
             padding-block-end: 4%;
             padding-block-start: 10%;
@@ -532,6 +577,7 @@
             <option value="4 / 5" selected>4:5</option>
             <option value="9 / 16">9:16</option>
         </select>
+        <label><input type="checkbox" name="sorting" id="sorting"> Sort</label>
     </div>
     <details class="add" id="add">
         <summary class="btn">Add</summary>
