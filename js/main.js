@@ -720,7 +720,7 @@ document.body.addEventListener('keyup', function sortWithArrows(e) {
     }
 });
 
-window.addEventListener('beforeunload', function (event) {
+window.addEventListener('beforeunload', function preventLoss(event) {
     const pages = this.document.getElementsByTagName('article');
 
     if (!justSaved && pages && pages.length && window.localStorage.getItem('price') !== DEFAULTS.hash) {
@@ -730,10 +730,12 @@ window.addEventListener('beforeunload', function (event) {
     }
 });
 
-window.addEventListener('load', function () {
-    const savedCopy = window.localStorage.getItem('price');
+window.addEventListener('load', function proposeLoad() {
+    const savedCopy = this.localStorage.getItem('price');
 
     if (savedCopy && savedCopy !== DEFAULTS.hash && this.confirm('There is a saved local copy of recent price made. Do you want to load it?')) {
         renderPages(JSON.parse(savedCopy));
+    } else {
+        this.localStorage.clear();
     }
 });
