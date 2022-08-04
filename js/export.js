@@ -7,14 +7,12 @@ const exportBtn = /** @type {HTMLAnchorElement | null} */ (document.getElementBy
 * @param {HTMLElement | null} params.page
 * @param {HTMLElement | null} params.form
 * @param {HTMLElement | null} params.div
+* @returns {Record<string, string> | undefined}
 */
 function parseStyles({ page, form, div }) {
-    // @ts-ignore
-    const { aspectRatio, backgroundImage, color, fontFamily } = page ? page.style : {};
-    // @ts-ignore
-    const { backdropFilter, justifyContent, textAlign } = form ? form.style : {};
-    // @ts-ignore
-    const { backgroundColor, opacity } = div ? div.style : {};
+    const { aspectRatio = '', backgroundImage = '', color = '', fontFamily = '' } = page ? page.style : {};
+    const { backdropFilter = '', justifyContent = '', textAlign = '' } = form ? form.style : { backdropFilter: '' };
+    const { backgroundColor = '', opacity = '' } = div ? div.style : {};
 
     return Object.fromEntries(Object.entries({ aspectRatio, backgroundImage, color, fontFamily, backdropFilter, justifyContent, textAlign, backgroundColor, opacity }).filter(function filterEmpty([, value]) {
         return value;
@@ -33,7 +31,7 @@ if (exportBtn) {
         }
         for (const page of pages) {
             /**
-             * @type {{ITEMS: {type: string, text?: string, H3?: string, P?: string, SPAN?: string}[], H1?: string, FOOTER?: string, STYLE?: {[prop: string]: string}}}
+             * @type {{ITEMS: {type: string, text?: string, H3?: string, P?: string, SPAN?: string}[], H1?: string, FOOTER?: string, STYLE?: Record<string,string>}}
              */
             const pageJson = {};
             const div = /** @type {HTMLDivElement | null} */ (page.firstElementChild);
@@ -99,7 +97,9 @@ if (saveBtn) {
         await import('./html2canvas.min.js');
 
         const pages = document.getElementsByTagName('article');
+        const sorting = /** @type {HTMLInputElement | null} */ (document.getElementById('sorting'));
 
+        if (sorting) { sorting.checked = false; }
         document.body.classList.add('rendering');
         if (navigator.share === undefined || !navigator.canShare || !checkBasicFileShare()) {
             const link = document.createElement('a');

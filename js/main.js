@@ -12,7 +12,7 @@ const titleAlignment = /** @type {HTMLFieldSetElement | null} */ (document.getEl
 
 function repositionTitleAlignment(element = getActiveElement()) {
     if (titleAlignment) {
-        if (element && element === document.activeElement && element.tagName === 'H1') {
+        if (element && element === document.activeElement && element.tagName === 'H1' && (!element.nextElementSibling || element.nextElementSibling.tagName === 'FOOTER')) {
             const { left, height, top } = getOffset(element);
 
             titleAlignment.style.transform = `translate(${left}px, ${top + height}px)`;
@@ -45,12 +45,15 @@ const background = /** @type {HTMLFieldSetElement | null} */ (document.getElemen
 function repositionBackground(form = getActiveForm()) {
     if (background && form) {
         if (form === document.activeElement) {
+            const settings = document.getElementById('settings');
             const { left, top } = getOffset(form);
+            const [leftBorder, topBorder] = settings ? [settings.clientWidth, settings.clientHeight] : [0, 0];
+
             if (left < window.innerWidth) {
                 background.hidden = false;
             }
 
-            background.style.transform = `translate(${left}px, ${Math.max(left > 250 ? 0 : 60, top)}px)`;
+            background.style.transform = `translate(${left}px, ${Math.max(left > leftBorder ? 0 : topBorder, top)}px)`;
         } else {
             background.hidden = true;
         }
@@ -541,9 +544,18 @@ bindListener('service', function handleAddServiceClick() {
     }
 }, 'click');
 
-renderPages(DEFAULTS.get());
+/**
+ * GLOBALS
+ */
 
-document.body.addEventListener('keyup', function handleKeys(e) {
+const resizeObserver = new ResizeObserver(() => {
+    repositionBackground();
+    repositionDeleteBtn();
+    repositionTitleAlignment();
+});
+
+resizeObserver.observe(document.body);
+document.body.addEventListener('keyup', function sortWithArrows(e) {
     const targetElement = /** @type {HTMLElement | null} */ (e.target);
     const element = targetElement && (['H3', 'P', 'SPAN'].includes(targetElement.tagName) ? targetElement.parentElement : targetElement);
 
@@ -573,3 +585,4 @@ document.body.addEventListener('keyup', function handleKeys(e) {
         }
     }
 });
+renderPages(DEFAULTS.get());

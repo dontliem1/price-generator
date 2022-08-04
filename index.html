@@ -44,6 +44,7 @@
             max-width: 100%;
         }
 
+        [type="checkbox"],
         [type="range"],
         [type="color"] {
             cursor: pointer;
@@ -53,27 +54,14 @@
             width: 7em;
         }
 
-        button,
-        a,
-        select,
-        .add summary,
-        .settings summary,
-        label span,
-        [type="number"] {
-            box-sizing: border-box;
-            min-height: 48px;
-            min-width: 48px;
-            vertical-align: middle;
-        }
-
         .btn [type="color"] {
             background: none;
             border: 0;
             color: inherit;
             margin: 0;
             padding: 0;
-            width: 40px;
-            height: 40px;
+            width: 2.5em;
+            height: 2.5em;
             margin-inline-end: 6px;
         }
 
@@ -333,38 +321,27 @@
             grid-column: 1/2;
             grid-row: 1/2;
             margin-bottom: auto;
+            max-width: max(14em, 64vw);
+            padding-inline-start: 6px;
             touch-action: manipulation;
             z-index: 1;
-            padding-inline-start: 6px;
-        }
-
-        .settings form {
-            background-color: #121212;
-            box-sizing: border-box;
-            padding: 5px;
-            max-width: 100vw;
-        }
-
-        .settings label,
-        .settings fieldset {
-            display: inline-block;
-        }
-
-        .settings fieldset {
-            border-radius: 14px;
         }
 
         .btn {
             align-items: center;
             background-color: #3d3d3d;
-            border: 0;
             border-radius: 5px;
+            border: 0;
+            box-sizing: border-box;
             color: #fff;
             justify-content: center;
-            margin: 2px 0;
+            margin: 2px 0 0 0;
+            min-height: 48px;
+            min-width: 48px;
             padding: 2px 6px 3px;
             text-align: center;
             transition: background-color .2s;
+            vertical-align: middle;
         }
 
         .btn:not(:disabled) {
@@ -409,17 +386,14 @@
         }
 
         .float__fieldset label.btn {
-            display: inline-flex;
-            vertical-align: middle;
-            cursor: auto;
             box-sizing: border-box;
+            cursor: auto;
+            display: inline-flex;
             min-height: 48px;
+            vertical-align: middle;
         }
 
-        #titleAlignment:not([hidden]) {
-            display: inline-block;
-        }
-
+        #titleAlignment:not([hidden]),
         #background:not([hidden]) {
             display: inline-block;
         }
@@ -427,7 +401,7 @@
         .add {
             display: flex;
             flex-direction: column;
-            min-width: 96px;
+            min-width: 6em;
             padding-inline-end: 6px;
             position: absolute;
             right: 0;
@@ -437,8 +411,8 @@
 
         .add .btn {
             cursor: pointer;
-            margin-bottom: 0;
             justify-content: flex-start;
+            margin-bottom: 0;
             width: 100%;
         }
 
@@ -462,13 +436,14 @@
 
         .btn--group {
             display: inline-flex;
+            vertical-align: middle;
         }
 
         .btn--group>.btn:first-child,
         .btn--group> :first-child .btn {
-            border-top-right-radius: 0;
             border-bottom-right-radius: 0;
             border-right: 2px solid #333;
+            border-top-right-radius: 0;
         }
 
         .btn--group>.btn:last-child {
@@ -504,7 +479,7 @@
             <legend class="visually-hidden">Page settings</legend>
             <label class="btn"><input type="color" name="backgroundColor" id="backgroundColor"> Bg</label>
             <label class="btn fd-c">Transparency<input type="range" name="opacity" min="0" max="1" step="0.1" id="opacity"></label>
-            <label class="btn fd-c">Blur<input type="range" name="backdropFilter" min="0" max="50" step="1" value="0" id="backdropFilter"></label>
+            <label class="btn fd-c">Blur<input type="range" name="backdropFilter" min="0" max="50" step="5" value="0" id="backdropFilter"></label>
             <span class="btn--group">
                 <label class="file"><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span class="btn">Image</span></label>
                 <button class="btn" type="button" id="deleteBackgroundImage" aria-label="Remove image">Remove</button>
@@ -577,7 +552,7 @@
             <option value="4 / 5" selected>4:5</option>
             <option value="9 / 16">9:16</option>
         </select>
-        <label><input type="checkbox" name="sorting" id="sorting"> Sort</label>
+        <label class="btn fd-c"><input type="checkbox" name="sorting" id="sorting"> Sort</label>
     </div>
     <details class="add" id="add">
         <summary class="btn">Add</summary>
