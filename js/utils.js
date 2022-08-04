@@ -71,16 +71,17 @@ export function getOffset(el) {
 * @param {HTMLElement | null} [params.parent]
 * @param {boolean} [params.fromStart]
 * @param {boolean} [useDefaults] - Если `false` не создает дефолтный элемент при пустом text
+* @param {boolean} [disabled] - Если `true` не ставит contentEditable
 * @returns {(HTMLElementTagNameMap[Lowercase<EditableTags>] & ElementContentEditable) | null} Created element
 */
-export function createEditableElement({ tag, text, parent, fromStart }, useDefaults = true) {
+export function createEditableElement({ tag, text, parent, fromStart }, useDefaults = true, disabled = false) {
     if (!['H1', 'H2', 'H3', 'P', 'FOOTER', 'SPAN'].includes(tag) || (!useDefaults && !text)) {
         return null;
     }
 
     const elem = document.createElement(tag);
 
-    elem.setAttribute('contenteditable', 'true');
+    elem.contentEditable = disabled ? 'false' : 'true';
     elem.innerText = text ? text : DEFAULTS[tag];
     if (parent) {
         if (fromStart) {
@@ -89,7 +90,7 @@ export function createEditableElement({ tag, text, parent, fromStart }, useDefau
             parent.appendChild(elem);
         }
     }
-
+    elem.tabIndex = 0;
     elem.addEventListener('drop', function handleDrop(e) {
         e.preventDefault();
 
@@ -147,14 +148,14 @@ let draggedSame;
 let draggedTarget;
 
 /**
- * @param {boolean | null} draggable
+ * @param {boolean} draggable
  * @param {{type: 'SERVICE'; H3?: string; SPAN?: string; P?: string}} serviceJson
  * @returns {HTMLDivElement}
  */
 export function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
     const div = document.createElement('div');
 
-    div.draggable = Boolean(draggable);
+    div.draggable = draggable;
     for (const serviceProp in serviceJson) {
         if (['H3', 'SPAN', 'P'].includes(serviceProp)) {
             const tag = /** @type {'H3' | 'SPAN' | 'P'} */ (serviceProp);
@@ -163,7 +164,7 @@ export function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
                 tag,
                 text: serviceJson[serviceProp],
                 parent: div
-            }, false);
+            }, false, draggable);
         }
     }
     div.addEventListener("dragstart", (event) => {
@@ -207,7 +208,7 @@ export function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
     return div;
 }
 /**
- * @param {boolean | null} draggable
+ * @param {boolean} draggable
  * @param {{type: 'CATEGORY'; H2?: string}} [categoryJson]
  * @returns {HTMLElement | null}
  */
@@ -215,10 +216,10 @@ export function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
     const h2 = createEditableElement({
         tag: 'H2',
         ...(categoryJson.hasOwnProperty('H2') && { text: categoryJson.H2 }),
-    }, false);
+    }, false, draggable);
 
     if (h2) {
-        h2.draggable = Boolean(draggable);
+        h2.draggable = draggable;
         h2.addEventListener("dragstart", (event) => {
             const dragEvent = /** @type {DragEvent} */ (event);
 

@@ -12,6 +12,7 @@
     "maxparams": 3,
     "nocomma": true,
     "noreturnawait": true,
+    "predef": [ "ResizeObserver"],
     "strict": "global",
     "unused": "strict"
 }

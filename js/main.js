@@ -77,9 +77,20 @@ bindListener('float', function handleFloatClick(e) {
 
 const sorting = /** @type {HTMLInputElement | null} */ (bindListener('sorting', function handleSortinChange() {
     const draggable = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('[draggable]'));
+    const contentEditable = this.checked ? 'false' : 'true';
 
     for (const element of draggable) {
         element.draggable = this.checked;
+        if (element.tagName === 'H2') {
+            element.contentEditable = contentEditable;
+        }
+        if (element.tagName === 'DIV') {
+            for (const child of element.children) {
+                const childElement = /** @type {HTMLHeadingElement | HTMLSpanElement | HTMLParagraphElement} */ (child);
+
+                childElement.contentEditable = contentEditable;
+            }
+        }
     }
 
     if (deleteBtn) { deleteBtn.hidden = true; }
@@ -194,15 +205,6 @@ const backgroundColorInput = bindListener('backgroundColor', function handleDivS
     }
 });
 
-// Delete page
-bindListener('deletePage', function handleDeletePageClick() {
-    const activePage = getActiveLi();
-
-    if (activePage && window.confirm('Remove the current page?')) {
-        activePage.remove();
-    }
-}, 'click');
-
 /**
  * SCROLL OBSERVER
  */
@@ -282,6 +284,16 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
     threshold: 0.6,
 });
 
+// Delete page
+bindListener('deletePage', function handleDeletePageClick() {
+    const activePage = getActiveLi();
+
+    if (activePage && window.confirm('Remove the current page?')) {
+        observer.unobserve(activePage);
+        activePage.remove();
+    }
+}, 'click');
+
 /**
  * IMPORT
  */
@@ -343,7 +355,7 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
     const article = document.createElement('article');
     const form = document.createElement('form');
     const div = document.createElement('div');
-    const draggable = sorting && sorting.checked;
+    const draggable = Boolean(sorting && sorting.checked);
 
     li.classList.toggle('active', isActive);
     form.tabIndex = 0;
@@ -516,7 +528,7 @@ bindListener('footer', function handleAddFooterClick() {
 
 bindListener('category', function handleAddCategoryClick() {
     const form = getActiveForm();
-    const category = createCategory(sorting && sorting.checked);
+    const category = createCategory(Boolean(sorting && sorting.checked));
 
     if (form && category) {
         const existingFooter = form.querySelector('footer');
@@ -531,7 +543,7 @@ bindListener('category', function handleAddCategoryClick() {
 
 bindListener('service', function handleAddServiceClick() {
     const form = getActiveForm();
-    const service = createService(sorting && sorting.checked);
+    const service = createService(Boolean(sorting && sorting.checked));
 
     if (form && service) {
         const existingFooter = form.querySelector('footer');
