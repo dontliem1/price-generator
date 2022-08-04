@@ -74,11 +74,18 @@ bindListener('float', function handleFloatClick(e) {
 /**
  * SETTINGS
  * */
-
-const sorting = /** @type {HTMLInputElement | null} */ (bindListener('sorting', function handleSortinChange() {
+let sortingPollyfilled;
+const sorting = /** @type {HTMLInputElement | null} */ (bindListener('sorting', async function handleSortinChange() {
     const draggable = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('[draggable]'));
     const contentEditable = this.checked ? 'false' : 'true';
 
+    if (!sortingPollyfilled) {
+        const script = document.createElement('script');
+
+        script.src = 'js/DragDropTouch.js';
+        document.body.appendChild(script);
+        sortingPollyfilled = true;
+    }
     for (const element of draggable) {
         element.draggable = this.checked;
         if (element.tagName === 'H2') {
