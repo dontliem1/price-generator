@@ -94,16 +94,16 @@ function repositionBackground(form = getActiveForm()) {
     }
 }
 
-// bindListener('float', function handleFloatClick(e) {
-//     const floatElements = /** @type {HTMLCollectionOf<HTMLButtonElement | HTMLFieldSetElement>} */ (this.children);
-//     const clicked = /** @type {HTMLElement | null} */ (e.target);
+bindListener('float', function handleFloatClick(e) {
+    const floatElements = /** @type {HTMLCollectionOf<HTMLButtonElement | HTMLFieldSetElement>} */ (this.children);
+    const clicked = /** @type {HTMLElement | null} */ (e.target);
 
-//     if (this.isSameNode(clicked)) {
-//         for (const element of floatElements) {
-//             element.hidden = true;
-//         }
-//     }
-// }, 'click');
+    if (this.isSameNode(clicked)) {
+        for (const element of floatElements) {
+            element.hidden = true;
+        }
+    }
+}, 'click');
 
 /**
  * SETTINGS
