@@ -339,14 +339,13 @@ function checkBasicFileShare() {
 }
 
 bindListener('save', async function handleSaveClick(e) {
-    const saveBtn = /** @type {HTMLButtonElement | null} */ (e.currentTarget);
+    const saveBtn = /** @type {HTMLButtonElement} */ (e.currentTarget);
 
     if (saveBtn) { saveBtn.disabled = true; }
 
     await import('./html2canvas.min.js');
 
     const pages = document.getElementsByTagName('article');
-    const sorting = /** @type {HTMLInputElement | null} */ (document.getElementById('sorting'));
 
     if (sorting) { sorting.checked = false; }
     document.body.classList.add('rendering');
@@ -368,9 +367,8 @@ bindListener('save', async function handleSaveClick(e) {
                 link.click();
             }
             link.remove();
-
             document.body.classList.remove('rendering');
-            if (saveBtn) { saveBtn.disabled = false; }
+            saveBtn.disabled = false;
         }, 1000);
     } else {
         const files = /** @type {File[]} */ ([]);
@@ -387,11 +385,11 @@ bindListener('save', async function handleSaveClick(e) {
 
         setTimeout(async function shareImages() {
             await navigator.share({ files }).catch(function handleError(error) {
-                window.console.error(error);
+                window.console.log(error.name + ': ' + error.message);
+            }).finally(function resetStyle() {
+                document.body.classList.remove('rendering');
+                saveBtn.disabled = false;
             });
-
-            document.body.classList.remove('rendering');
-            if (saveBtn) { saveBtn.disabled = false; }
         }, 1000);
     }
 }, 'click');
