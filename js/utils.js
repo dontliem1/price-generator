@@ -1,6 +1,6 @@
 'use strict';
 
-import { DEFAULTS } from "./constants.js";
+import { DEFAULTS, EDITABLE_TAGS } from "./constants.js";
 
 /**
  * GETTERS
@@ -64,7 +64,6 @@ export function getOffset(el) {
  */
 
 /**
- * @typedef {'H1' | 'H2' | 'H3' | 'P' | 'FOOTER' | 'SPAN'} EditableTags
 * @param {Object} params
 * @param {EditableTags} params.tag
 * @param {string} [params.text]
@@ -74,13 +73,13 @@ export function getOffset(el) {
 * @returns {(HTMLElementTagNameMap[Lowercase<EditableTags>] & ElementContentEditable) | null} Created element
 */
 export function createEditableElement({ tag, text, parent, fromStart }, useDefaults = true) {
-    if (!['H1', 'H2', 'H3', 'P', 'FOOTER', 'SPAN'].includes(tag) || (!useDefaults && !text)) {
+    if (!EDITABLE_TAGS.includes(tag) || (!useDefaults && !text)) {
         return null;
     }
 
     const elem = document.createElement(tag);
 
-    elem.contentEditable ='false';
+    elem.contentEditable = 'false';
     elem.innerText = text ? text : DEFAULTS[tag];
     if (parent) {
         if (fromStart) {
@@ -148,7 +147,7 @@ let draggedTarget;
 
 /**
  * @param {boolean} draggable
- * @param {{type: 'SERVICE'; H3?: string; SPAN?: string; P?: string}} serviceJson
+ * @param {Service} serviceJson
  * @returns {HTMLDivElement}
  */
 export function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
@@ -208,7 +207,7 @@ export function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
 }
 /**
  * @param {boolean} draggable
- * @param {{type: 'CATEGORY'; H2?: string}} [categoryJson]
+ * @param {Category} [categoryJson]
  * @returns {HTMLElement | null}
  */
 export function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
@@ -260,7 +259,7 @@ export function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
 * @param {HTMLElement | null} params.page
 * @param {HTMLElement | null} params.form
 * @param {HTMLElement | null} params.div
-* @returns {Record<string, string> | undefined}
+* @returns {PageStyle}
 */
 function parseStyles({ page, form, div }) {
     const { aspectRatio = '', backgroundImage = '', color = '', fontFamily = '' } = page ? page.style : {};
@@ -272,9 +271,63 @@ function parseStyles({ page, form, div }) {
     }));
 }
 
+/**
+ * @param {HTMLElement} page
+ */
+export function parsePage(page) {
+    /** @type {Page} */
+    const pageJson = {};
+    const div = /** @type {HTMLDivElement | null} */ (page.firstElementChild);
+    const form = /** @type {HTMLFormElement | null} */ (page.lastElementChild);
+    const priceElems = form ? /** @type {HTMLCollectionOf<HTMLElement>} */ (form.children) : [];
+
+    for (const priceElem of priceElems) {
+        switch (priceElem.tagName) {
+            case 'H1':
+            case 'FOOTER':
+                pageJson[priceElem.tagName] = priceElem.innerText;
+
+                break;
+            case 'H2':
+                /** @type {Category} */
+                const category = { type: 'CATEGORY', H2: priceElem.innerText };
+
+                pageJson.ITEMS = pageJson.ITEMS ? [...pageJson.ITEMS, category] : [category];
+
+                break;
+            case 'DIV':
+                const serviceItems = /** @type {HTMLCollectionOf<HTMLElement>} */ (priceElem.children);
+
+                if (serviceItems.length) {
+                    /** @type {Service} */
+                    const service = { type: "SERVICE" };
+
+                    for (const item of serviceItems) {
+                        service[item.tagName] = item.innerText;
+                    }
+
+                    pageJson.ITEMS = pageJson.ITEMS ? [...pageJson.ITEMS, service] : [service];
+                }
+
+                break;
+        }
+    }
+    pageJson.STYLE = parseStyles({
+        page,
+        form,
+        div,
+    });
+
+    return pageJson;
+}
+
 export function parsePages() {
-    /** @type {{PAGES: { STYLE?: Record<string, string>, ITEMS?: {type: string; H3?: string; SPAN?: string; P?: string; H2?: string}[], H1?: string, FOOTER?: string }[], STYLE: {aspectRatio?: string}}} */
-    const json = { PAGES: [], STYLE: {} };
+    const json = {
+        /** @type {Page[]} */
+        PAGES: [],
+        /** @type {PagesStyle} */
+        STYLE: {}
+    };
     const pages = document.getElementsByTagName('article');
     const mount = document.getElementById('pages');
 
@@ -282,49 +335,7 @@ export function parsePages() {
         json.STYLE.aspectRatio = mount.dataset.aspectRatio;
     }
     for (const page of pages) {
-        /**
-         * @type {{ITEMS: {type: string, text?: string, H3?: string, P?: string, SPAN?: string}[], H1?: string, FOOTER?: string, STYLE?: Record<string,string>}}
-         */
-        const pageJson = {};
-        const div = /** @type {HTMLDivElement | null} */ (page.firstElementChild);
-        const form = /** @type {HTMLFormElement | null} */ (page.lastElementChild);
-        const priceElems = form ? /** @type {HTMLCollectionOf<HTMLElement>} */ (form.children) : [];
-
-        for (const priceElem of priceElems) {
-            switch (priceElem.tagName) {
-                case 'H1':
-                case 'FOOTER':
-                    pageJson[priceElem.tagName] = priceElem.innerText;
-
-                    break;
-                case 'H2':
-                    const category = { type: 'CATEGORY', text: priceElem.innerText };
-
-                    pageJson.ITEMS = pageJson.ITEMS ? [...pageJson.ITEMS, category] : [category];
-
-                    break;
-                case 'DIV':
-                    const serviceItems = /** @type {HTMLCollectionOf<HTMLElement>} */ (priceElem.children);
-
-                    if (serviceItems.length) {
-                        const service = { type: "SERVICE" };
-
-                        for (const item of serviceItems) {
-                            service[item.tagName] = item.innerText;
-                        }
-
-                        pageJson.ITEMS = pageJson.ITEMS ? [...pageJson.ITEMS, service] : [service];
-                    }
-
-                    break;
-            }
-        }
-        pageJson.STYLE = parseStyles({
-            page,
-            form,
-            div,
-        });
-        json.PAGES.push(pageJson);
+        json.PAGES.push(parsePage(page));
     }
     return JSON.stringify(json);
 }

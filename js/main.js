@@ -1,7 +1,7 @@
 'use strict';
 
 import { DEFAULTS, EDITABLE_TAGS, ITEMS_TAGS } from './constants.js';
-import { bindListener, createCategory, createEditableElement, createService, getActiveArticle, getActiveDiv, getActiveElement, getActiveForm, getActiveLi, getMount, getOffset, handleArticleStylePropChange, handleFormStylePropChange, parsePages } from './utils.js';
+import { bindListener, createCategory, createEditableElement, createService, getActiveArticle, getActiveDiv, getActiveElement, getActiveForm, getActiveLi, getMount, getOffset, handleArticleStylePropChange, handleFormStylePropChange, parsePage, parsePages } from './utils.js';
 
 /**
  * VARS
@@ -415,33 +415,35 @@ bindListener('deletePage', function handleDeletePageClick() {
  */
 function bindFormListeners(form) {
     form.addEventListener('click', function handleFromClick(e) {
+        const form = /** @type {HTMLFormElement} */ (e.currentTarget);
         const clickedElement = /** @type {HTMLElement} */ (e.target);
 
-        if (this.isSameNode(clickedElement)) {
-            if (this.dataset.clicked) {
-                this.dataset.clicked = '';
-                this.blur();
-                if (background) { background.hidden = true; }
-            } else {
-                this.dataset.clicked = 'true';
-            }
+        if (form.isSameNode(clickedElement) && background && form.dataset.clicked) {
+            background.hidden = !background.hidden;
         }
+        form.dataset.clicked = 'true';
     });
     form.addEventListener('focusin', function handleFormFocusIn(e) {
+        const form = /** @type {HTMLFormElement} */ (e.currentTarget);
         const focusedElement = /** @type {HTMLElement} */ (e.target);
-        const editableElements = /** @type {NodeListOf<HTMLElement>} */ (this.querySelectorAll('[contenteditable]'));
+        const editableElements = /** @type {NodeListOf<HTMLElement>} */ (form.querySelectorAll('[contenteditable]'));
 
         for (const editableElement of editableElements) {
             editableElement.classList.toggle('active', editableElement.isSameNode(focusedElement));
         }
-        if (focusedElement.hasAttribute('contenteditable')) { focusedElement.contentEditable = 'true'; }
+        if (focusedElement.hasAttribute('contenteditable')) {
+            focusedElement.contentEditable = 'true';
+            if (background) { background.hidden = true; }
+        }
         if (!(ITEMS_TAGS.includes(focusedElement.tagName) && sorting && sorting.checked)) {
             repositionDeleteBtn(focusedElement);
         } else if (deleteBtn) {
             deleteBtn.hidden = true;
         }
         repositionTitleAlignment(focusedElement);
-        repositionBackground(this);
+        if (form.isSameNode(focusedElement)) {
+            repositionBackground(form);
+        }
     });
     form.addEventListener('input', function handleFormInput(e) {
         const element = /** @type {HTMLElement} */ (e.target);
@@ -458,11 +460,13 @@ function bindFormListeners(form) {
     });
     form.addEventListener('focusout', function handleFormInput(e) {
         const focusedElement = /** @type {HTMLElement} */ (e.target);
+        const form = /** @type {HTMLFormElement} */ (e.currentTarget);
 
-        if (this.isSameNode(focusedElement)) {
-            this.dataset.clicked = '';
-        } else {
+        if (focusedElement.hasAttribute('contenteditable')) {
             focusedElement.contentEditable = 'false';
+        }
+        if (form.isSameNode(focusedElement)) {
+            form.dataset.clicked = '';
         }
         window.localStorage.setItem('price', parsePages());
     });
@@ -481,7 +485,6 @@ function attachStyleFromJson({ form, div, article }, props = {}) {
     assignFilteredStyle(article, { backgroundImage, color, fontFamily });
 }
 
-/** @typedef {{ STYLE?: Record<string, string>, ITEMS?: ({type: 'CATEGORY'; H2?: string} | {type: 'SERVICE'; H3?: string; SPAN?: string; P?: string;})[], H1?: string, FOOTER?: string }} Page */
 /**
  * @param {Page} pageJson
  * @param {boolean} [isActive]
@@ -533,7 +536,7 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
 }
 
 /**
- * @param {{PAGES?: Page[]; STYLE?: {aspectRatio?: string}}} pagesJson
+ * @param {Pages} pagesJson
  * @param {HTMLElement | null} mount
  */
 export function renderPages(pagesJson, mount = getMount()) {
@@ -598,29 +601,15 @@ bindListener('page', function handleAddPageClick() {
     }
 }, 'click');
 
-bindListener('duplicate', function handleAddPageClick() {
-    const pages = document.getElementById('pages');
-    if (pages) {
+bindListener('duplicate', function handleDuplicateClick() {
+    if (mount) {
         let newPage;
-        const activePage = getActiveLi();
+        const activePage = getActiveArticle();
+        const activePageJson = activePage && parsePage(activePage);
 
-        if (activePage) {
-            newPage = /** @type {HTMLLIElement} */ (activePage.cloneNode(true));
+        newPage = activePageJson ? createPage(activePageJson) : createPage();
 
-            let newPageTitle = newPage.querySelector('h1');
-            let newPageForm = getActiveForm(newPage);
-
-            if (newPageTitle) {
-                newPageTitle.innerText += ' copy';
-            }
-            if (newPageForm) {
-                bindFormListeners(newPageForm);
-            }
-        } else {
-            newPage = createPage();
-        }
-
-        pages.appendChild(newPage);
+        mount.appendChild(newPage);
         observer.observe(newPage);
         newPage.scrollIntoView();
     }
