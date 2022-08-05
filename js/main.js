@@ -1,6 +1,6 @@
 'use strict';
 
-import { DEFAULTS } from './constants.js';
+import { DEFAULTS, EDITABLE_TAGS, ITEMS_TAGS } from './constants.js';
 import { bindListener, createCategory, createEditableElement, createService, getActiveArticle, getActiveDiv, getActiveElement, getActiveForm, getActiveLi, getMount, getOffset, handleArticleStylePropChange, handleFormStylePropChange, parsePages } from './utils.js';
 
 /**
@@ -10,6 +10,7 @@ import { bindListener, createCategory, createEditableElement, createService, get
 let justSaved = true;
 let sortingPollyfilled = false;
 let fontsAdded = false;
+const mount = getMount();
 
 /**
  * FLOAT
@@ -20,7 +21,7 @@ const titleAlignment = /** @type {HTMLFieldSetElement | null} */ (document.getEl
 
 function repositionTitleAlignment(element = getActiveElement()) {
     if (titleAlignment) {
-        if (element && element === document.activeElement && element.tagName === 'H1' && (!element.nextElementSibling || element.nextElementSibling.tagName === 'FOOTER')) {
+        if (element && element.isSameNode(document.activeElement) && element.tagName === 'H1' && (!element.nextElementSibling || element.nextElementSibling.tagName === 'FOOTER')) {
             const { left, height, top } = getOffset(element);
 
             titleAlignment.style.transform = `translate(${left}px, ${top + height}px)`;
@@ -36,7 +37,7 @@ const deleteBtn = /** @type {HTMLButtonElement | null} */ (document.getElementBy
 
 function repositionDeleteBtn(element = getActiveElement()) {
     if (deleteBtn) {
-        if (element && element === document.activeElement && ['H1', 'H2', 'H3', 'SPAN', 'P', 'FOOTER'].includes(element.tagName)) {
+        if (element && element.isSameNode(document.activeElement) && EDITABLE_TAGS.includes(element.tagName)) {
             const { left, height, top } = getOffset(element);
 
             deleteBtn.hidden = false;
@@ -71,7 +72,7 @@ const background = /** @type {HTMLFieldSetElement | null} */ (document.getElemen
 
 function repositionBackground(form = getActiveForm()) {
     if (background && form) {
-        if (form === document.activeElement) {
+        if (form.isSameNode(document.activeElement)) {
             const activeLi = getActiveLi();
             const settings = document.getElementById('settings');
             const { left, top } = getOffset(form);
@@ -93,16 +94,16 @@ function repositionBackground(form = getActiveForm()) {
     }
 }
 
-bindListener('float', function handleFloatClick(e) {
-    const floatElements = /** @type {HTMLCollectionOf<HTMLButtonElement | HTMLFieldSetElement>} */ (this.children);
-    const clicked = /** @type {HTMLElement | null} */ (e.target);
+// bindListener('float', function handleFloatClick(e) {
+//     const floatElements = /** @type {HTMLCollectionOf<HTMLButtonElement | HTMLFieldSetElement>} */ (this.children);
+//     const clicked = /** @type {HTMLElement | null} */ (e.target);
 
-    if (clicked && clicked === this) {
-        for (const element of floatElements) {
-            element.hidden = true;
-        }
-    }
-}, 'click');
+//     if (this.isSameNode(clicked)) {
+//         for (const element of floatElements) {
+//             element.hidden = true;
+//         }
+//     }
+// }, 'click');
 
 /**
  * SETTINGS
@@ -225,8 +226,6 @@ const fontFamilySelect = /** @type {HTMLSelectElement | null} */ (bindListener('
 
 // Aspect ratio
 bindListener('aspectRatio', function handleAspectRatioChange() {
-    const mount = getMount();
-
     if (mount) {
         mount.dataset.aspectRatio = this.value;
         if (deleteBtn) { deleteBtn.hidden = true; }
@@ -319,7 +318,7 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
         }
     }
 }, {
-    root: getMount(),
+    root: mount,
     threshold: 0.6,
 });
 
@@ -420,9 +419,10 @@ function bindFormListeners(form) {
         const editableElements = /** @type {NodeListOf<HTMLElement>} */ (this.querySelectorAll('[contenteditable]'));
 
         for (const editableElement of editableElements) {
-            editableElement.classList.toggle('active', editableElement === focusedElement);
+            editableElement.classList.toggle('active', editableElement.isSameNode(focusedElement));
         }
-        if (!(['H2', 'H3', 'SPAN', 'P'].includes(focusedElement.tagName) && sorting && sorting.checked)) {
+        if (focusedElement.hasAttribute('contenteditable')) { focusedElement.contentEditable = 'true'; }
+        if (!(ITEMS_TAGS.includes(focusedElement.tagName) && sorting && sorting.checked)) {
             repositionDeleteBtn(focusedElement);
         } else if (deleteBtn) {
             deleteBtn.hidden = true;
@@ -443,7 +443,10 @@ function bindFormListeners(form) {
         //     window.alert(page.scrollHeight + ' ' + page.clientHeight);
         // }
     });
-    form.addEventListener('focusout', function handleFormInput() {
+    form.addEventListener('focusout', function handleFormInput(e) {
+        const focusedElement = /** @type {HTMLElement} */ (e.target);
+
+        focusedElement.contentEditable = 'false';
         window.localStorage.setItem('price', parsePages());
     });
 }
@@ -570,8 +573,6 @@ bindListener('add', function handleAddClick(e) {
 }, 'click');
 
 bindListener('page', function handleAddPageClick() {
-    const mount = getMount();
-
     if (mount) {
         const newPage = createPage();
 
@@ -685,7 +686,7 @@ const resizeObserver = new ResizeObserver(() => {
     repositionTitleAlignment();
 });
 
-resizeObserver.observe(document.body);
+if (mount) { resizeObserver.observe(document.body); }
 
 document.body.addEventListener('keyup', function sortWithArrows(e) {
     const targetElement = /** @type {HTMLElement | null} */ (e.target);

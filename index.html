@@ -242,14 +242,6 @@
             outline: none;
         }
 
-
-        .to-drag {
-            caret-color: transparent;
-            cursor: default;
-            outline: none;
-            transform: scale(.95);
-        }
-
         .dragging {
             cursor: grabbing;
             outline: none;
@@ -393,9 +385,12 @@
             vertical-align: middle;
         }
 
-        #titleAlignment:not([hidden]),
         #background:not([hidden]) {
             display: inline-block;
+        }
+
+        #titleAlignment[hidden] {
+            display: none;
         }
 
         .add {
@@ -428,6 +423,11 @@
             border-bottom-right-radius: 0;
         }
 
+        #title,
+        .add>.file .btn {
+            border-top-width: 6px;
+        }
+
         .float {
             grid-column: 1/3;
             grid-row: 1/2;
@@ -446,7 +446,7 @@
             border-top-right-radius: 0;
         }
 
-        .btn--group>.btn:not(:first-child) {
+        .btn--group>.btn:not(:first-child):not(select:first-of-type) {
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
         }
@@ -462,7 +462,7 @@
     <h1 class="visually-hidden">Price constructor</h1>
     <div class="float" id="float">
         <button class="btn" type="button" id="delete" hidden>Remove</button>
-        <fieldset class="float__fieldset" id="titleAlignment" hidden>
+        <fieldset class="float__fieldset btn--group" id="titleAlignment" hidden>
             <legend class="visually-hidden">Alignment</legend>
             <select class="btn" name="textAlign" aria-label="Horizontal" id="textAlign">
                 <option value="left">Left</option>

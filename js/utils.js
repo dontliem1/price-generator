@@ -71,17 +71,16 @@ export function getOffset(el) {
 * @param {HTMLElement | null} [params.parent]
 * @param {boolean} [params.fromStart]
 * @param {boolean} [useDefaults] - Если `false` не создает дефолтный элемент при пустом text
-* @param {boolean} [disabled] - Если `true` не ставит contentEditable
 * @returns {(HTMLElementTagNameMap[Lowercase<EditableTags>] & ElementContentEditable) | null} Created element
 */
-export function createEditableElement({ tag, text, parent, fromStart }, useDefaults = true, disabled = false) {
+export function createEditableElement({ tag, text, parent, fromStart }, useDefaults = true) {
     if (!['H1', 'H2', 'H3', 'P', 'FOOTER', 'SPAN'].includes(tag) || (!useDefaults && !text)) {
         return null;
     }
 
     const elem = document.createElement(tag);
 
-    elem.contentEditable = disabled ? 'false' : 'true';
+    elem.contentEditable ='false';
     elem.innerText = text ? text : DEFAULTS[tag];
     if (parent) {
         if (fromStart) {
@@ -164,7 +163,7 @@ export function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
                 tag,
                 text: serviceJson[serviceProp],
                 parent: div
-            }, false, draggable);
+            }, false);
         }
     }
     div.addEventListener("dragstart", (event) => {
@@ -216,7 +215,7 @@ export function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
     const h2 = createEditableElement({
         tag: 'H2',
         ...(categoryJson.hasOwnProperty('H2') && { text: categoryJson.H2 }),
-    }, false, draggable);
+    }, false);
 
     if (h2) {
         h2.draggable = draggable;

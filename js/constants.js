@@ -96,3 +96,5 @@ class Defaults {
 }
 
 export const DEFAULTS = new Defaults();
+export const ITEMS_TAGS = ['H2', 'H3', 'SPAN', 'P'];
+export const EDITABLE_TAGS = ['H1', 'FOOTER', ...ITEMS_TAGS];
