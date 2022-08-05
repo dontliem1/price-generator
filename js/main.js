@@ -414,6 +414,19 @@ bindListener('deletePage', function handleDeletePageClick() {
  * @param {HTMLFormElement} form
  */
 function bindFormListeners(form) {
+    form.addEventListener('click', function handleFromClick(e) {
+        const clickedElement = /** @type {HTMLElement} */ (e.target);
+
+        if (this.isSameNode(clickedElement)) {
+            if (this.dataset.clicked) {
+                this.dataset.clicked = '';
+                this.blur();
+                if (background) { background.hidden = true; }
+            } else {
+                this.dataset.clicked = 'true';
+            }
+        }
+    });
     form.addEventListener('focusin', function handleFormFocusIn(e) {
         const focusedElement = /** @type {HTMLElement} */ (e.target);
         const editableElements = /** @type {NodeListOf<HTMLElement>} */ (this.querySelectorAll('[contenteditable]'));
@@ -446,7 +459,11 @@ function bindFormListeners(form) {
     form.addEventListener('focusout', function handleFormInput(e) {
         const focusedElement = /** @type {HTMLElement} */ (e.target);
 
-        focusedElement.contentEditable = 'false';
+        if (this.isSameNode(focusedElement)) {
+            this.dataset.clicked = '';
+        } else {
+            focusedElement.contentEditable = 'false';
+        }
         window.localStorage.setItem('price', parsePages());
     });
 }
