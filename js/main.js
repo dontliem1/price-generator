@@ -337,13 +337,6 @@ function checkBasicFileShare() {
     return navigator.canShare({ files: [file] });
 }
 
-let iOSVersion = 13;
-const agent = window.navigator.userAgent,
-start = agent.indexOf( 'OS ' );
-if( ( agent.indexOf( 'iPhone' ) > -1 || agent.indexOf( 'iPad' ) > -1 ) && start > -1 ){
-    iOSVersion = window.Number( agent.substr( start + 3, 3 ).replace( '_', '.' ) );
-}
-
 bindListener('save', async function handleSaveClick(e) {
     const saveBtn = /** @type {HTMLButtonElement} */ (e.currentTarget);
 
@@ -356,7 +349,7 @@ bindListener('save', async function handleSaveClick(e) {
     const options = { backgroundColor: '#000', scale: 1, windowWidth: 1080, windowHeight: 1920 };
 
     if (sorting) { sorting.checked = false; }
-    if (navigator.share === undefined || !navigator.canShare || !checkBasicFileShare() || iOSVersion < 13) {
+    if (navigator.share === undefined || !navigator.canShare || !checkBasicFileShare() || typeof MediaCapabilities === 'undefined') {
         const link = document.createElement('a');
         const canvases = /** @type {string[]} */ ([]);
 
