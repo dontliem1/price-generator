@@ -102,6 +102,8 @@
             overflow-x: auto;
             overflow-y: hidden;
             padding: 0;
+            scroll-snap-type: mandatory;
+            scroll-snap-points-x: repeat(min(100vw, 1080px));
             scroll-behavior: smooth;
             scroll-snap-type: x mandatory;
             touch-action: manipulation;
@@ -116,6 +118,7 @@
         /* Price */
         .pages article {
             aspect-ratio: 1 / 1;
+            -webkit-aspect-ratio: 1 / 1;
             background-color: #000;
             background-position: center;
             background-repeat: no-repeat;
@@ -163,10 +166,12 @@
         }
 
         .pages[data-aspect-ratio="4 / 5"] article {
+            -webkit-aspect-ratio: 4 / 5;
             aspect-ratio: 4 / 5;
         }
 
         .pages[data-aspect-ratio="9 / 16"] article {
+            -webkit-aspect-ratio: 9 / 16;
             aspect-ratio: 9 / 16;
         }
 
@@ -289,6 +294,11 @@
         .pages *:not(h1)+footer {
             margin-block-start: auto;
             text-align: start;
+        }
+
+        main noscript {
+            padding-left: 6px;
+            padding-right: 6px;
         }
 
         body>main {
@@ -558,6 +568,7 @@
     <main>
         <h2 class="visually-hidden">Pages and content</h2>
         <ol id="pages" class="pages"></ol>
+        <noscript>The generator needs JavaScript to work :-(</noscript>
     </main>
     <script src="js/main.js" type="module"></script>
 </body>
