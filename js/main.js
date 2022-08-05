@@ -345,16 +345,17 @@ bindListener('save', async function handleSaveClick(e) {
     await import('./html2canvas.min.js');
 
     const pages = document.getElementsByTagName('article');
+    /** @type {html2canvasOptions} */
+    const options = { backgroundColor: '#000', scale: 1, windowWidth: 1080, windowHeight: 1920 };
 
     if (sorting) { sorting.checked = false; }
-    document.body.classList.add('rendering');
     if (navigator.share === undefined || !navigator.canShare || !checkBasicFileShare()) {
         const link = document.createElement('a');
         const canvases = /** @type {string[]} */ ([]);
 
         document.body.appendChild(link);
         for (const page of pages) {
-            await html2canvas(page).then(function resolveCanvas(canvas) {
+            await html2canvas(page, options).then(function resolveCanvas(canvas) {
                 canvases.push(canvas.toDataURL());
             });
         }
@@ -366,14 +367,13 @@ bindListener('save', async function handleSaveClick(e) {
                 link.click();
             }
             link.remove();
-            document.body.classList.remove('rendering');
             saveBtn.disabled = false;
         }, 1000);
     } else {
         const files = /** @type {File[]} */ ([]);
 
         for (const page of pages) {
-            await html2canvas(page).then(function resolveCanvas(/** @type {HTMLCanvasElement} */ canvas) {
+            await html2canvas(page, options).then(function resolveCanvas(/** @type {HTMLCanvasElement} */ canvas) {
                 canvas.toBlob(function blobToFile(blob) {
                     if (blob) {
                         files.push(new File([blob], (files.length + 1) + '.png'));
@@ -386,7 +386,6 @@ bindListener('save', async function handleSaveClick(e) {
             await navigator.share({ files }).catch(function handleError(error) {
                 window.console.log(error.name + ': ' + error.message);
             }).finally(function resetStyle() {
-                document.body.classList.remove('rendering');
                 saveBtn.disabled = false;
             });
         }, 1000);
@@ -435,6 +434,7 @@ function bindFormListeners(form) {
             focusedElement.contentEditable = 'true';
             if (background) { background.hidden = true; }
         }
+        // @ts-ignore
         if (!(ITEMS_TAGS.includes(focusedElement.tagName) && sorting && sorting.checked)) {
             repositionDeleteBtn(focusedElement);
         } else if (deleteBtn) {
