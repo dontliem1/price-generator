@@ -413,7 +413,7 @@ function bindFormListeners(form) {
         for (const editableElement of editableElements) {
             editableElement.classList.toggle('active', editableElement.isSameNode(focusedElement));
         }
-        if (focusedElement.hasAttribute('contenteditable') && !focusedElement.draggable) {
+        if (focusedElement.hasAttribute('contenteditable') && !(focusedElement.draggable || (focusedElement.parentElement && focusedElement.parentElement.draggable))) {
             focusedElement.contentEditable = 'true';
             if (background) { background.hidden = true; }
         }
