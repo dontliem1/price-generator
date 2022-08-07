@@ -715,10 +715,12 @@ document.body.addEventListener('keyup', function sortWithArrows(e) {
     }
 });
 
-window.addEventListener('change', function savePages() {
-    console.log('hi');
+function savePages() {
     window.localStorage.setItem('price', parsePages());
-});
+}
+
+window.addEventListener('beforeunload', savePages);
+window.addEventListener('change', savePages);
 
 window.addEventListener('load', function proposeLoad() {
     const savedCopy = this.localStorage.getItem('price');
