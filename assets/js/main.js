@@ -195,15 +195,17 @@ bindListener('deleteBackgroundImage', function handleDeleteBackgroundImageClick(
     }
 }, 'click');
 
-// Title justify
-const textAlignSelect = /** @type {HTMLSelectElement | null} */ (bindListener('textAlign', handleFormStylePropChange));
-
-// Title vertical alignment
-const justifyContentSelect = /** @type {HTMLSelectElement | null} */ (bindListener('justifyContent', function handleJustifyContentSelectChange(e) {
+function handleTitleAlignmentChange(e) {
     handleFormStylePropChange(e);
     repositionTitleAlignment();
     repositionDeleteBtn();
-}));
+}
+
+// Title justify
+const textAlignSelect = /** @type {HTMLSelectElement | null} */ (bindListener('textAlign', handleTitleAlignmentChange));
+
+// Title vertical alignment
+const justifyContentSelect = /** @type {HTMLSelectElement | null} */ (bindListener('justifyContent', handleTitleAlignmentChange));
 
 // Font
 const fontFamilySelect = /** @type {HTMLSelectElement | null} */ (bindListener('fontFamily', function handleFontChange(e) {
@@ -219,13 +221,13 @@ const fontFamilySelect = /** @type {HTMLSelectElement | null} */ (bindListener('
 }));
 
 // Aspect ratio
-if (mount) {
-    bindListener('aspectRatio', function handleAspectRatioChange() {
+const aspectRatioSelect = bindListener('aspectRatio', function handleAspectRatioChange() {
+    if (mount) {
         mount.dataset.aspectRatio = this.value;
         if (deleteBtn) { deleteBtn.hidden = true; }
         if (titleAlignment) { titleAlignment.hidden = true; }
-    });
-}
+    }
+});
 
 // Colors
 const colorInput = bindListener('color', handleArticleStylePropChange);
@@ -318,10 +320,10 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
     threshold: 1,
 });
 
-bindListener('export', function handleExportClick(e) {
+bindListener('export', function handleExportClick() {
     const exportJson = new Blob([parsePages()], { type: 'text/json' });
-
     const link = document.createElement('a');
+
     link.href = URL.createObjectURL(exportJson);
     link.download = 'price.json';
     link.click();
@@ -510,14 +512,16 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
 export function renderPages(pagesJson, mount = getMount()) {
     if (mount) {
         const pages = [];
+        const aspectRatio = (pagesJson.STYLE && pagesJson.STYLE.aspectRatio) ? pagesJson.STYLE.aspectRatio : DEFAULTS.aspectRatio ;
 
+        mount.dataset.aspectRatio = aspectRatio;
+        if (aspectRatioSelect) {
+            aspectRatioSelect.value = aspectRatio;
+        }
         if (pagesJson.PAGES) {
             pagesJson.PAGES.forEach(function createPages(page, index) {
                 pages.push(createPage(page, index === 0));
             });
-        }
-        if (pagesJson.STYLE) {
-            mount.dataset.aspectRatio = pagesJson.STYLE.aspectRatio ? pagesJson.STYLE.aspectRatio : DEFAULTS.aspectRatio;
         }
         for (const oldPage of mount.children) {
             observer.unobserve(oldPage);
@@ -711,7 +715,8 @@ document.body.addEventListener('keyup', function sortWithArrows(e) {
     }
 });
 
-window.addEventListener('beforeunload', function savePages() {
+window.addEventListener('change', function savePages() {
+    console.log('hi');
     window.localStorage.setItem('price', parsePages());
 });
 
