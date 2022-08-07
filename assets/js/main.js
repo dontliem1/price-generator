@@ -319,10 +319,13 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
 });
 
 bindListener('export', function handleExportClick(e) {
-    const exportBtn = /** @type {HTMLAnchorElement | null} */ (e.currentTarget);
     const exportJson = new Blob([parsePages()], { type: 'text/json' });
 
-    if (exportBtn) { exportBtn.href = URL.createObjectURL(exportJson); }
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(exportJson);
+    link.download = 'price.json';
+    link.click();
+    link.remove();
 }, 'click');
 
 function checkBasicFileShare() {
