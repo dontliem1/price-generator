@@ -16,10 +16,10 @@
     ],
     "id": "price-generator",
     "categories": ["utilities"],
-    "start_url": "/",
+    "start_url": "./",
     "background_color": "black",
     "theme_color": "black",
     "display": "fullscreen",
-    "scope": "/",
+    "scope": "./",
     "description": "Construct images with text for social media"
   }
