@@ -23,7 +23,6 @@ class Defaults {
             this.SERVICE,
             this.SERVICE,
         ];
-        /** @type {PageStyle} */
         this.STYLE = {
             backgroundColor: 'rgb(50, 50, 50)',
             color: 'rgb(255, 255, 255)',
@@ -61,10 +60,10 @@ class Defaults {
                     P: '£5',
                 },
             ],
-            FOOTER: 'The title picture is from https://unsplash.com/photos/hSlmasb-tuE',
+            FOOTER: 'Made in Lepekhin Studio',
             STYLE: this.STYLE,
         };
-        this.hash = '{"PAGES":[{"H1":"PRICE","STYLE":{"backgroundImage":"radial-gradient(rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%), radial-gradient(at left bottom, rgb(0, 200, 255) 0%, rgba(0, 200, 255, 0) 80%), linear-gradient(135deg, rgba(50, 50, 120, 0) 0%, rgba(50, 50, 120, 0) 75%, rgb(50, 50, 120) 100%), linear-gradient(75deg, rgb(100, 100, 0) 0%, rgb(200, 100, 100) 17%, rgb(200, 150, 40) 74%, rgb(200, 100, 30) 100%)","color":"rgb(230, 228, 200)","justifyContent":"flex-end","backgroundColor":"rgb(0, 0, 0)","opacity":"0"}},{"ITEMS":[{"type":"CATEGORY","text":"Makeup"},{"type":"SERVICE","H3":"Full face makeup application","P":"£45","SPAN":"lashes included"},{"type":"SERVICE","H3":"Eye Makeup only","P":"£30"},{"type":"SERVICE","H3":"Strip lashes","P":"£5"}],"FOOTER":"The title picture is from https://unsplash.com/photos/hSlmasb-tuE","STYLE":{"color":"rgb(255, 255, 255)","backgroundColor":"rgb(50, 50, 50)","opacity":"0.5"}}],"STYLE":{"aspectRatio":"4 / 5"}}';
+        this.hash = '{"PAGES":[{"H1":"PRICE","STYLE":{"backgroundImage":"radial-gradient(rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%), radial-gradient(at left bottom, rgb(0, 200, 255) 0%, rgba(0, 200, 255, 0) 80%), linear-gradient(135deg, rgba(50, 50, 120, 0) 0%, rgba(50, 50, 120, 0) 75%, rgb(50, 50, 120) 100%), linear-gradient(75deg, rgb(100, 100, 0) 0%, rgb(200, 100, 100) 17%, rgb(200, 150, 40) 74%, rgb(200, 100, 30) 100%)","color":"rgb(230, 228, 200)","justifyContent":"flex-end","backgroundColor":"rgb(0, 0, 0)","opacity":"0"}},{"ITEMS":[{"type":"CATEGORY","H2":"Makeup"},{"type":"SERVICE","H3":"Full face makeup application","P":"£45","SPAN":"lashes included"},{"type":"SERVICE","H3":"Eye Makeup only","P":"£30"},{"type":"SERVICE","H3":"Strip lashes","P":"£5"}],"FOOTER":"Made in Lepekhin Studio","STYLE":{"color":"rgb(255, 255, 255)","backgroundColor":"rgb(50, 50, 50)","opacity":"0.5"}}],"STYLE":{"aspectRatio":"4 / 5"}}';
     }
     /**
      * @return {Pages}
@@ -77,5 +76,7 @@ class Defaults {
 export const DEFAULTS = new Defaults();
 /** @type {ReadonlyArray<'H2'| 'H3'| 'SPAN'| 'P'>} */
 export const ITEMS_TAGS = ['H2', 'H3', 'SPAN', 'P'];
+/** @type {ReadonlyArray<'H1'| 'FOOTER'>} */
+export const HEADER_TAGS = ['H1', 'FOOTER'];
 /** @type {ReadonlyArray<EditableTags>} */
-export const EDITABLE_TAGS = ['H1', 'FOOTER', ...ITEMS_TAGS];
+export const EDITABLE_TAGS = [...HEADER_TAGS, ...ITEMS_TAGS];

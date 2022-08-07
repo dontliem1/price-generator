@@ -8,6 +8,9 @@ Built on vanilla HTML, CSS and JS.
 ## Roadmap
 
 - UI/UX enhancements
-- Blurred image export
 - Multi languages
-- PWA + offline
+- Service worker for offline work
+
+## Known Issues
+
+- Images are exported without blur. For now you can take a screenshot and crop it.

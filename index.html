@@ -7,6 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
     <title>Price generator</title>
     <meta name="description" content="Create an image of price for instagram or facebook post or stories online for free">
+    <meta name="theme-color" content="black">
+    <link rel="apple-touch-icon" href="assets/images/icons-192.png">
+    <link rel="apple-touch-icon" href="assets/images/icons-192.png">
+    <link rel="manifest" href="manifest.webmanifest">
     <style>
         html {
             color-scheme: dark;
@@ -194,7 +198,7 @@
             margin-block-start: 1em;
         }
 
-        [draggable] {
+        .pages [draggable] {
             transition: transform .5s cubic-bezier(.5, -1, 1, .5);
         }
 
@@ -208,43 +212,29 @@
             }
         }
 
-        [draggable="true"] {
+        .pages [draggable="true"] {
             animation-name: wiggle;
             animation-duration: .15s;
             animation-timing-function: ease-in-out;
             animation-iteration-count: infinite;
             animation-direction: alternate;
             cursor: grab;
-            display: inline-block;
         }
 
-        h2[draggable="true"] {
+        .pages h2[draggable="true"] {
             width: fit-content;
         }
 
-        [draggable="true"]:nth-child(2n) {
+        .pages [draggable="true"]:nth-child(2n) {
             animation-direction: alternate-reverse;
         }
 
-        [draggable="true"]:active {
+        .pages [draggable="true"]:active {
             animation: none;
-            cursor: grabbing;
             outline: none;
         }
 
-        [draggable="true"]:active * {
-            outline: none;
-        }
-
-        .dragging {
-            cursor: grabbing;
-            outline: none;
-            transform: scale(.95);
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        .dragging * {
+        .pages [draggable="true"]:active * {
             outline: none;
         }
 
@@ -540,13 +530,14 @@
             </select>
             <button class="btn" type="button" id="moveLeft">Move left</button>
             <button class="btn" type="button" id="moveRight">Move right</button>
+            <button class="btn" type="button" id="duplicate">Duplicate</button>
             <button class="btn" type="button" id="deletePage">Remove</button>
         </fieldset>
     </div>
     <div class="settings" id="settings">
         <span class="btn--group">
             <button class="btn" type="button" id="save">Image</button>
-            <a class="btn" href="./" download='price.json' id="export">JSON</a>
+            <a class="btn" draggable="false" href="./" download='price.json' id="export">JSON</a>
         </span>
         <select class="btn" name="aspectRatio" aria-label="Aspect ratio" id="aspectRatio">
             <option value="1 / 1">1:1</option>
@@ -557,20 +548,19 @@
     </div>
     <details class="add" id="add">
         <summary class="btn">Add</summary>
-        <button class="btn" type="button" id="page">Blank page</button>
-        <button class="btn" type="button" id="duplicate">Page copy</button>
+        <button class="btn" type="button" id="page">Page</button>
         <button class="btn" type="button" id="title">Title</button>
         <button class="btn" type="button" id="category">Category</button>
         <button class="btn" type="button" id="service">Service</button>
         <button class="btn" type="button" id="footer">Footer</button>
-        <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json" /><span class="btn">Import...</span></label>
+        <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json" /><span class="btn" id="importLabel">Import...</span></label>
     </details>
     <main>
         <h2 class="visually-hidden">Pages and content</h2>
         <ol id="pages" class="pages"></ol>
         <noscript>The generator needs JavaScript to work :-(</noscript>
     </main>
-    <script src="js/main.js" type="module"></script>
+    <script src="assets/js/main.js" type="module"></script>
 </body>
 
 </html>

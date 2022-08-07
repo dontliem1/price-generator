@@ -259,7 +259,7 @@ export function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
 * @param {HTMLElement | null} params.page
 * @param {HTMLElement | null} params.form
 * @param {HTMLElement | null} params.div
-* @returns {PageStyle}
+* @returns {Partial<CSSStyleDeclaration>}
 */
 function parseStyles({ page, form, div }) {
     const { aspectRatio = '', backgroundImage = '', color = '', fontFamily = '' } = page ? page.style : {};
@@ -329,7 +329,7 @@ export function parsePages() {
         STYLE: {}
     };
     const pages = document.getElementsByTagName('article');
-    const mount = document.getElementById('pages');
+    const mount = getMount();
 
     if (mount && mount.dataset.aspectRatio) {
         json.STYLE.aspectRatio = mount.dataset.aspectRatio;

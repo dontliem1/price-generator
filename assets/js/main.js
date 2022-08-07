@@ -1,13 +1,12 @@
 'use strict';
 
-import { DEFAULTS, EDITABLE_TAGS, ITEMS_TAGS } from './constants.js';
+import { DEFAULTS, EDITABLE_TAGS, HEADER_TAGS, ITEMS_TAGS } from './constants.js';
 import { bindListener, createCategory, createEditableElement, createService, getActiveArticle, getActiveDiv, getActiveElement, getActiveForm, getActiveLi, getMount, getOffset, handleArticleStylePropChange, handleFormStylePropChange, parsePage, parsePages } from './utils.js';
 
 /**
  * VARS
  * */
 
-let justSaved = true;
 let sortingPollyfilled = false;
 let fontsAdded = false;
 const mount = getMount();
@@ -21,7 +20,7 @@ const titleAlignment = /** @type {HTMLFieldSetElement | null} */ (document.getEl
 
 function repositionTitleAlignment(element = getActiveElement()) {
     if (titleAlignment) {
-        if (element && element.isSameNode(document.activeElement) && element.tagName === 'H1' && (!element.nextElementSibling || element.nextElementSibling.tagName === 'FOOTER')) {
+        if (element && element.tagName === 'H1' && (!element.nextElementSibling || element.nextElementSibling.tagName === 'FOOTER')) {
             const { left, height, top } = getOffset(element);
 
             titleAlignment.style.transform = `translate(${left}px, ${top + height}px)`;
@@ -35,19 +34,7 @@ function repositionTitleAlignment(element = getActiveElement()) {
 // Remove element
 const deleteBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('delete'));
 
-function repositionDeleteBtn(element = getActiveElement()) {
-    if (deleteBtn) {
-        if (element && element.isSameNode(document.activeElement) && EDITABLE_TAGS.includes(element.tagName)) {
-            const { left, height, top } = getOffset(element);
-
-            deleteBtn.hidden = false;
-            deleteBtn.style.transform = `translate(${left + Math.min(0, window.innerWidth - left - deleteBtn.clientWidth - 6)}px, ${top + height}px)`;
-        } else {
-            deleteBtn.hidden = true;
-        }
-    }
-}
-
+// Swap
 const moveLeft = bindListener('moveLeft', function movePageLeft() {
     const activePage = getActiveLi();
     const leftPage = (activePage && activePage.previousElementSibling);
@@ -71,8 +58,8 @@ const moveRight = bindListener('moveRight', function movePageRight() {
 const background = /** @type {HTMLFieldSetElement | null} */ (document.getElementById('background'));
 
 function repositionBackground(form = getActiveForm()) {
-    if (background && form) {
-        if (form.isSameNode(document.activeElement)) {
+    if (background) {
+        if (form && form.isSameNode(document.activeElement)) {
             const activeLi = getActiveLi();
             const settings = document.getElementById('settings');
             const { left, top } = getOffset(form);
@@ -94,33 +81,23 @@ function repositionBackground(form = getActiveForm()) {
     }
 }
 
-bindListener('float', function handleFloatClick(e) {
-    const floatElements = /** @type {HTMLCollectionOf<HTMLButtonElement | HTMLFieldSetElement>} */ (this.children);
-    const clicked = /** @type {HTMLElement | null} */ (e.target);
-
-    if (this.isSameNode(clicked)) {
-        for (const element of floatElements) {
-            element.hidden = true;
-        }
-    }
-}, 'click');
-
 /**
  * SETTINGS
  * */
 
 const sorting = /** @type {HTMLInputElement | null} */ (bindListener('sorting', async function handleSortinChange() {
-    const draggable = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('[draggable]'));
+    const draggableElements = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#pages [draggable]'));
     const contentEditable = this.checked ? 'false' : 'true';
+    const activeElement = getActiveElement();
 
     if (!sortingPollyfilled) {
         const script = document.createElement('script');
 
-        script.src = 'js/DragDropTouch.js';
+        script.src = 'assets/js/DragDropTouch.js';
         document.body.appendChild(script);
         sortingPollyfilled = true;
     }
-    for (const element of draggable) {
+    for (const element of draggableElements) {
         element.draggable = this.checked;
         if (element.tagName === 'H2') {
             element.contentEditable = contentEditable;
@@ -134,8 +111,25 @@ const sorting = /** @type {HTMLInputElement | null} */ (bindListener('sorting', 
         }
     }
 
-    if (deleteBtn) { deleteBtn.hidden = true; }
+    // @ts-ignore
+    if (deleteBtn && activeElement && ITEMS_TAGS.includes(activeElement.tagName)) {
+        deleteBtn.hidden = true;
+    }
 }));
+
+function repositionDeleteBtn(element = getActiveElement()) {
+    if (deleteBtn) {
+        // @ts-ignore
+        if (element && (HEADER_TAGS.includes(element.tagName) || (ITEMS_TAGS.includes(element.tagName) && sorting && !sorting.checked))) {
+            const { left, height, top } = getOffset(element);
+
+            deleteBtn.hidden = false;
+            deleteBtn.style.transform = `translate(${left + Math.min(0, window.innerWidth - left - deleteBtn.clientWidth - 6)}px, ${top + height}px)`;
+        } else {
+            deleteBtn.hidden = true;
+        }
+    }
+}
 
 bindListener(deleteBtn, function handleDeleteClick() {
     const activeElement = getActiveElement();
@@ -225,13 +219,13 @@ const fontFamilySelect = /** @type {HTMLSelectElement | null} */ (bindListener('
 }));
 
 // Aspect ratio
-bindListener('aspectRatio', function handleAspectRatioChange() {
-    if (mount) {
+if (mount) {
+    bindListener('aspectRatio', function handleAspectRatioChange() {
         mount.dataset.aspectRatio = this.value;
         if (deleteBtn) { deleteBtn.hidden = true; }
         if (titleAlignment) { titleAlignment.hidden = true; }
-    }
-});
+    });
+}
 
 // Colors
 const colorInput = bindListener('color', handleArticleStylePropChange);
@@ -262,13 +256,14 @@ function assignValueFromStyle(select, from) {
     }
 }
 
-const observer = new IntersectionObserver(function onIntersect(entries) {
+const observer = new IntersectionObserver(function handleIntersect(entries) {
     for (const entry of entries) {
         const page = /** @type {HTMLLIElement} */ (entry.target);
 
         if (entry.isIntersecting) {
             page.classList.add('active');
 
+            const focusedElement = page.querySelector(':focus');
             const activeArticle = getActiveArticle(page);
             const activeDiv = getActiveDiv(activeArticle);
             const activeForm = getActiveForm(activeArticle);
@@ -279,6 +274,9 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
                 return '#' + colorToHex(colors[0]) + colorToHex(colors[1]) + colorToHex(colors[2]);
             };
 
+            if (focusedElement) {
+                focusedElement.classList.add('active');
+            }
             assignValueFromStyle(textAlignSelect, activeForm);
             assignValueFromStyle(justifyContentSelect, activeForm);
             if (backdropFilterInput && activeForm) {
@@ -297,29 +295,27 @@ const observer = new IntersectionObserver(function onIntersect(entries) {
             if (backgroundImageInput) {
                 backgroundImageInput.value = '';
             }
+            repositionBackground();
+            repositionDeleteBtn();
+            repositionTitleAlignment();
         } else {
             const activeElement = getActiveElement(page);
-            const focusedElement =  /** @type {HTMLElement | null} */ (page.querySelector(':focus'));
 
             if (activeElement) {
                 activeElement.classList.remove('active');
             }
-            if (focusedElement) {
-                focusedElement.blur();
-            }
 
             page.classList.remove('active');
-        }
-
-        repositionDeleteBtn();
-        repositionTitleAlignment();
-        if (background) {
-            background.hidden = true;
+            [deleteBtn, titleAlignment, background].forEach((control) => {
+                if (control) {
+                    control.hidden = true;
+                }
+            });
         }
     }
 }, {
     root: mount,
-    threshold: 0.6,
+    threshold: 1,
 });
 
 bindListener('export', function handleExportClick(e) {
@@ -327,7 +323,6 @@ bindListener('export', function handleExportClick(e) {
     const exportJson = new Blob([parsePages()], { type: 'text/json' });
 
     if (exportBtn) { exportBtn.href = URL.createObjectURL(exportJson); }
-    justSaved = true;
 }, 'click');
 
 function checkBasicFileShare() {
@@ -399,9 +394,6 @@ bindListener('deletePage', function handleDeletePageClick() {
     if (activePage && window.confirm('Remove the current page?')) {
         observer.unobserve(activePage);
         activePage.remove();
-        if (background) {
-            background.hidden = true;
-        }
     }
 }, 'click');
 
@@ -413,15 +405,6 @@ bindListener('deletePage', function handleDeletePageClick() {
  * @param {HTMLFormElement} form
  */
 function bindFormListeners(form) {
-    form.addEventListener('click', function handleFromClick(e) {
-        const form = /** @type {HTMLFormElement} */ (e.currentTarget);
-        const clickedElement = /** @type {HTMLElement} */ (e.target);
-
-        if (form.isSameNode(clickedElement) && background && form.dataset.clicked) {
-            background.hidden = !background.hidden;
-        }
-        form.dataset.clicked = 'true';
-    });
     form.addEventListener('focusin', function handleFormFocusIn(e) {
         const form = /** @type {HTMLFormElement} */ (e.currentTarget);
         const focusedElement = /** @type {HTMLElement} */ (e.target);
@@ -430,7 +413,7 @@ function bindFormListeners(form) {
         for (const editableElement of editableElements) {
             editableElement.classList.toggle('active', editableElement.isSameNode(focusedElement));
         }
-        if (focusedElement.hasAttribute('contenteditable')) {
+        if (focusedElement.hasAttribute('contenteditable') && !focusedElement.draggable) {
             focusedElement.contentEditable = 'true';
             if (background) { background.hidden = true; }
         }
@@ -445,30 +428,12 @@ function bindFormListeners(form) {
             repositionBackground(form);
         }
     });
-    form.addEventListener('input', function handleFormInput(e) {
-        const element = /** @type {HTMLElement} */ (e.target);
-
-        justSaved = false;
-        if (!element.innerText) {
-            element.textContent = ' ';
-        }
-        // If overflow
-        // const page = e.currentTarget.parentElement;
-        // if (page && (page.scrollHeight - page.clientHeight > 16)) {
-        //     window.alert(page.scrollHeight + ' ' + page.clientHeight);
-        // }
-    });
     form.addEventListener('focusout', function handleFormInput(e) {
         const focusedElement = /** @type {HTMLElement} */ (e.target);
-        const form = /** @type {HTMLFormElement} */ (e.currentTarget);
 
         if (focusedElement.hasAttribute('contenteditable')) {
             focusedElement.contentEditable = 'false';
         }
-        if (form.isSameNode(focusedElement)) {
-            form.dataset.clicked = '';
-        }
-        window.localStorage.setItem('price', parsePages());
     });
 }
 
@@ -529,8 +494,8 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
         text: pageJson.FOOTER,
         parent: form
     }, false);
-    li.appendChild(article);
     observer.observe(li);
+    li.appendChild(article);
 
     return li;
 }
@@ -550,6 +515,9 @@ export function renderPages(pagesJson, mount = getMount()) {
         }
         if (pagesJson.STYLE) {
             mount.dataset.aspectRatio = pagesJson.STYLE.aspectRatio ? pagesJson.STYLE.aspectRatio : DEFAULTS.aspectRatio;
+        }
+        for (const oldPage of mount.children) {
+            observer.unobserve(oldPage);
         }
         mount.textContent = '';
         mount.append(...pages);
@@ -582,38 +550,33 @@ bindListener(importInput, function handleImportChange() {
  * ADD
  * */
 
-bindListener('add', function handleAddClick(e) {
-    const target = /** @type {HTMLElement | null} */ (e.target);
+bindListener('duplicate', function handleDuplicateClick() {
+    const activeLi = getActiveLi();
 
-    if (target && target.tagName === 'BUTTON' && target.parentElement) {
-        target.parentElement.removeAttribute('open');
-        if (deleteBtn) { deleteBtn.hidden = true; }
-        if (titleAlignment) { titleAlignment.hidden = true; }
+    if (activeLi) {
+        const activePage = getActiveArticle(activeLi);
+        const activePageJson = activePage && parsePage(activePage);
+
+        if (activePageJson && 'H1' in activePageJson) {
+            activePageJson.H1 += ' copy';
+        }
+
+        const newPage = activePageJson ? createPage(activePageJson) : createPage();
+
+        observer.observe(newPage);
+        activeLi.insertAdjacentElement('afterend', newPage);
+        newPage.scrollIntoView();
     }
 }, 'click');
 
-bindListener('page', function handleAddPageClick() {
-    if (mount) {
+if (mount) {
+    bindListener('page', function handleAddPageClick() {
         const newPage = createPage();
 
         mount.appendChild(newPage);
         newPage.scrollIntoView();
-    }
-}, 'click');
-
-bindListener('duplicate', function handleDuplicateClick() {
-    if (mount) {
-        let newPage;
-        const activePage = getActiveArticle();
-        const activePageJson = activePage && parsePage(activePage);
-
-        newPage = activePageJson ? createPage(activePageJson) : createPage();
-
-        mount.appendChild(newPage);
-        observer.observe(newPage);
-        newPage.scrollIntoView();
-    }
-}, 'click');
+    }, 'click');
+}
 
 bindListener('title', function handleAddTitleClick() {
     const form = getActiveForm();
@@ -650,35 +613,27 @@ bindListener('footer', function handleAddFooterClick() {
     }
 }, 'click');
 
-bindListener('category', function handleAddCategoryClick() {
-    const form = getActiveForm();
-    const category = createCategory(Boolean(sorting && sorting.checked));
+const itemsActionsMap = {
+    category: createCategory,
+    service: createService
+};
 
-    if (form && category) {
-        const existingFooter = form.querySelector('footer');
+Object.keys(itemsActionsMap).forEach(function bingClickToItem(itemId) {
+    bindListener(itemId, function handleAddItemClick() {
+        const form = getActiveForm();
+        const item = itemsActionsMap[itemId](Boolean(sorting && sorting.checked));
 
-        if (existingFooter) {
-            form.insertBefore(category, existingFooter);
-        } else {
-            form.appendChild(category);
+        if (form && item) {
+            const existingFooter = form.querySelector('footer');
+
+            if (existingFooter) {
+                form.insertBefore(item, existingFooter);
+            } else {
+                form.appendChild(item);
+            }
         }
-    }
-}, 'click');
-
-bindListener('service', function handleAddServiceClick() {
-    const form = getActiveForm();
-    const service = createService(Boolean(sorting && sorting.checked));
-
-    if (form && service) {
-        const existingFooter = form.querySelector('footer');
-
-        if (existingFooter) {
-            form.insertBefore(service, existingFooter);
-        } else {
-            form.appendChild(service);
-        }
-    }
-}, 'click');
+    }, 'click');
+});
 
 renderPages(DEFAULTS.get());
 
@@ -686,13 +641,41 @@ renderPages(DEFAULTS.get());
  * GLOBAL LISTENERS
  */
 
-const resizeObserver = new ResizeObserver(() => {
+const resizeObserver = new ResizeObserver(function handleResize() {
     repositionBackground();
     repositionDeleteBtn();
     repositionTitleAlignment();
 });
 
 if (mount) { resizeObserver.observe(document.body); }
+
+document.body.addEventListener('click', function handleClick(e) {
+    const clickedElement = /** @type {HTMLElement | null} */ (e.target);
+    const closestFieldset = clickedElement && clickedElement.closest('fieldset');
+    const isBackgroundControls = (clickedElement && clickedElement.id === 'background') || (closestFieldset && closestFieldset.id === 'background');
+
+    if (clickedElement) {
+        const activeElement = document.activeElement;
+        // @ts-ignore
+        if (!EDITABLE_TAGS.includes(clickedElement.tagName)) {
+            [deleteBtn, titleAlignment].forEach((control) => {
+                if (!clickedElement.isSameNode(control) && control) {
+                    control.hidden = true;
+                }
+            });
+        }
+
+        if (background && clickedElement.tagName !== 'FORM' && !isBackgroundControls && !(clickedElement.tagName === 'BODY' && activeElement && activeElement.tagName === 'FORM')) {
+            background.hidden = true;
+        }
+
+        if (['page', 'title', 'category', 'service', 'footer', 'importLabel'].includes(clickedElement.id)) {
+            const parentElement = /** @type {HTMLElement} */ (clickedElement.parentElement);
+
+            parentElement.removeAttribute('open');
+        }
+    }
+});
 
 document.body.addEventListener('keyup', function sortWithArrows(e) {
     const targetElement = /** @type {HTMLElement | null} */ (e.target);
@@ -725,20 +708,14 @@ document.body.addEventListener('keyup', function sortWithArrows(e) {
     }
 });
 
-window.addEventListener('beforeunload', function preventLoss(event) {
-    const pages = this.document.getElementsByTagName('article');
-
-    if (!justSaved && pages && pages.length && window.localStorage.getItem('price') !== DEFAULTS.hash) {
-        event.preventDefault();
-
-        return "You have some unsaved changes";
-    }
+window.addEventListener('beforeunload', function savePages() {
+    window.localStorage.setItem('price', parsePages());
 });
 
 window.addEventListener('load', function proposeLoad() {
     const savedCopy = this.localStorage.getItem('price');
 
-    if (savedCopy && savedCopy !== DEFAULTS.hash && this.confirm('There is a saved local copy of recent price made. Do you want to load it?')) {
+    if (savedCopy && savedCopy !== DEFAULTS.hash && this.confirm('There is a saved local copy of last price made. Do you want to load it?')) {
         renderPages(JSON.parse(savedCopy));
     } else {
         this.localStorage.clear();
