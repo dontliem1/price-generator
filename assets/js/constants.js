@@ -18,11 +18,6 @@ class Defaults {
             P: this.P,
             SPAN: this.SPAN,
         };
-        this.ITEMS = [
-            this.CATEGORY,
-            this.SERVICE,
-            this.SERVICE,
-        ];
         this.STYLE = {
             backgroundColor: 'rgb(50, 50, 50)',
             color: 'rgb(255, 255, 255)',

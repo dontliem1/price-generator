@@ -1,7 +1,23 @@
 'use strict';
 
 import { DEFAULTS, EDITABLE_TAGS, HEADER_TAGS, ITEMS_TAGS } from './constants.js';
-import { bindListener, createCategory, createEditableElement, createService, getActiveArticle, getActiveDiv, getActiveElement, getActiveForm, getActiveLi, getMount, getOffset, handleArticleStylePropChange, handleFormStylePropChange, parsePage, parsePages } from './utils.js';
+import {
+    BindListener,
+    createCategory,
+    createEditableElement,
+    createService,
+    getActiveArticle,
+    getActiveDiv,
+    getActiveElement,
+    getActiveForm,
+    getActiveLi,
+    getMount,
+    getOffset,
+    handleArticleStylePropChange,
+    handleFormStylePropChange,
+    parsePage,
+    parsePages
+} from './utils.js';
 
 /**
  * VARS
@@ -20,7 +36,11 @@ const titleAlignment = /** @type {HTMLFieldSetElement | null} */ (document.getEl
 
 function repositionTitleAlignment(element = getActiveElement()) {
     if (titleAlignment) {
-        if (element && element.tagName === 'H1' && (!element.nextElementSibling || element.nextElementSibling.tagName === 'FOOTER')) {
+        if (
+            element &&
+            element.tagName === 'H1' &&
+            (!element.nextElementSibling || element.nextElementSibling.tagName === 'FOOTER')
+        ) {
             const { left, height, top } = getOffset(element);
 
             titleAlignment.style.transform = `translate(${left}px, ${top + height}px)`;
@@ -35,7 +55,7 @@ function repositionTitleAlignment(element = getActiveElement()) {
 const deleteBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('delete'));
 
 // Swap
-const moveLeft = bindListener('moveLeft', function movePageLeft() {
+const moveLeft = BindListener('moveLeft', function movePageLeft() {
     const activePage = getActiveLi();
     const leftPage = (activePage && activePage.previousElementSibling);
 
@@ -44,7 +64,7 @@ const moveLeft = bindListener('moveLeft', function movePageLeft() {
         activePage.scrollIntoView();
     }
 }, 'click');
-const moveRight = bindListener('moveRight', function movePageRight() {
+const moveRight = BindListener('moveRight', function movePageRight() {
     const activePage = getActiveLi();
     const rightPage = (activePage && activePage.nextElementSibling);
 
@@ -85,8 +105,10 @@ function repositionBackground(form = getActiveForm()) {
  * SETTINGS
  * */
 
-const sorting = /** @type {HTMLInputElement | null} */ (bindListener('sorting', async function handleSortinChange() {
-    const draggableElements = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#pages [draggable]'));
+const sorting = /** @type {HTMLInputElement | null} */ (BindListener('sorting', function handleSortingChange() {
+    const draggableElements = /** @type {NodeListOf<HTMLElement>} */ (
+        document.querySelectorAll('#pages [draggable]')
+    );
     const contentEditable = this.checked ? 'false' : 'true';
     const activeElement = getActiveElement();
 
@@ -119,22 +141,34 @@ const sorting = /** @type {HTMLInputElement | null} */ (bindListener('sorting', 
 
 function repositionDeleteBtn(element = getActiveElement()) {
     if (deleteBtn) {
-        // @ts-ignore
-        if (element && (HEADER_TAGS.includes(element.tagName) || (ITEMS_TAGS.includes(element.tagName) && sorting && !sorting.checked))) {
+        if (
+            element &&
+            (
+                // @ts-ignore
+                HEADER_TAGS.includes(element.tagName) ||
+                // @ts-ignore
+                (ITEMS_TAGS.includes(element.tagName) && sorting && !sorting.checked)
+            )
+        ) {
             const { left, height, top } = getOffset(element);
 
             deleteBtn.hidden = false;
-            deleteBtn.style.transform = `translate(${left + Math.min(0, window.innerWidth - left - deleteBtn.clientWidth - 6)}px, ${top + height}px)`;
+            deleteBtn.style.transform = `translate(${left + Math.min(
+                0,
+                window.innerWidth - left - deleteBtn.clientWidth - 6
+            )}px, ${top + height}px)`;
         } else {
             deleteBtn.hidden = true;
         }
     }
 }
 
-bindListener(deleteBtn, function handleDeleteClick() {
+BindListener(deleteBtn, function handleDeleteClick() {
     const activeElement = getActiveElement();
 
-    if (activeElement && window.confirm(`Remove element${activeElement.innerText.trim() ? (' "' + activeElement.innerText + '"') : ''}?`)) {
+    if (activeElement && window.confirm(
+        `Remove element${activeElement.innerText.trim() ? (' "' + activeElement.innerText + '"') : ''}?`)
+    ) {
         const parent = activeElement.parentElement;
 
         activeElement.remove();
@@ -149,7 +183,7 @@ bindListener(deleteBtn, function handleDeleteClick() {
 }, 'click');
 
 // Background blur
-const backdropFilterInput = bindListener('backdropFilter', function handleBackdropFilterInput() {
+const backdropFilterInput = BindListener('backdropFilter', function handleBackdropFilterInput() {
     const activeForm = getActiveForm();
 
     if (activeForm) {
@@ -161,7 +195,7 @@ const backdropFilterInput = bindListener('backdropFilter', function handleBackdr
 }, 'input');
 
 // Background opacity
-const opacityRange = bindListener('opacity', function handleOpacityRangeChange() {
+const opacityRange = BindListener('opacity', function handleOpacityRangeChange() {
     const activeDiv = getActiveDiv();
 
     if (activeDiv) {
@@ -170,7 +204,7 @@ const opacityRange = bindListener('opacity', function handleOpacityRangeChange()
 }, 'input');
 
 // Background image
-const backgroundImageInput = bindListener('backgroundImage', function handleBackgroundImageChange() {
+const backgroundImageInput = BindListener('backgroundImage', function handleBackgroundImageChange() {
     const activeArticle = getActiveArticle();
 
     if (this.files && activeArticle) {
@@ -184,7 +218,7 @@ const backgroundImageInput = bindListener('backgroundImage', function handleBack
     }
 });
 
-bindListener('deleteBackgroundImage', function handleDeleteBackgroundImageClick() {
+BindListener('deleteBackgroundImage', function handleDeleteBackgroundImageClick() {
     const activeArticle = getActiveArticle();
 
     if (activeArticle) {
@@ -202,26 +236,35 @@ function handleTitleAlignmentChange(e) {
 }
 
 // Title justify
-const textAlignSelect = /** @type {HTMLSelectElement | null} */ (bindListener('textAlign', handleTitleAlignmentChange));
+const textAlignSelect = /** @type {HTMLSelectElement | null} */ (BindListener(
+    'textAlign',
+    handleTitleAlignmentChange
+));
 
 // Title vertical alignment
-const justifyContentSelect = /** @type {HTMLSelectElement | null} */ (bindListener('justifyContent', handleTitleAlignmentChange));
+const justifyContentSelect = /** @type {HTMLSelectElement | null} */ (BindListener(
+    'justifyContent',
+    handleTitleAlignmentChange
+));
 
 // Font
-const fontFamilySelect = /** @type {HTMLSelectElement | null} */ (bindListener('fontFamily', function handleFontChange(e) {
-    if (!fontsAdded) {
-        const link = document.createElement('link');
+const fontFamilySelect = /** @type {HTMLSelectElement | null} */ (BindListener(
+    'fontFamily',
+    function handleFontChange(e) {
+        if (!fontsAdded) {
+            const link = document.createElement('link');
 
-        link.rel = 'stylesheet';
-        link.href = 'https://fonts.googleapis.com/css2?family=Alegreya&family=Alice&family=Bitter&family=Cormorant&family=EB+Garamond&family=IBM+Plex+Serif&family=Literata:opsz@7..72&family=Lora&family=Merriweather&family=Old+Standard+TT&family=PT+Serif&family=PT+Serif+Caption&family=Piazzolla:opsz@8..30&family=Playfair+Display&family=Prata&family=Source+Serif+Pro&family=Spectral&family=Alegreya+Sans&family=Arsenal&family=Commissioner&family=IBM+Plex+Mono&family=IBM+Plex+Sans&family=Inter&family=JetBrains+Mono&family=Montserrat&family=PT+Mono&family=PT+Sans&family=Raleway&family=Roboto&family=Roboto+Condensed&family=Roboto+Mono&family=Rubik&family=Yanone+Kaffeesatz&family=Caveat&family=Lobster&family=Pacifico&family=Pangolin&family=Podkova&family=Press+Start+2P&family=Ruslan+Display&family=Russo+One&family=Underdog&family=Yeseva+One&display=swap';
-        document.head.appendChild(link);
-        fontsAdded = true;
+            link.rel = 'stylesheet';
+            link.href = 'https://fonts.googleapis.com/css2?family=Alegreya&family=Alice&family=Bitter&family=Cormorant&family=EB+Garamond&family=IBM+Plex+Serif&family=Literata:opsz@7..72&family=Lora&family=Merriweather&family=Old+Standard+TT&family=PT+Serif&family=PT+Serif+Caption&family=Piazzolla:opsz@8..30&family=Playfair+Display&family=Prata&family=Source+Serif+Pro&family=Spectral&family=Alegreya+Sans&family=Arsenal&family=Commissioner&family=IBM+Plex+Mono&family=IBM+Plex+Sans&family=Inter&family=JetBrains+Mono&family=Montserrat&family=PT+Mono&family=PT+Sans&family=Raleway&family=Roboto&family=Roboto+Condensed&family=Roboto+Mono&family=Rubik&family=Yanone+Kaffeesatz&family=Caveat&family=Lobster&family=Pacifico&family=Pangolin&family=Podkova&family=Press+Start+2P&family=Ruslan+Display&family=Russo+One&family=Underdog&family=Yeseva+One&display=swap';
+            document.head.appendChild(link);
+            fontsAdded = true;
+        }
+        handleArticleStylePropChange(e);
     }
-    handleArticleStylePropChange(e);
-}));
+));
 
 // Aspect ratio
-const aspectRatioSelect = bindListener('aspectRatio', function handleAspectRatioChange() {
+const aspectRatioSelect = BindListener('aspectRatio', function handleAspectRatioChange() {
     if (mount) {
         mount.dataset.aspectRatio = this.value;
         if (deleteBtn) { deleteBtn.hidden = true; }
@@ -230,8 +273,8 @@ const aspectRatioSelect = bindListener('aspectRatio', function handleAspectRatio
 });
 
 // Colors
-const colorInput = bindListener('color', handleArticleStylePropChange);
-const backgroundColorInput = bindListener('backgroundColor', function handleDivStylePropChange() {
+const colorInput = BindListener('color', handleArticleStylePropChange);
+const backgroundColorInput = BindListener('backgroundColor', function handleDivStylePropChange() {
     const activeDiv = getActiveDiv();
 
     if (activeDiv) {
@@ -282,7 +325,9 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
             assignValueFromStyle(textAlignSelect, activeForm);
             assignValueFromStyle(justifyContentSelect, activeForm);
             if (backdropFilterInput && activeForm) {
-                backdropFilterInput.value = activeForm.style[backdropFilterInput.name] ? activeForm.style[backdropFilterInput.name].slice(5, -3) : '0';
+                backdropFilterInput.value = activeForm.style[backdropFilterInput.name] ?
+                    activeForm.style[backdropFilterInput.name].slice(5, -3) :
+                    '0';
             }
             assignValueFromStyle(fontFamilySelect, activeArticle);
             if (colorInput && activeArticle) {
@@ -308,7 +353,7 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
             }
 
             page.classList.remove('active');
-            [deleteBtn, titleAlignment, background].forEach((control) => {
+            [deleteBtn, titleAlignment, background].forEach(function hideControl(control) {
                 if (control) {
                     control.hidden = true;
                 }
@@ -320,7 +365,7 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
     threshold: 1,
 });
 
-bindListener('export', function handleExportClick() {
+BindListener('export', function handleExportClick() {
     const exportJson = new Blob([parsePages()], { type: 'text/json' });
     const link = document.createElement('a');
 
@@ -337,7 +382,7 @@ function checkBasicFileShare() {
     return navigator.canShare({ files: [file] });
 }
 
-bindListener('save', async function handleSaveClick(e) {
+BindListener('save', async function handleSaveClick(e) {
     const saveBtn = /** @type {HTMLButtonElement} */ (e.currentTarget);
 
     if (saveBtn) { saveBtn.disabled = true; }
@@ -345,11 +390,11 @@ bindListener('save', async function handleSaveClick(e) {
     await import('./html2canvas.min.js');
 
     const pages = document.getElementsByTagName('article');
-    /** @type {html2canvasOptions} */
+    /** @type {HtmlToCanvasOptions} */
     const options = { backgroundColor: '#000', scale: 1, windowWidth: 1080, windowHeight: 1920 };
 
     if (sorting) { sorting.checked = false; }
-    if (navigator.share === undefined || !navigator.canShare || !checkBasicFileShare() || typeof MediaCapabilities === 'undefined') {
+    if (navigator.share === undefined || !navigator.canShare || !checkBasicFileShare()) {
         const link = document.createElement('a');
         const canvases = /** @type {string[]} */ ([]);
 
@@ -393,7 +438,7 @@ bindListener('save', async function handleSaveClick(e) {
 }, 'click');
 
 // Delete page
-bindListener('deletePage', function handleDeletePageClick() {
+BindListener('deletePage', function handleDeletePageClick() {
     const activePage = getActiveLi();
 
     if (activePage && window.confirm('Remove the current page?')) {
@@ -418,15 +463,22 @@ function bindFormListeners(form) {
         for (const editableElement of editableElements) {
             editableElement.classList.toggle('active', editableElement.isSameNode(focusedElement));
         }
-        if (focusedElement.hasAttribute('contenteditable') && !(focusedElement.draggable || (focusedElement.parentElement && focusedElement.parentElement.draggable))) {
-            focusedElement.contentEditable = 'true';
+        if (
+            focusedElement.hasAttribute('contenteditable') &&
+            !(focusedElement.draggable || (focusedElement.parentElement && focusedElement.parentElement.draggable))
+        ) {
+            editableElements.forEach(function disableContentEditable(element) {
+                element.contentEditable = 'true';
+            });
             if (background) { background.hidden = true; }
         }
         // @ts-ignore
-        if (!(ITEMS_TAGS.includes(focusedElement.tagName) && sorting && sorting.checked)) {
+        if (ITEMS_TAGS.includes(focusedElement.tagName) && sorting && sorting.checked) {
+            if (deleteBtn) {
+                deleteBtn.hidden = true;
+            }
+        } else {
             repositionDeleteBtn(focusedElement);
-        } else if (deleteBtn) {
-            deleteBtn.hidden = true;
         }
         repositionTitleAlignment(focusedElement);
         if (form.isSameNode(focusedElement)) {
@@ -435,15 +487,28 @@ function bindFormListeners(form) {
     });
     form.addEventListener('focusout', function handleFormInput(e) {
         const focusedElement = /** @type {HTMLElement} */ (e.target);
+        const form = /** @type {HTMLFormElement} */ (e.currentTarget);
+        const editableElements = /** @type {NodeListOf<HTMLElement>} */ (form.querySelectorAll('[contenteditable]'));
 
         if (focusedElement.hasAttribute('contenteditable')) {
-            focusedElement.contentEditable = 'false';
+            editableElements.forEach(function disableContentEditable(element) {
+                element.contentEditable = 'false';
+            });
         }
     });
 }
 
 function attachStyleFromJson({ form, div, article }, props = {}) {
-    const { backdropFilter, justifyContent, textAlign, backgroundColor, opacity, backgroundImage, color, fontFamily } = props;
+    const {
+        backdropFilter,
+        backgroundColor,
+        backgroundImage,
+        color,
+        fontFamily,
+        justifyContent,
+        opacity,
+        textAlign,
+    } = props;
     const assignFilteredStyle = function (element, object) {
         Object.assign(element.style, Object.fromEntries(Object.entries(object).filter(function filterEmpty([, value]) {
             return value;
@@ -512,7 +577,9 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
 export function renderPages(pagesJson, mount = getMount()) {
     if (mount) {
         const pages = [];
-        const aspectRatio = (pagesJson.STYLE && pagesJson.STYLE.aspectRatio) ? pagesJson.STYLE.aspectRatio : DEFAULTS.aspectRatio ;
+        const aspectRatio = (pagesJson.STYLE && pagesJson.STYLE.aspectRatio) ?
+            pagesJson.STYLE.aspectRatio :
+            DEFAULTS.aspectRatio;
 
         mount.dataset.aspectRatio = aspectRatio;
         if (aspectRatioSelect) {
@@ -532,13 +599,13 @@ export function renderPages(pagesJson, mount = getMount()) {
 }
 
 // Import
-const importInput = bindListener('import', function handleImportClick(e) {
+const importInput = BindListener('import', function handleImportClick(e) {
     if (!window.confirm('This will replace the current price. Continue?')) {
         e.preventDefault();
     }
 }, 'click');
 
-bindListener(importInput, function handleImportChange() {
+BindListener(importInput, function handleImportChange() {
     if (this.files) {
         const fileReader = new FileReader();
 
@@ -557,7 +624,7 @@ bindListener(importInput, function handleImportChange() {
  * ADD
  * */
 
-bindListener('duplicate', function handleDuplicateClick() {
+BindListener('duplicate', function handleDuplicateClick() {
     const activeLi = getActiveLi();
 
     if (activeLi) {
@@ -577,7 +644,7 @@ bindListener('duplicate', function handleDuplicateClick() {
 }, 'click');
 
 if (mount) {
-    bindListener('page', function handleAddPageClick() {
+    BindListener('page', function handleAddPageClick() {
         const newPage = createPage();
 
         mount.appendChild(newPage);
@@ -585,7 +652,7 @@ if (mount) {
     }, 'click');
 }
 
-bindListener('title', function handleAddTitleClick() {
+BindListener('title', function handleAddTitleClick() {
     const form = getActiveForm();
 
     if (form) {
@@ -603,7 +670,7 @@ bindListener('title', function handleAddTitleClick() {
     }
 }, 'click');
 
-bindListener('footer', function handleAddFooterClick() {
+BindListener('footer', function handleAddFooterClick() {
     const form = getActiveForm();
 
     if (form) {
@@ -626,7 +693,7 @@ const itemsActionsMap = {
 };
 
 Object.keys(itemsActionsMap).forEach(function bingClickToItem(itemId) {
-    bindListener(itemId, function handleAddItemClick() {
+    BindListener(itemId, function handleAddItemClick() {
         const form = getActiveForm();
         const item = itemsActionsMap[itemId](Boolean(sorting && sorting.checked));
 
@@ -659,34 +726,42 @@ if (mount) { resizeObserver.observe(document.body); }
 document.body.addEventListener('click', function handleClick(e) {
     const clickedElement = /** @type {HTMLElement | null} */ (e.target);
     const closestFieldset = clickedElement && clickedElement.closest('fieldset');
-    const isBackgroundControls = (clickedElement && clickedElement.id === 'background') || (closestFieldset && closestFieldset.id === 'background');
+    const add = document.getElementById('add');
+    const isBackgroundControls = [
+        clickedElement && clickedElement.id,
+        closestFieldset && closestFieldset.id
+    ].includes('background');
 
     if (clickedElement) {
         const activeElement = document.activeElement;
         // @ts-ignore
         if (!EDITABLE_TAGS.includes(clickedElement.tagName)) {
-            [deleteBtn, titleAlignment].forEach((control) => {
+            [deleteBtn, titleAlignment].forEach(function hideDifferentControl(control) {
                 if (!clickedElement.isSameNode(control) && control) {
                     control.hidden = true;
                 }
             });
         }
 
-        if (background && clickedElement.tagName !== 'FORM' && !isBackgroundControls && !(clickedElement.tagName === 'BODY' && activeElement && activeElement.tagName === 'FORM')) {
+        if (
+            background &&
+            clickedElement.tagName !== 'FORM' &&
+            !isBackgroundControls &&
+            !(clickedElement.isSameNode(this) && activeElement && activeElement.tagName === 'FORM')
+        ) {
             background.hidden = true;
         }
 
-        if (['page', 'title', 'category', 'service', 'footer', 'importLabel'].includes(clickedElement.id)) {
-            const parentElement = /** @type {HTMLElement} */ (clickedElement.parentElement);
-
-            parentElement.removeAttribute('open');
+        if (add && clickedElement.id !== 'addSummary') {
+            add.removeAttribute('open');
         }
     }
 });
 
 document.body.addEventListener('keyup', function sortWithArrows(e) {
     const targetElement = /** @type {HTMLElement | null} */ (e.target);
-    const element = targetElement && (['H3', 'P', 'SPAN'].includes(targetElement.tagName) ? targetElement.parentElement : targetElement);
+    const element = targetElement &&
+        (['H3', 'P', 'SPAN'].includes(targetElement.tagName) ? targetElement.parentElement : targetElement);
 
     if (element && element.draggable) {
         const parentElement = element && element.parentElement;
@@ -721,11 +796,14 @@ function savePages() {
 
 window.addEventListener('beforeunload', savePages);
 window.addEventListener('change', savePages);
-
 window.addEventListener('load', function proposeLoad() {
     const savedCopy = this.localStorage.getItem('price');
 
-    if (savedCopy && savedCopy !== DEFAULTS.hash && this.confirm('There is a saved local copy of last price made. Do you want to load it?')) {
+    if (
+        savedCopy &&
+        savedCopy !== DEFAULTS.hash &&
+        this.confirm('There is a saved local copy of last price made. Do you want to load it?')
+    ) {
         renderPages(JSON.parse(savedCopy));
     } else {
         this.localStorage.clear();

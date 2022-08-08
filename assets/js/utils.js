@@ -97,7 +97,6 @@ export function createEditableElement({ tag, text, parent, fromStart }, useDefau
 
         // @ts-ignore
         if (!range && e.rangeParent) {
-            // firefox
             range = document.createRange();
             // @ts-ignore
             range.setStart(e.rangeParent, e.rangeOffset);
@@ -145,6 +144,20 @@ let draggedOver;
 let draggedSame;
 let draggedTarget;
 
+function handleDragStart(event) {
+    dragged = /** @type {HTMLDivElement} */ (event.target);
+    if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.dropEffect = "move";
+    }
+}
+function handleDragEnd() {
+    dragged = null;
+}
+function handleDragOver(event) {
+    event.preventDefault();
+}
+
 /**
  * @param {boolean} draggable
  * @param {Service} serviceJson
@@ -165,22 +178,10 @@ export function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
             }, false);
         }
     }
-    div.addEventListener("dragstart", (event) => {
-        const dragEvent = /** @type {DragEvent} */ (event);
-
-        dragged = /** @type {HTMLDivElement} */ (event.target);
-        if (dragEvent.dataTransfer) {
-            dragEvent.dataTransfer.effectAllowed = "move";
-            dragEvent.dataTransfer.dropEffect = "move";
-        }
-    });
-    div.addEventListener("dragend", () => {
-        dragged = null;
-    });
-    div.addEventListener("dragover", (event) => {
-        event.preventDefault();
-    }, false);
-    div.addEventListener("dragenter", function (e) {
+    div.addEventListener("dragstart", handleDragStart);
+    div.addEventListener("dragend", handleDragEnd);
+    div.addEventListener("dragover", handleDragOver, false);
+    div.addEventListener("dragenter", function handleDivDragEnter(e) {
         if (dragged && dragged.nextElementSibling !== this) {
             this.classList.add('drag-over');
         }
@@ -188,12 +189,13 @@ export function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
         draggedOver = this;
         draggedTarget = e.target;
     });
-    div.addEventListener("dragleave", function (e) {
+    div.addEventListener("dragleave", function handleDivDragLeave(e) {
         if (!draggedSame || (draggedTarget === e.target)) { this.classList.remove('drag-over'); }
     });
-    div.addEventListener("drop", (event) => {
+    div.addEventListener("drop", function handleDivDrop(event) {
         const targetElement = /** @type {HTMLHeadingElement | null} */ (event.target);
-        const underDiv = targetElement && (targetElement.tagName === 'DIV' ? targetElement : targetElement.parentElement);
+        const underDiv = targetElement &&
+            (targetElement.tagName === 'DIV' ? targetElement : targetElement.parentElement);
 
         if (underDiv) {
             underDiv.classList.remove("drag-over");
@@ -211,35 +213,23 @@ export function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
  * @returns {HTMLElement | null}
  */
 export function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
-    const h2 = createEditableElement({
+    const category = createEditableElement({
         tag: 'H2',
         ...(categoryJson.hasOwnProperty('H2') && { text: categoryJson.H2 }),
     }, false);
 
-    if (h2) {
-        h2.draggable = draggable;
-        h2.addEventListener("dragstart", (event) => {
-            const dragEvent = /** @type {DragEvent} */ (event);
-
-            dragged = /** @type {HTMLHeadingElement} */ (event.target);
-            if (dragEvent.dataTransfer) {
-                dragEvent.dataTransfer.effectAllowed = "move";
-                dragEvent.dataTransfer.dropEffect = "move";
-            }
-        });
-        h2.addEventListener("dragend", () => {
-            dragged = null;
-        });
-        h2.addEventListener("dragover", (event) => {
-            event.preventDefault();
-        }, false);
-        h2.addEventListener("dragenter", function () {
+    if (category) {
+        category.draggable = draggable;
+        category.addEventListener("dragstart", handleDragStart);
+        category.addEventListener("dragend", handleDragEnd);
+        category.addEventListener("dragover", handleDragOver, false);
+        category.addEventListener("dragenter", function handleCategoryDragEnter() {
             if (dragged && dragged.nextElementSibling !== this) { this.classList.add('drag-over'); }
         });
-        h2.addEventListener("dragleave", function () {
+        category.addEventListener("dragleave", function handleCategoryDragLeave() {
             this.classList.remove('drag-over');
         });
-        h2.addEventListener("drop", (event) => {
+        category.addEventListener("drop", function handleCategoryDrop(event) {
             const targetElement = /** @type {HTMLHeadingElement | null} */ (event.target);
 
             if (targetElement) {
@@ -251,7 +241,7 @@ export function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
         });
     }
 
-    return h2;
+    return category;
 }
 
 /**
@@ -262,11 +252,20 @@ export function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
 * @returns {Partial<CSSStyleDeclaration>}
 */
 function parseStyles({ page, form, div }) {
-    const { aspectRatio = '', backgroundImage = '', color = '', fontFamily = '' } = page ? page.style : {};
+    const { backgroundImage = '', color = '', fontFamily = '' } = page ? page.style : {};
     const { backdropFilter = '', justifyContent = '', textAlign = '' } = form ? form.style : { backdropFilter: '' };
     const { backgroundColor = '', opacity = '' } = div ? div.style : {};
 
-    return Object.fromEntries(Object.entries({ aspectRatio, backgroundImage, color, fontFamily, backdropFilter, justifyContent, textAlign, backgroundColor, opacity }).filter(function filterEmpty([, value]) {
+    return Object.fromEntries(Object.entries({
+        backdropFilter,
+        backgroundColor,
+        backgroundImage,
+        color,
+        fontFamily,
+        justifyContent,
+        opacity,
+        textAlign,
+    }).filter(function filterEmpty([, value]) {
         return value;
     }));
 }
@@ -351,8 +350,10 @@ export function parsePages() {
  * @param {'change' | 'click' | 'input'} eventType
  * @return {InteractiveElement}
  */
-export function bindListener(element, callback, eventType = 'change') {
-    const targetElement = typeof element === 'string' ? /** @type {InteractiveElement} */ (document.getElementById(element)) : element;
+export function BindListener(element, callback, eventType = 'change') {
+    const targetElement = typeof element === 'string' ?
+        /** @type {InteractiveElement} */ (document.getElementById(element)) :
+        element;
 
     if (targetElement) {
         targetElement.addEventListener(eventType, callback);

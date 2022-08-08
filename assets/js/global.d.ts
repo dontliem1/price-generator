@@ -1,8 +1,9 @@
 declare interface CSSStyleDeclaration {
     'backdropFilter': string;
 }
-declare type html2canvasOptions = Partial<{ backgroundColor: CSSStyleDeclaration["color"], scale: number, windowWidth: number, windowHeight: number }>;
-declare function html2canvas(element: Element, options?: html2canvasOptions): Promise<HTMLCanvasElement>;
+declare type HtmlToCanvasOptions = Partial<{ backgroundColor: CSSStyleDeclaration["color"], scale: number, windowWidth: number, windowHeight: number }>;
+//@ts-ignore
+declare function html2canvas(element: Element, options?: HtmlToCanvasOptions): Promise<HTMLCanvasElement>;
 declare type Category = { type: 'CATEGORY'; H2?: string };
 declare type Service = { type: 'SERVICE'; H3?: string; SPAN?: string; P?: string; };
 declare type Items = (Category | Service)[];
