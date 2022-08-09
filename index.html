@@ -336,8 +336,10 @@
             cursor: pointer;
         }
 
-        .btn:hover:not(:disabled) {
-            background-color: #515151;
+        @media (pointer: fine) {
+            .btn:hover:not(:disabled) {
+                background-color: #515151;
+            }
         }
 
         .btn:disabled {
@@ -389,6 +391,7 @@
             flex-wrap: wrap-reverse;
             gap: 4px 6px;
         }
+
         #background:not([hidden]) {
             display: inline-flex;
         }

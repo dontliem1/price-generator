@@ -1,13 +1,16 @@
 'use strict';
 
-import { DEFAULTS, EDITABLE_TAGS } from "./constants.js";
+import { DEFAULTS, HEADER_TAGS, ITEMS_TAGS } from "./constants.js";
 
 /**
  * GETTERS
  */
 
+/**
+ * @returns {HTMLOListElement | null} `<ol>` of current page
+ */
 export function getMount() {
-    return document.getElementById('pages');
+    return /** @type {HTMLOListElement | null} */ (document.getElementById('pages'));
 }
 
 /**
@@ -73,7 +76,7 @@ export function getOffset(el) {
 * @returns {(HTMLElementTagNameMap[Lowercase<EditableTags>] & ElementContentEditable) | null} Created element
 */
 export function createEditableElement({ tag, text, parent, fromStart }, useDefaults = true) {
-    if (!EDITABLE_TAGS.includes(tag) || (!useDefaults && !text)) {
+    if (![...HEADER_TAGS, ...ITEMS_TAGS].includes(tag) || (!useDefaults && !text)) {
         return null;
     }
 
@@ -144,16 +147,22 @@ let draggedOver;
 let draggedSame;
 let draggedTarget;
 
+/**
+ * Set effectAllowed and dropEffect to "move"
+ * @param {Event} event - The event object.
+ */
 function handleDragStart(event) {
-    dragged = /** @type {HTMLDivElement} */ (event.target);
-    if (event.dataTransfer) {
-        event.dataTransfer.effectAllowed = "move";
-        event.dataTransfer.dropEffect = "move";
-    }
+    dragged = /** @type {HTMLDivElement | HTMLHeadingElement} */ (event.target);
 }
+/**
+ * Set the dragged variable to null.
+ */
 function handleDragEnd() {
     dragged = null;
 }
+/**
+ * Allow drop.
+ */
 function handleDragOver(event) {
     event.preventDefault();
 }
@@ -249,29 +258,35 @@ export function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
 * @param {HTMLElement | null} params.page
 * @param {HTMLElement | null} params.form
 * @param {HTMLElement | null} params.div
+* @param {boolean} [parseImages]
 * @returns {Partial<CSSStyleDeclaration>}
 */
-function parseStyles({ page, form, div }) {
-    const { color = '', fontFamily = '' } = page ? page.style : {};
+function parseStyles({ page, form, div }, parseImages) {
+    const { backgroundImage = '', color = '', fontFamily = '' } = page ? page.style : {};
     const { justifyContent = '', textAlign = '' } = form ? form.style : {};
     const { backgroundColor = '', opacity = '' } = div ? div.style : {};
 
     return Object.fromEntries(Object.entries({
         backgroundColor,
+        backgroundImage,
         color,
         fontFamily,
         justifyContent,
         opacity,
         textAlign,
-    }).filter(function filterEmpty([, value]) {
+    }).filter(function filterEmpty([prop, value]) {
+        if (!parseImages && prop === 'backgroundImage') {
+            return false;
+        }
         return value;
     }));
 }
 
 /**
  * @param {HTMLElement} page
+ * @param {boolean} [parseImages]
  */
-export function parsePage(page) {
+export function parsePage(page, parseImages) {
     /** @type {Page} */
     const pageJson = {};
     const div = /** @type {HTMLDivElement | null} */ (page.firstElementChild);
@@ -313,12 +328,16 @@ export function parsePage(page) {
         page,
         form,
         div,
-    });
+    }, parseImages);
 
     return pageJson;
 }
 
-export function parsePages() {
+/**
+ * @param {boolean} [parseImages]
+ * @returns {string} The current price stringified
+ */
+export function parsePages(parseImages) {
     const json = {
         /** @type {Page[]} */
         PAGES: [],
@@ -332,7 +351,7 @@ export function parsePages() {
         json.STYLE.aspectRatio = mount.dataset.aspectRatio;
     }
     for (const page of pages) {
-        json.PAGES.push(parsePage(page));
+        json.PAGES.push(parsePage(page, parseImages));
     }
     return JSON.stringify(json);
 }
@@ -360,18 +379,28 @@ export function BindListener(element, callback, eventType = 'change') {
     return targetElement;
 }
 
+/**
+ * It takes the value of the control and sets the value of the article's style property to that value.
+ * @param {Event} e - The event object
+ */
 export function handleArticleStylePropChange(e) {
     const activeArticle = getActiveArticle();
+    const control = /** @type {HTMLInputElement | HTMLSelectElement} */ (e.target);
 
-    if (activeArticle) {
-        activeArticle.style[e.target.name] = e.target.value;
+    if (activeArticle && control) {
+        activeArticle.style[control.name] = control.value;
     }
 }
 
+/**
+ * It takes the value of the selected control and sets the value of the form's style property to that value.
+ * @param {Event} e - The event object
+ */
 export function handleFormStylePropChange(e) {
     const activeForm = getActiveForm();
+    const control = /** @type {HTMLInputElement | HTMLSelectElement} */ (e.target);
 
     if (activeForm) {
-        activeForm.style[e.target.name] = e.target.value;
+        activeForm.style[control.name] = control.value;
     }
 }

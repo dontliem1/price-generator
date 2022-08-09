@@ -1,6 +1,6 @@
 'use strict';
 
-import { DEFAULTS, EDITABLE_TAGS, HEADER_TAGS, ITEMS_TAGS } from './constants.js';
+import { DEFAULTS, HEADER_TAGS, ITEMS_TAGS } from './constants.js';
 import {
     BindListener,
     createCategory,
@@ -34,6 +34,11 @@ const mount = getMount();
 // Alignment
 const titleAlignment = /** @type {HTMLFieldSetElement | null} */ (document.getElementById('titleAlignment'));
 
+/**
+ * If the active element is an H1 and it's alone or with footer, then show the title
+ * alignment element
+ * @param [element] - The element to reposition the title alignment for.
+ */
 function repositionTitleAlignment(element = getActiveElement()) {
     if (titleAlignment) {
         if (
@@ -77,7 +82,11 @@ const moveRight = BindListener('moveRight', function movePageRight() {
 // Background
 const background = /** @type {HTMLFieldSetElement | null} */ (document.getElementById('background'));
 
-function repositionBackground(form = getActiveForm()) {
+/**
+ * If the form is active, show the background and hide the left and right arrows if there's no according neighbours
+ * @param [form] - The form to reposition the background for.
+ */
+function toggleBackground(form = getActiveForm()) {
     if (background) {
         if (form && form.isSameNode(document.activeElement)) {
             const activeLi = getActiveLi();
@@ -108,6 +117,7 @@ const sorting = /** @type {HTMLInputElement | null} */ (BindListener('sorting', 
         const script = document.createElement('script');
 
         script.src = 'assets/js/DragDropTouch.js';
+        script.async = false;
         document.body.appendChild(script);
         sortingPollyfilled = true;
     }
@@ -131,6 +141,10 @@ const sorting = /** @type {HTMLInputElement | null} */ (BindListener('sorting', 
     }
 }));
 
+/**
+ * It repositions the delete button to the bottom of the currently active element
+ * @param [element] - The element to reposition the delete button for.
+ */
 function repositionDeleteBtn(element = getActiveElement()) {
     if (deleteBtn) {
         if (
@@ -209,22 +223,20 @@ BindListener('deleteBackgroundImage', function handleDeleteBackgroundImageClick(
     }
 }, 'click');
 
-function handleTitleAlignmentChange(e) {
-    handleFormStylePropChange(e);
-    repositionTitleAlignment();
-    repositionDeleteBtn();
-}
-
 // Title justify
 const textAlignSelect = /** @type {HTMLSelectElement | null} */ (BindListener(
     'textAlign',
-    handleTitleAlignmentChange
+    handleFormStylePropChange
 ));
 
 // Title vertical alignment
 const justifyContentSelect = /** @type {HTMLSelectElement | null} */ (BindListener(
     'justifyContent',
-    handleTitleAlignmentChange
+    function handleTitleAlignmentChange(e) {
+        handleFormStylePropChange(e);
+        repositionTitleAlignment();
+        repositionDeleteBtn();
+    }
 ));
 
 // Font
@@ -317,7 +329,7 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
             if (backgroundImageInput) {
                 backgroundImageInput.value = '';
             }
-            repositionBackground();
+            toggleBackground();
             repositionDeleteBtn();
             repositionTitleAlignment();
         } else {
@@ -341,7 +353,7 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
 });
 
 BindListener('export', function handleExportClick() {
-    const exportJson = new Blob(["\ufeff", parsePages()], { type: 'text/json' });
+    const exportJson = new Blob(["\ufeff", parsePages(true)], { type: 'text/json' });
     const link = document.createElement('a');
 
     link.href = URL.createObjectURL(exportJson);
@@ -350,6 +362,10 @@ BindListener('export', function handleExportClick() {
     link.remove();
 }, 'click');
 
+/**
+ * Check if the user agent supports the Web Share API with a single file.
+ * @returns Whether the user agent can share files.
+ */
 function checkBasicFileShare() {
     const txt = new Blob(['Hello, world!'], { type: 'text/plain' });
     const file = new File([txt], 'test.txt');
@@ -427,52 +443,13 @@ BindListener('deletePage', function handleDeletePageClick() {
  */
 
 /**
- * @param {HTMLFormElement} form
+ * Assigns the style properties of the given props to the given elements
+ * @param {object} elements
+ * @param {HTMLFormElement} elements.form
+ * @param {HTMLDivElement} elements.div
+ * @param {HTMLElement} elements.article
+ * @param [props] - An object containing the style properties to be applied.
  */
-function bindFormListeners(form) {
-    form.addEventListener('focusin', function handleFormFocusIn(e) {
-        const form = /** @type {HTMLFormElement} */ (e.currentTarget);
-        const focusedElement = /** @type {HTMLElement} */ (e.target);
-        const editableElements = /** @type {NodeListOf<HTMLElement>} */ (form.querySelectorAll('[contenteditable]'));
-
-        for (const editableElement of editableElements) {
-            editableElement.classList.toggle('active', editableElement.isSameNode(focusedElement));
-        }
-        if (
-            focusedElement.hasAttribute('contenteditable') &&
-            !(focusedElement.draggable || (focusedElement.parentElement && focusedElement.parentElement.draggable))
-        ) {
-            editableElements.forEach(function disableContentEditable(element) {
-                element.contentEditable = 'true';
-            });
-            if (background) { background.hidden = true; }
-        }
-        // @ts-ignore
-        if (ITEMS_TAGS.includes(focusedElement.tagName) && sorting && sorting.checked) {
-            if (deleteBtn) {
-                deleteBtn.hidden = true;
-            }
-        } else {
-            repositionDeleteBtn(focusedElement);
-        }
-        repositionTitleAlignment(focusedElement);
-        if (form.isSameNode(focusedElement)) {
-            repositionBackground(form);
-        }
-    });
-    form.addEventListener('focusout', function handleFormInput(e) {
-        const focusedElement = /** @type {HTMLElement} */ (e.target);
-        const form = /** @type {HTMLFormElement} */ (e.currentTarget);
-        const editableElements = /** @type {NodeListOf<HTMLElement>} */ (form.querySelectorAll('[contenteditable]'));
-
-        if (focusedElement.hasAttribute('contenteditable')) {
-            editableElements.forEach(function disableContentEditable(element) {
-                element.contentEditable = 'false';
-            });
-        }
-    });
-}
-
 function attachStyleFromJson({ form, div, article }, props = {}) {
     const {
         backgroundColor,
@@ -508,7 +485,6 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
 
     li.classList.toggle('active', isActive);
     form.tabIndex = 0;
-    bindFormListeners(form);
     article.append(div, form);
 
     attachStyleFromJson({ form, div, article }, pageJson.STYLE);
@@ -517,7 +493,7 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
         text: pageJson.H1,
         parent: form
     }, false);
-    if (pageJson.ITEMS) {
+    if (pageJson.ITEMS !== undefined) {
         pageJson.ITEMS.map(function createItem(item) {
             switch (item.type) {
                 case 'CATEGORY':
@@ -683,49 +659,87 @@ Object.keys(itemsActionsMap).forEach(function bingClickToItem(itemId) {
     }, 'click');
 });
 
-renderPages(DEFAULTS.get());
-
 /**
  * GLOBAL LISTENERS
  */
 
 const resizeObserver = new ResizeObserver(function handleResize() {
-    repositionBackground();
+    toggleBackground();
     repositionDeleteBtn();
     repositionTitleAlignment();
 });
 
-if (mount) { resizeObserver.observe(document.body); }
+if (mount) {
+    resizeObserver.observe(document.body);
+    mount.addEventListener('focusin', function handleFormFocusIn(e) {
+        const focusedElement = /** @type {HTMLElement} */ (e.target);
+        const form = /** @type {HTMLFormElement} */ (focusedElement.closest('form'));
+        const editableElements = /** @type {NodeListOf<HTMLElement>} */ (form.querySelectorAll('[contenteditable]'));
 
-document.body.addEventListener('click', function handleClick(e) {
-    const clickedElement = /** @type {HTMLElement | null} */ (e.target);
-    const closestFieldset = clickedElement && clickedElement.closest('fieldset');
-    const add = document.getElementById('add');
-    const isBackgroundControls = closestFieldset && clickedElement !== closestFieldset && closestFieldset.id === 'background';
-
-    if (clickedElement) {
-        const activeElement = document.activeElement;
+        for (const editableElement of editableElements) {
+            editableElement.classList.toggle('active', editableElement.isSameNode(focusedElement));
+        }
+        if (
+            focusedElement.hasAttribute('contenteditable') &&
+            !(focusedElement.draggable || (focusedElement.parentElement && focusedElement.parentElement.draggable))
+        ) {
+            editableElements.forEach(function disableContentEditable(element) {
+                element.contentEditable = 'true';
+            });
+            if (background) { background.hidden = true; }
+        }
         // @ts-ignore
-        if (!EDITABLE_TAGS.includes(clickedElement.tagName)) {
-            [deleteBtn, titleAlignment].forEach(function hideDifferentControl(control) {
-                if (!clickedElement.isSameNode(control) && control) {
-                    control.hidden = true;
-                }
+        if (ITEMS_TAGS.includes(focusedElement.tagName) && sorting && sorting.checked) {
+            if (deleteBtn) {
+                deleteBtn.hidden = true;
+            }
+        } else {
+            repositionDeleteBtn(focusedElement);
+        }
+        repositionTitleAlignment(focusedElement);
+        if (form.isSameNode(focusedElement)) {
+            toggleBackground(form);
+        }
+    });
+    mount.addEventListener('focusout', function handleFormInput(e) {
+        const focusedElement = /** @type {HTMLElement} */ (e.target);
+        const form = /** @type {HTMLFormElement} */ (focusedElement.closest('form'));
+        const editableElements = /** @type {NodeListOf<HTMLElement>} */ (form.querySelectorAll('[contenteditable]'));
+
+        if (focusedElement.hasAttribute('contenteditable')) {
+            editableElements.forEach(function disableContentEditable(element) {
+                element.contentEditable = 'false';
             });
         }
+    });
+}
 
-        if (
-            background &&
-            clickedElement.tagName !== 'FORM' &&
-            !isBackgroundControls &&
-            !(clickedElement.isSameNode(this) && activeElement && activeElement.tagName === 'FORM')
-        ) {
-            background.hidden = true;
+document.body.addEventListener('click', function handleClick(e) {
+    const clickedElement = /** @type {HTMLElement} */ (e.target);
+    const closestFieldset = clickedElement.closest('fieldset');
+    const add = document.getElementById('add');
+    const isBackgroundControls = closestFieldset && !clickedElement.isSameNode(closestFieldset) && closestFieldset.id === 'background';
+    // @ts-ignore
+    if (!clickedElement.hasAttribute('contenteditable') && !['delete', 'titleAlignment'].includes(clickedElement.id)) {
+        if (deleteBtn) {
+            deleteBtn.hidden = true;
         }
+        if (titleAlignment) {
+            titleAlignment.hidden = true;
+        }
+    }
 
-        if (add && clickedElement.id !== 'addSummary') {
-            add.removeAttribute('open');
-        }
+    if (
+        background &&
+        clickedElement.tagName !== 'FORM' &&
+        !isBackgroundControls &&
+        !(clickedElement.isSameNode(this) && document.activeElement && document.activeElement.tagName === 'FORM')
+    ) {
+        background.hidden = true;
+    }
+
+    if (add && clickedElement.id !== 'addSummary') {
+        add.removeAttribute('open');
     }
 });
 
@@ -735,15 +749,12 @@ document.body.addEventListener('keyup', function sortWithArrows(e) {
         (['H3', 'P', 'SPAN'].includes(targetElement.tagName) ? targetElement.parentElement : targetElement);
 
     if (element && element.draggable) {
-        const parentElement = element && element.parentElement;
-
         switch (e.key) {
             case 'ArrowUp':
                 const previousElement = /** @type {HTMLElement | null} */ (element.previousElementSibling);
 
-                if (parentElement && previousElement && previousElement.draggable) {
-                    parentElement.insertBefore(element, previousElement);
-                    targetElement.focus();
+                if (previousElement && previousElement.draggable) {
+                    previousElement.insertAdjacentElement("beforebegin", element);
                     e.preventDefault();
                 }
 
@@ -751,8 +762,8 @@ document.body.addEventListener('keyup', function sortWithArrows(e) {
             case 'ArrowDown':
                 const nextElement = /** @type {HTMLElement | null} */ (element.nextElementSibling);
 
-                if (parentElement && nextElement && nextElement.draggable) {
-                    parentElement.insertBefore(nextElement, element);
+                if (nextElement && nextElement.draggable) {
+                    nextElement.insertAdjacentElement("afterend", element);
                     e.preventDefault();
                 }
 
@@ -761,22 +772,15 @@ document.body.addEventListener('keyup', function sortWithArrows(e) {
     }
 });
 
-function savePages() {
+window.addEventListener('change', function savePages() {
     window.localStorage.setItem('price', parsePages());
-}
-
-window.addEventListener('beforeunload', savePages);
-window.addEventListener('change', savePages);
-window.addEventListener('load', function proposeLoad() {
-    const savedCopy = this.localStorage.getItem('price');
-
-    if (
-        savedCopy &&
-        savedCopy !== DEFAULTS.hash &&
-        this.confirm('There is a saved local copy of last price made. Do you want to load it?')
-    ) {
-        renderPages(JSON.parse(savedCopy));
-    } else {
-        this.localStorage.clear();
-    }
 });
+
+const savedCopy = window.localStorage.getItem('price');
+
+if (savedCopy && savedCopy !== '{"PAGES":[{"H1":"PRICE","STYLE":{"backgroundColor":"rgb(0, 0, 0)","color":"rgb(230, 228, 200)","justifyContent":"flex-end","opacity":"0"}},{"ITEMS":[{"type":"CATEGORY","H2":"Makeup"},{"type":"SERVICE","H3":"Full face makeup application","P":"£45","SPAN":"lashes included"},{"type":"SERVICE","H3":"Eye Makeup only","P":"£30"},{"type":"SERVICE","H3":"Strip lashes","P":"£5"}],"FOOTER":"Made in Lepekhin Studio","STYLE":{"backgroundColor":"rgb(50, 50, 50)","color":"rgb(255, 255, 255)","opacity":"0.5"}}],"STYLE":{"aspectRatio":"4 / 5"}}' && window.confirm('There is a saved local copy of last price made. Do you want to load it?')) {
+    renderPages(JSON.parse(savedCopy));
+} else {
+    renderPages(DEFAULTS.get());
+    window.localStorage.removeItem('price');
+}
