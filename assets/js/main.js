@@ -81,20 +81,12 @@ function repositionBackground(form = getActiveForm()) {
     if (background) {
         if (form && form.isSameNode(document.activeElement)) {
             const activeLi = getActiveLi();
-            const settings = document.getElementById('settings');
-            const { left, top } = getOffset(form);
-            const [leftBorder, topBorder] = settings ? [settings.clientWidth, settings.clientHeight] : [0, 0];
 
-            if (left < window.innerWidth) {
-                background.hidden = false;
-
-                if (activeLi && moveLeft && moveRight) {
-                    moveLeft.hidden = !activeLi.previousElementSibling;
-                    moveRight.hidden = !activeLi.nextElementSibling;
-                }
+            if (activeLi && moveLeft && moveRight) {
+                moveLeft.hidden = !activeLi.previousElementSibling;
+                moveRight.hidden = !activeLi.nextElementSibling;
             }
-
-            background.style.transform = `translate(${left}px, ${Math.max(left > leftBorder ? 0 : topBorder, top)}px)`;
+            background.hidden = false;
         } else {
             background.hidden = true;
         }
@@ -181,18 +173,6 @@ BindListener(deleteBtn, function handleDeleteClick() {
         }
     }
 }, 'click');
-
-// Background blur
-const backdropFilterInput = BindListener('backdropFilter', function handleBackdropFilterInput() {
-    const activeForm = getActiveForm();
-
-    if (activeForm) {
-        const value = `blur(${this.value}px)`;
-
-        activeForm.style[this.name] = value;
-        activeForm.style['-webkit-backdrop-filter'] = value;
-    }
-}, 'input');
 
 // Background opacity
 const opacityRange = BindListener('opacity', function handleOpacityRangeChange() {
@@ -324,11 +304,6 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
             }
             assignValueFromStyle(textAlignSelect, activeForm);
             assignValueFromStyle(justifyContentSelect, activeForm);
-            if (backdropFilterInput && activeForm) {
-                backdropFilterInput.value = activeForm.style[backdropFilterInput.name] ?
-                    activeForm.style[backdropFilterInput.name].slice(5, -3) :
-                    '0';
-            }
             assignValueFromStyle(fontFamilySelect, activeArticle);
             if (colorInput && activeArticle) {
                 colorInput.value = convertRGBtoHex(activeArticle.style.color);
@@ -366,7 +341,7 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
 });
 
 BindListener('export', function handleExportClick() {
-    const exportJson = new Blob([parsePages()], { type: 'text/json' });
+    const exportJson = new Blob(["\ufeff", parsePages()], { type: 'text/json' });
     const link = document.createElement('a');
 
     link.href = URL.createObjectURL(exportJson);
@@ -500,7 +475,6 @@ function bindFormListeners(form) {
 
 function attachStyleFromJson({ form, div, article }, props = {}) {
     const {
-        backdropFilter,
         backgroundColor,
         backgroundImage,
         color,
@@ -515,7 +489,7 @@ function attachStyleFromJson({ form, div, article }, props = {}) {
         })));
     };
 
-    assignFilteredStyle(form, { backdropFilter, justifyContent, textAlign });
+    assignFilteredStyle(form, { justifyContent, textAlign });
     assignFilteredStyle(div, { backgroundColor, opacity });
     assignFilteredStyle(article, { backgroundImage, color, fontFamily });
 }
@@ -574,7 +548,7 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
  * @param {Pages} pagesJson
  * @param {HTMLElement | null} mount
  */
-export function renderPages(pagesJson, mount = getMount()) {
+function renderPages(pagesJson, mount = getMount()) {
     if (mount) {
         const pages = [];
         const aspectRatio = (pagesJson.STYLE && pagesJson.STYLE.aspectRatio) ?
@@ -727,10 +701,7 @@ document.body.addEventListener('click', function handleClick(e) {
     const clickedElement = /** @type {HTMLElement | null} */ (e.target);
     const closestFieldset = clickedElement && clickedElement.closest('fieldset');
     const add = document.getElementById('add');
-    const isBackgroundControls = [
-        clickedElement && clickedElement.id,
-        closestFieldset && closestFieldset.id
-    ].includes('background');
+    const isBackgroundControls = closestFieldset && clickedElement !== closestFieldset && closestFieldset.id === 'background';
 
     if (clickedElement) {
         const activeElement = document.activeElement;

@@ -1,6 +1,3 @@
-declare interface CSSStyleDeclaration {
-    'backdropFilter': string;
-}
 declare type HtmlToCanvasOptions = Partial<{ backgroundColor: CSSStyleDeclaration["color"], scale: number, windowWidth: number, windowHeight: number }>;
 //@ts-ignore
 declare function html2canvas(element: Element, options?: HtmlToCanvasOptions): Promise<HTMLCanvasElement>;

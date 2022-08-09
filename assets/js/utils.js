@@ -253,11 +253,10 @@ export function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
 */
 function parseStyles({ page, form, div }) {
     const { color = '', fontFamily = '' } = page ? page.style : {};
-    const { backdropFilter = '', justifyContent = '', textAlign = '' } = form ? form.style : { backdropFilter: '' };
+    const { justifyContent = '', textAlign = '' } = form ? form.style : {};
     const { backgroundColor = '', opacity = '' } = div ? div.style : {};
 
     return Object.fromEntries(Object.entries({
-        backdropFilter,
         backgroundColor,
         color,
         fontFamily,
