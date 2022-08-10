@@ -26,6 +26,10 @@ import {
 let sortingPollyfilled = false;
 let fontsAdded = false;
 const mount = getMount();
+const itemsActionsMap = {
+    category: createCategory,
+    service: createService
+};
 
 /**
  * FLOAT
@@ -494,18 +498,9 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
         parent: form
     }, false);
     if (pageJson.ITEMS !== undefined) {
-        pageJson.ITEMS.map(function createItem(item) {
-            switch (item.type) {
-                case 'CATEGORY':
-                    const category = createCategory(draggable, item);
-
-                    if (category) { form.appendChild(category); }
-
-                    break;
-                case 'SERVICE':
-                    form.appendChild(createService(draggable, item));
-
-                    break;
+        pageJson.ITEMS.forEach(function appendItem(item) {
+            if (item.type in itemsActionsMap) {
+                form.appendChild(itemsActionsMap[item.type](draggable, item));
             }
         });
     }
@@ -636,11 +631,6 @@ BindListener('footer', function handleAddFooterClick() {
         }
     }
 }, 'click');
-
-const itemsActionsMap = {
-    category: createCategory,
-    service: createService
-};
 
 Object.keys(itemsActionsMap).forEach(function bingClickToItem(itemId) {
     BindListener(itemId, function handleAddItemClick() {

@@ -219,36 +219,30 @@ export function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
 /**
  * @param {boolean} draggable
  * @param {Category} [categoryJson]
- * @returns {HTMLElement | null}
+ * @returns {HTMLElement}
  */
 export function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
-    const category = createEditableElement({
+    const category = /** @type {HTMLHeadingElement} */ (createEditableElement({
         tag: 'H2',
-        ...(categoryJson.hasOwnProperty('H2') && { text: categoryJson.H2 }),
-    }, false);
+        text: 'H2' in categoryJson ? categoryJson.H2 : DEFAULTS.H2,
+    }, false));
 
-    if (category) {
-        category.draggable = draggable;
-        category.addEventListener("dragstart", handleDragStart);
-        category.addEventListener("dragend", handleDragEnd);
-        category.addEventListener("dragover", handleDragOver, false);
-        category.addEventListener("dragenter", function handleCategoryDragEnter() {
-            if (dragged && dragged.nextElementSibling !== this) { this.classList.add('drag-over'); }
-        });
-        category.addEventListener("dragleave", function handleCategoryDragLeave() {
-            this.classList.remove('drag-over');
-        });
-        category.addEventListener("drop", function handleCategoryDrop(event) {
-            const targetElement = /** @type {HTMLHeadingElement | null} */ (event.target);
-
-            if (targetElement) {
-                targetElement.classList.remove("drag-over");
-                if (dragged && targetElement !== dragged && targetElement !== dragged.nextElementSibling) {
-                    targetElement.insertAdjacentElement('beforebegin', dragged);
-                }
-            }
-        });
-    }
+    category.draggable = draggable;
+    category.addEventListener("dragstart", handleDragStart);
+    category.addEventListener("dragend", handleDragEnd);
+    category.addEventListener("dragover", handleDragOver, false);
+    category.addEventListener("dragenter", function handleCategoryDragEnter() {
+        if (dragged && dragged.nextElementSibling !== this) { this.classList.add('drag-over'); }
+    });
+    category.addEventListener("dragleave", function handleCategoryDragLeave() {
+        this.classList.remove('drag-over');
+    });
+    category.addEventListener("drop", function handleCategoryDrop() {
+        this.classList.remove("drag-over");
+        if (dragged && !dragged.isSameNode(this) && !this.isSameNode(dragged.nextElementSibling)) {
+            this.insertAdjacentElement('beforebegin', dragged);
+        }
+    });
 
     return category;
 }
