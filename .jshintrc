@@ -6,7 +6,8 @@
     "eqeqeq": true,
     "freeze": true,
     "globals": {
-        "html2canvas": false
+        "html2canvas": false,
+        "messages": false
     },
     "latedef": true,
     "maxparams": 3,

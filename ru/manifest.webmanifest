@@ -1,0 +1,27 @@
+{
+  "short_name": "Прайс",
+  "name": "Генератор прайса",
+  "icons": [
+    {
+      "src": "../assets/images/icons-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "../assets/images/icons-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "price-generator",
+  "categories": [
+    "utilities"
+  ],
+  "start_url": "./",
+  "background_color": "black",
+  "theme_color": "black",
+  "display": "fullscreen",
+  "scope": "./",
+  "description": "Конструктор прайса для соцсетей"
+}

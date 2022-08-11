@@ -1,23 +1,456 @@
 'use strict';
 
-import { DEFAULTS, HEADER_TAGS, ITEMS_TAGS } from './constants.js';
-import {
-    BindListener,
-    createCategory,
-    createEditableElement,
-    createService,
-    getActiveArticle,
-    getActiveDiv,
-    getActiveElement,
-    getActiveForm,
-    getActiveLi,
-    getMount,
-    getOffset,
-    handleArticleStylePropChange,
-    handleFormStylePropChange,
-    parsePage,
-    parsePages
-} from './utils.js';
+/**
+ * @param {string} key
+ */
+function m(key) { return key in messages ? messages[key] : 'text_not_found'; }
+
+class Defaults {
+    constructor() {
+        this.aspectRatio = '4 / 5';
+        this.opacity = '0.5';
+        /** @type {Category} */
+        this.CATEGORY = { type: 'CATEGORY', H2: m('H2') };
+        /** @type {Service} */
+        this.SERVICE = {
+            type: 'SERVICE',
+            H3: m('H3'),
+            P: m('P'),
+            SPAN: m('SPAN'),
+        };
+        this.STYLE = {
+            backgroundColor: 'rgb(50, 50, 50)',
+            color: 'rgb(255, 255, 255)',
+            opacity: this.opacity,
+        };
+    }
+    /**
+     * @return {Pages}
+     */
+    get() {
+        return {
+            PAGES: [{
+                H1: m('PRICE'),
+                STYLE: {
+                    backgroundColor: 'rgb(0, 0, 0)',
+                    backgroundImage: 'radial-gradient(rgba(255, 255, 255, .2) 0%, rgba(255, 255, 255, 0) 100%), radial-gradient(at left bottom, rgba(0, 200, 255, 1) 0%, rgba(0, 200, 255, 0) 80%), linear-gradient(135deg, rgba(50, 50, 120, 0) 0%, rgba(50, 50, 120, 0) 75%, rgba(50, 50, 120, 1) 100%), linear-gradient(75deg, rgba(100, 100, 0, 1) 0%, rgba(200, 100, 100, 1) 17%, rgba(200, 150, 40, 1) 74%, rgba(200, 100, 30, 1) 100%)',
+                    color: 'rgb(230, 228, 200)',
+                    justifyContent: 'flex-end',
+                    opacity: '0',
+                },
+            }, {
+                ITEMS: m('ITEMS'),
+                FOOTER: m('EXAMPLE_FOOTER'),
+                STYLE: this.STYLE,
+            }], STYLE: { aspectRatio: this.aspectRatio }
+        };
+    }
+}
+
+const DEFAULTS = new Defaults();
+
+/** @type {ReadonlyArray<'H2'| 'H3'| 'SPAN'| 'P'>} */
+const ITEMS_TAGS = ['H2', 'H3', 'SPAN', 'P'];
+/** @type {ReadonlyArray<'H1'| 'FOOTER'>} */
+const HEADER_TAGS = ['H1', 'FOOTER'];
+
+
+/**
+ * GETTERS
+ */
+
+/**
+ * @returns {HTMLOListElement | null} `<ol>` of current page
+ */
+function getMount() {
+    return /** @type {HTMLOListElement | null} */ (document.getElementById('pages'));
+}
+
+/**
+ * @returns {HTMLLIElement | null} `<li>` of current page
+ */
+function getActiveLi() {
+    return document.querySelector('li.active');
+}
+
+/**
+ * @returns `<article>` of current page
+ */
+function getActiveArticle(li = getActiveLi()) {
+    return /** @type {HTMLElement | null} */ (li && li.firstElementChild);
+}
+
+/**
+ * @returns `<div>` of current page
+ */
+function getActiveDiv(article = getActiveArticle()) {
+    return /** @type {HTMLDivElement | null} */ (article && article.firstElementChild);
+}
+
+/**
+ * @returns `<form>` of current page
+ */
+function getActiveForm(article = getActiveArticle()) {
+    return /** @type {HTMLFormElement | null} */ (article && article.lastElementChild);
+}
+
+/**
+ * @param {HTMLElement | null} parent
+ * @returns {HTMLElement | null} last focused element
+ */
+function getActiveElement(parent = getActiveLi()) {
+    return parent && parent.querySelector('.active[contenteditable]');
+}
+
+/**
+ * @param {HTMLElement} el
+ */
+function getOffset(el) {
+    const rect = el.getBoundingClientRect();
+
+    return {
+        left: rect.left + window.scrollX,
+        top: rect.top + window.scrollY,
+        height: rect.height,
+    };
+}
+
+/**
+ * CONSTRUCTORS
+ */
+
+function stripTagsOnDrop(e) {
+    e.preventDefault();
+
+    const text = e.dataTransfer.getData('text/plain');
+    let range = document.caretRangeFromPoint && document.caretRangeFromPoint(e.clientX, e.clientY);
+
+    if (!range && e.rangeParent) {
+        range = document.createRange();
+        range.setStart(e.rangeParent, e.rangeOffset);
+        range.setEnd(e.rangeParent, e.rangeOffset);
+    }
+
+    if (range) { range.insertNode(document.createTextNode(text)); }
+}
+
+function stripTagsOnPaste(e) {
+    e.preventDefault();
+
+    const text = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
+    const oldSelection = document.getSelection();
+
+    if (oldSelection) {
+        const range = oldSelection.getRangeAt(0);
+
+        range.deleteContents();
+
+        const textNode = document.createTextNode(text);
+
+        range.insertNode(textNode);
+        range.selectNodeContents(textNode);
+        range.collapse(false);
+
+        const selection = window.getSelection();
+
+        if (selection) {
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+    }
+}
+
+/**
+* @param {Object} params
+* @param {EditableTags} params.tag
+* @param {string} [params.text]
+* @param {HTMLElement | null} [params.parent]
+* @param {boolean} [params.fromStart]
+* @param {boolean} [useDefaults] - If `true` creates an element with default text if `text` is empty
+* @returns {(HTMLElementTagNameMap[Lowercase<EditableTags>] & ElementContentEditable) | null} Created element
+*/
+function createEditableElement({ tag, text, parent, fromStart }, useDefaults = true) {
+    if (![...HEADER_TAGS, ...ITEMS_TAGS].includes(tag) || (!useDefaults && !text)) {
+        return null;
+    }
+
+    const elem = document.createElement(tag);
+
+    elem.contentEditable = 'false';
+    elem.innerText = text ? text : m(tag);
+    if (parent) {
+        if (fromStart) {
+            parent.prepend(elem);
+        } else {
+            parent.appendChild(elem);
+        }
+    }
+    elem.tabIndex = 0;
+    elem.addEventListener('drop', stripTagsOnDrop);
+    elem.addEventListener('paste', stripTagsOnPaste);
+
+    return elem;
+}
+
+/**
+ * @type {HTMLHeadingElement | HTMLDivElement | null}
+ */
+let dragged = null;
+let draggedOver;
+let draggedSame;
+let draggedTarget;
+
+/**
+ * Set effectAllowed and dropEffect to "move"
+ * @param {Event} event - The event object.
+ */
+function handleDragStart(event) {
+    dragged = /** @type {HTMLDivElement | HTMLHeadingElement} */ (event.target);
+}
+/**
+ * Set the dragged variable to null.
+ */
+function handleDragEnd() {
+    dragged = null;
+}
+/**
+ * Allow drop.
+ */
+function handleDragOver(event) {
+    event.preventDefault();
+}
+
+/**
+ * @param {boolean} draggable
+ * @param {Service} serviceJson
+ * @returns {HTMLDivElement}
+ */
+function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
+    const div = document.createElement('div');
+
+    div.draggable = draggable;
+    for (const serviceProp in serviceJson) {
+        if (['H3', 'SPAN', 'P'].includes(serviceProp)) {
+            const tag = /** @type {'H3' | 'SPAN' | 'P'} */ (serviceProp);
+
+            createEditableElement({
+                tag,
+                text: serviceJson[serviceProp],
+                parent: div
+            }, false);
+        }
+    }
+    div.addEventListener("dragstart", handleDragStart);
+    div.addEventListener("dragend", handleDragEnd);
+    div.addEventListener("dragover", handleDragOver, false);
+    div.addEventListener("dragenter", function handleDivDragEnter(e) {
+        if (dragged && dragged.nextElementSibling !== this) {
+            this.classList.add('drag-over');
+        }
+        draggedSame = this === draggedOver;
+        draggedOver = this;
+        draggedTarget = e.target;
+    });
+    div.addEventListener("dragleave", function handleDivDragLeave(e) {
+        if (!draggedSame || (draggedTarget === e.target)) { this.classList.remove('drag-over'); }
+    });
+    div.addEventListener("drop", function handleDivDrop(event) {
+        const targetElement = /** @type {HTMLHeadingElement | null} */ (event.target);
+        const underDiv = targetElement &&
+            (targetElement.tagName === 'DIV' ? targetElement : targetElement.parentElement);
+
+        if (underDiv) {
+            underDiv.classList.remove("drag-over");
+            if (dragged && underDiv !== dragged && underDiv !== dragged.nextElementSibling) {
+                underDiv.insertAdjacentElement('beforebegin', dragged);
+            }
+        }
+    });
+
+    return div;
+}
+/**
+ * @param {boolean} draggable
+ * @param {Category} [categoryJson]
+ * @returns {HTMLElement}
+ */
+function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
+    const category = /** @type {HTMLHeadingElement} */ (createEditableElement({
+        tag: 'H2',
+        text: 'H2' in categoryJson ? categoryJson.H2 : m('H2'),
+    }, false));
+
+    category.draggable = draggable;
+    category.addEventListener("dragstart", handleDragStart);
+    category.addEventListener("dragend", handleDragEnd);
+    category.addEventListener("dragover", handleDragOver, false);
+    category.addEventListener("dragenter", function handleCategoryDragEnter() {
+        if (dragged && dragged.nextElementSibling !== this) { this.classList.add('drag-over'); }
+    });
+    category.addEventListener("dragleave", function handleCategoryDragLeave() {
+        this.classList.remove('drag-over');
+    });
+    category.addEventListener("drop", function handleCategoryDrop() {
+        this.classList.remove("drag-over");
+        if (dragged && !dragged.isSameNode(this) && !this.isSameNode(dragged.nextElementSibling)) {
+            this.insertAdjacentElement('beforebegin', dragged);
+        }
+    });
+
+    return category;
+}
+
+/**
+* @param {Object} params
+* @param {HTMLElement | null} params.page
+* @param {HTMLElement | null} params.form
+* @param {HTMLElement | null} params.div
+* @param {boolean} [parseImages]
+* @returns {Partial<CSSStyleDeclaration>}
+*/
+function parseStyles({ page, form, div }, parseImages) {
+    const { backgroundImage = '', color = '', fontFamily = '' } = page ? page.style : {};
+    const { justifyContent = '', textAlign = '' } = form ? form.style : {};
+    const { backgroundColor = '', opacity = '' } = div ? div.style : {};
+
+    return Object.fromEntries(Object.entries({
+        backgroundColor,
+        backgroundImage,
+        color,
+        fontFamily,
+        justifyContent,
+        opacity,
+        textAlign,
+    }).filter(function filterEmpty([prop, value]) {
+        if (!parseImages && prop === 'backgroundImage') {
+            return false;
+        }
+        return value;
+    }));
+}
+
+/**
+ * @param {HTMLElement} page
+ * @param {boolean} [parseImages]
+ */
+function parsePage(page, parseImages) {
+    /** @type {Page} */
+    const pageJson = {};
+    const div = /** @type {HTMLDivElement | null} */ (page.firstElementChild);
+    const form = /** @type {HTMLFormElement | null} */ (page.lastElementChild);
+    const priceElems = form ? /** @type {HTMLCollectionOf<HTMLElement>} */ (form.children) : [];
+
+    for (const priceElem of priceElems) {
+        switch (priceElem.tagName) {
+            case 'H1':
+            case 'FOOTER':
+                pageJson[priceElem.tagName] = priceElem.innerText;
+
+                break;
+            case 'H2':
+                /** @type {Category} */
+                const category = { type: 'CATEGORY', H2: priceElem.innerText };
+
+                pageJson.ITEMS = pageJson.ITEMS ? [...pageJson.ITEMS, category] : [category];
+
+                break;
+            case 'DIV':
+                const serviceItems = /** @type {HTMLCollectionOf<HTMLElement>} */ (priceElem.children);
+
+                if (serviceItems.length) {
+                    /** @type {Service} */
+                    const service = { type: "SERVICE" };
+
+                    for (const item of serviceItems) {
+                        service[item.tagName] = item.innerText;
+                    }
+
+                    pageJson.ITEMS = pageJson.ITEMS ? [...pageJson.ITEMS, service] : [service];
+                }
+
+                break;
+        }
+    }
+    pageJson.STYLE = parseStyles({
+        page,
+        form,
+        div,
+    }, parseImages);
+
+    return pageJson;
+}
+
+/**
+ * @param {boolean} [parseImages]
+ * @returns {string} The current price stringified
+ */
+function parsePages(parseImages) {
+    const json = {
+        /** @type {Page[]} */
+        PAGES: [],
+        /** @type {PagesStyle} */
+        STYLE: {}
+    };
+    const pages = document.getElementsByTagName('article');
+    const mount = getMount();
+
+    if (mount && mount.dataset.aspectRatio) {
+        json.STYLE.aspectRatio = mount.dataset.aspectRatio;
+    }
+    for (const page of pages) {
+        json.PAGES.push(parsePage(page, parseImages));
+    }
+    return JSON.stringify(json);
+}
+
+/**
+ * LISTENERS
+ */
+
+/**
+ * @typedef {HTMLInputElement | HTMLButtonElement | HTMLSelectElement | null} InteractiveElement
+ * @param {InteractiveElement | string} element
+ * @param {(this: HTMLInputElement, ev: Event) => any} callback
+ * @param {'change' | 'click' | 'input'} eventType
+ * @return {InteractiveElement}
+ */
+function BindListener(element, callback, eventType = 'change') {
+    const targetElement = typeof element === 'string' ?
+        /** @type {InteractiveElement} */ (document.getElementById(element)) :
+        element;
+
+    if (targetElement) {
+        targetElement.addEventListener(eventType, callback);
+    }
+
+    return targetElement;
+}
+
+/**
+ * It takes the value of the control and sets the value of the article's style property to that value.
+ * @param {Event} e - The event object
+ */
+function handleArticleStylePropChange(e) {
+    const activeArticle = getActiveArticle();
+    const control = /** @type {HTMLInputElement | HTMLSelectElement} */ (e.target);
+
+    if (activeArticle && control) {
+        activeArticle.style[control.name] = control.value;
+    }
+}
+
+/**
+ * It takes the value of the selected control and sets the value of the form's style property to that value.
+ * @param {Event} e - The event object
+ */
+function handleFormStylePropChange(e) {
+    const activeForm = getActiveForm();
+    const control = /** @type {HTMLInputElement | HTMLSelectElement} */ (e.target);
+
+    if (activeForm) {
+        activeForm.style[control.name] = control.value;
+    }
+}
 
 /**
  * VARS
@@ -120,7 +553,7 @@ const sorting = /** @type {HTMLInputElement | null} */ (BindListener('sorting', 
     if (!sortingPollyfilled) {
         const script = document.createElement('script');
 
-        script.src = 'assets/js/DragDropTouch.js';
+        script.src = (document.documentElement.lang === 'en' ? '.' : '..') + '/assets/js/vendors/DragDropTouch.js';
         script.async = false;
         document.body.appendChild(script);
         sortingPollyfilled = true;
@@ -177,7 +610,7 @@ BindListener(deleteBtn, function handleDeleteClick() {
     const activeElement = getActiveElement();
 
     if (activeElement && window.confirm(
-        `Remove element${activeElement.innerText.trim() ? (' "' + activeElement.innerText + '"') : ''}?`)
+        `${m('REMOVE_ELEMENT')}${activeElement.innerText.trim() ? (' "' + activeElement.innerText + '"') : ''}?`)
     ) {
         const parent = activeElement.parentElement;
 
@@ -382,7 +815,7 @@ BindListener('save', async function handleSaveClick(e) {
 
     if (saveBtn) { saveBtn.disabled = true; }
 
-    await import('./html2canvas.min.js');
+    await import('./vendors/html2canvas.min.js');
 
     const pages = document.getElementsByTagName('article');
     /** @type {HtmlToCanvasOptions} */
@@ -436,7 +869,7 @@ BindListener('save', async function handleSaveClick(e) {
 BindListener('deletePage', function handleDeletePageClick() {
     const activePage = getActiveLi();
 
-    if (activePage && window.confirm('Remove the current page?')) {
+    if (activePage && window.confirm(m('REMOVE_PAGE'))) {
         observer.unobserve(activePage);
         activePage.remove();
     }
@@ -497,10 +930,12 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
         text: pageJson.H1,
         parent: form
     }, false);
-    if (pageJson.ITEMS !== undefined) {
+    if (pageJson.ITEMS !== undefined && typeof pageJson.ITEMS !== 'string') {
         pageJson.ITEMS.forEach(function appendItem(item) {
-            if (item.type in itemsActionsMap) {
-                form.appendChild(itemsActionsMap[item.type](draggable, item));
+            const type = item.type.toLowerCase();
+
+            if (type in itemsActionsMap) {
+                form.appendChild(itemsActionsMap[type](draggable, item));
             }
         });
     }
@@ -545,7 +980,7 @@ function renderPages(pagesJson, mount = getMount()) {
 
 // Import
 const importInput = BindListener('import', function handleImportClick(e) {
-    if (!window.confirm('This will replace the current price. Continue?')) {
+    if (!window.confirm(m('IMPORT_CONFIRM'))) {
         e.preventDefault();
     }
 }, 'click');
@@ -558,7 +993,7 @@ BindListener(importInput, function handleImportChange() {
             if (e.target && typeof e.target.result === 'string') {
                 renderPages(JSON.parse(e.target.result));
             } else {
-                window.alert("Couldn't load the file");
+                window.alert(m('FILE_LOAD_ERROR'));
             }
         };
         fileReader.readAsText(this.files[0], 'UTF-8');
@@ -709,7 +1144,7 @@ document.body.addEventListener('click', function handleClick(e) {
     const closestFieldset = clickedElement.closest('fieldset');
     const add = document.getElementById('add');
     const isBackgroundControls = closestFieldset && !clickedElement.isSameNode(closestFieldset) && closestFieldset.id === 'background';
-    // @ts-ignore
+
     if (!clickedElement.hasAttribute('contenteditable') && !['delete', 'titleAlignment'].includes(clickedElement.id)) {
         if (deleteBtn) {
             deleteBtn.hidden = true;
@@ -768,7 +1203,7 @@ window.addEventListener('change', function savePages() {
 
 const savedCopy = window.localStorage.getItem('price');
 
-if (savedCopy && savedCopy !== '{"PAGES":[{"H1":"PRICE","STYLE":{"backgroundColor":"rgb(0, 0, 0)","color":"rgb(230, 228, 200)","justifyContent":"flex-end","opacity":"0"}},{"ITEMS":[{"type":"CATEGORY","H2":"Makeup"},{"type":"SERVICE","H3":"Full face makeup application","P":"£45","SPAN":"lashes included"},{"type":"SERVICE","H3":"Eye Makeup only","P":"£30"},{"type":"SERVICE","H3":"Strip lashes","P":"£5"}],"FOOTER":"Made in Lepekhin Studio","STYLE":{"backgroundColor":"rgb(50, 50, 50)","color":"rgb(255, 255, 255)","opacity":"0.5"}}],"STYLE":{"aspectRatio":"4 / 5"}}' && window.confirm('There is a saved local copy of last price made. Do you want to load it?')) {
+if (savedCopy && savedCopy !== m('PAGES') && window.confirm(m('LOAD_CONFIRM'))) {
     renderPages(JSON.parse(savedCopy));
 } else {
     renderPages(DEFAULTS.get());
