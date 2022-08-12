@@ -145,11 +145,17 @@
             list-style: none;
             margin: 0;
             max-width: 100vw;
+            -ms-overflow-style: none;
             overflow-x: auto;
             padding: 0;
             scroll-behavior: smooth;
             scroll-snap-type: x mandatory;
+            scrollbar-width: none;
             touch-action: manipulation;
+        }
+
+        .pages::-webkit-scrollbar {
+            display: none;
         }
 
         .pages>li {
@@ -200,6 +206,10 @@
             min-height: 100%;
         }
 
+        .pages[data-aspect-ratio="4 / 5"]>li {
+            background-image: linear-gradient(transparent 10%, #111 10%, #111 90%, transparent 90%);
+        }
+
         .pages[data-aspect-ratio="4 / 5"] article>div {
             padding-bottom: 125%;
         }
@@ -235,7 +245,7 @@
         }
 
         .pages div+h2 {
-            margin-block-start: 5.5%;
+            margin-block-start: .5em;
         }
 
         .pages form div {
@@ -244,7 +254,7 @@
             font-size: 136%;
             grid-auto-flow: dense;
             grid-template-columns: 1fr auto;
-            margin-block-start: 1em;
+            margin-block-start: .7em;
             text-align: left;
         }
 
@@ -306,11 +316,15 @@
         }
 
         .pages h1:only-child,
-        .pages form:not(:has(div)) h1 {
-            font-size: min(400%);
+        .pages form:not(:has(h2)) h1 {
+            font-size: 400%;
             padding-block-end: 4%;
             padding-block-start: 10%;
             text-align: inherit;
+        }
+
+        form:has(h2, div) {
+            justify-content: flex-start !important;
         }
 
         .pages h1:not(:only-child) {
@@ -434,14 +448,13 @@
             font-size: 200%;
         }
 
-        #aspectRatio + .btn {
+        #aspectRatio+.btn {
             vertical-align: top;
         }
 
         .float {
             grid-column: 1/3;
             grid-row: 1/2;
-            z-index: 1;
         }
 
         .btn--group {
@@ -470,6 +483,32 @@
 
 <body>
     <h1 class="visually-hidden">Генератор прайса</h1>
+    <div class="settings" id="settings">
+        <span class="btn--group">
+            <button class="btn" type="button" id="save" aria-label="Сохранить картинки">🖼</button>
+            <button class="btn" type="button" id="export" aria-label="Сохранить в файл .json">📄</button>
+        </span>
+        <select class="btn" name="aspectRatio" aria-label="соотношение сторон" id="aspectRatio">
+            <option value="1 / 1">1:1</option>
+            <option value="4 / 5" selected>4:5</option>
+            <option value="9 / 16">9:16</option>
+        </select>
+        <label class="btn"><input aria-label="Сортировка" type="checkbox" name="sorting" id="sorting"> ⇅</label>
+    </div>
+    <details class="add" id="add">
+        <summary class="btn" id="addSummary">Добавить</summary>
+        <button class="btn" type="button" id="page">Страницу</button>
+        <button class="btn" type="button" id="title">Заголовок</button>
+        <button class="btn" type="button" id="category">Категорию</button>
+        <button class="btn" type="button" id="service">Услугу</button>
+        <button class="btn" type="button" id="footer">Подвал</button>
+        <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json" /><span class="btn" id="importLabel">Из JSON...</span></label>
+    </details>
+    <main>
+        <h2 class="visually-hidden">Страницы и содержимое</h2>
+        <ol id="pages" class="pages"></ol>
+        <noscript>Генератору нужен JavaScript для работы :-(</noscript>
+    </main>
     <div class="float" id="float">
         <button class="btn" type="button" id="delete" hidden>Удалить</button>
         <fieldset class="float__fieldset btn--group" id="titleAlignment" hidden>
@@ -556,32 +595,6 @@
             <button class="btn" type="button" id="moveRight" aria-label="Переместить вправо">⤻</button>
         </fieldset>
     </div>
-    <div class="settings" id="settings">
-        <span class="btn--group">
-            <button class="btn" type="button" id="save" aria-label="Сохранить картинки">🖼</button>
-            <button class="btn" type="button" id="export" aria-label="Сохранить в файл .json">📄</button>
-        </span>
-        <select class="btn" name="aspectRatio" aria-label="соотношение сторон" id="aspectRatio">
-            <option value="1 / 1">1:1</option>
-            <option value="4 / 5" selected>4:5</option>
-            <option value="9 / 16">9:16</option>
-        </select>
-        <label class="btn"><input aria-label="Сортировка" type="checkbox" name="sorting" id="sorting"> ⇅</label>
-    </div>
-    <details class="add" id="add">
-        <summary class="btn" id="addSummary">Добавить</summary>
-        <button class="btn" type="button" id="page">Страницу</button>
-        <button class="btn" type="button" id="title">Заголовок</button>
-        <button class="btn" type="button" id="category">Категорию</button>
-        <button class="btn" type="button" id="service">Услугу</button>
-        <button class="btn" type="button" id="footer">Подвал</button>
-        <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json" /><span class="btn" id="importLabel">Из JSON...</span></label>
-    </details>
-    <main>
-        <h2 class="visually-hidden">Страницы и содержимое</h2>
-        <ol id="pages" class="pages"></ol>
-        <noscript>Генератору нужен JavaScript для работы :-(</noscript>
-    </main>
     <script src="../assets/js/messages/ru.js"></script>
     <script src="../assets/js/main.js" type="module"></script>
 </body>

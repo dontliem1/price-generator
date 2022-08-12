@@ -3,7 +3,7 @@
 /**
  * @param {string} key
  */
-function m(key) { return key in messages ? messages[key] : 'text_not_found'; }
+function m(key) { return (messages && key in messages) ? messages[key] : 'text_not_found'; }
 
 class Defaults {
     constructor() {
@@ -31,17 +31,15 @@ class Defaults {
         return {
             PAGES: [{
                 H1: m('PRICE'),
+                ITEMS: m('ITEMS'),
+                FOOTER: m('EXAMPLE_FOOTER'),
                 STYLE: {
                     backgroundColor: 'rgb(0, 0, 0)',
                     backgroundImage: 'radial-gradient(rgba(255, 255, 255, .2) 0%, rgba(255, 255, 255, 0) 100%), radial-gradient(at left bottom, rgba(0, 200, 255, 1) 0%, rgba(0, 200, 255, 0) 80%), linear-gradient(135deg, rgba(50, 50, 120, 0) 0%, rgba(50, 50, 120, 0) 75%, rgba(50, 50, 120, 1) 100%), linear-gradient(75deg, rgba(100, 100, 0, 1) 0%, rgba(200, 100, 100, 1) 17%, rgba(200, 150, 40, 1) 74%, rgba(200, 100, 30, 1) 100%)',
                     color: 'rgb(230, 228, 200)',
                     justifyContent: 'flex-end',
-                    opacity: '0',
+                    opacity: '0.3',
                 },
-            }, {
-                ITEMS: m('ITEMS'),
-                FOOTER: m('EXAMPLE_FOOTER'),
-                STYLE: this.STYLE,
             }], STYLE: { aspectRatio: this.aspectRatio }
         };
     }
@@ -119,21 +117,6 @@ function getOffset(el) {
  * CONSTRUCTORS
  */
 
-function stripTagsOnDrop(e) {
-    e.preventDefault();
-
-    const text = e.dataTransfer.getData('text/plain');
-    let range = document.caretRangeFromPoint && document.caretRangeFromPoint(e.clientX, e.clientY);
-
-    if (!range && e.rangeParent) {
-        range = document.createRange();
-        range.setStart(e.rangeParent, e.rangeOffset);
-        range.setEnd(e.rangeParent, e.rangeOffset);
-    }
-
-    if (range) { range.insertNode(document.createTextNode(text)); }
-}
-
 function stripTagsOnPaste(e) {
     e.preventDefault();
 
@@ -186,7 +169,6 @@ function createEditableElement({ tag, text, parent, fromStart }, useDefaults = t
         }
     }
     elem.tabIndex = 0;
-    elem.addEventListener('drop', stripTagsOnDrop);
     elem.addEventListener('paste', stripTagsOnPaste);
 
     return elem;
@@ -199,6 +181,7 @@ let dragged = null;
 let draggedOver;
 let draggedSame;
 let draggedTarget;
+const savedCopy = window.localStorage.getItem('price');
 
 /**
  * Set effectAllowed and dropEffect to "move"
@@ -254,18 +237,6 @@ function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
     div.addEventListener("dragleave", function handleDivDragLeave(e) {
         if (!draggedSame || (draggedTarget === e.target)) { this.classList.remove('drag-over'); }
     });
-    div.addEventListener("drop", function handleDivDrop(event) {
-        const targetElement = /** @type {HTMLHeadingElement | null} */ (event.target);
-        const underDiv = targetElement &&
-            (targetElement.tagName === 'DIV' ? targetElement : targetElement.parentElement);
-
-        if (underDiv) {
-            underDiv.classList.remove("drag-over");
-            if (dragged && underDiv !== dragged && underDiv !== dragged.nextElementSibling) {
-                underDiv.insertAdjacentElement('beforebegin', dragged);
-            }
-        }
-    });
 
     return div;
 }
@@ -289,12 +260,6 @@ function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
     });
     category.addEventListener("dragleave", function handleCategoryDragLeave() {
         this.classList.remove('drag-over');
-    });
-    category.addEventListener("drop", function handleCategoryDrop() {
-        this.classList.remove("drag-over");
-        if (dragged && !dragged.isSameNode(this) && !this.isSameNode(dragged.nextElementSibling)) {
-            this.insertAdjacentElement('beforebegin', dragged);
-        }
     });
 
     return category;
@@ -599,7 +564,11 @@ function repositionDeleteBtn(element = getActiveElement()) {
             deleteBtn.style.transform = `translate(${left + Math.min(
                 0,
                 window.innerWidth - left - deleteBtn.clientWidth - 6
-            )}px, ${top + height}px)`;
+            )}px, ${top + height + Math.min(
+                0,
+                window.innerHeight - top - height - deleteBtn.clientHeight - 6
+            )}px)`;
+            // console.log();
         } else {
             deleteBtn.hidden = true;
         }
@@ -826,7 +795,6 @@ BindListener('save', async function handleSaveClick(e) {
         const link = document.createElement('a');
         const canvases = /** @type {string[]} */ ([]);
 
-        document.body.appendChild(link);
         for (const page of pages) {
             await html2canvas(page, options).then(function resolveCanvas(canvas) {
                 canvases.push(canvas.toDataURL());
@@ -920,10 +888,6 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
     const div = document.createElement('div');
     const draggable = Boolean(sorting && sorting.checked);
 
-    li.classList.toggle('active', isActive);
-    form.tabIndex = 0;
-    article.append(div, form);
-
     attachStyleFromJson({ form, div, article }, pageJson.STYLE);
     createEditableElement({
         tag: 'H1',
@@ -945,6 +909,9 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
         parent: form
     }, false);
     observer.observe(li);
+    li.classList.toggle('active', isActive);
+    form.tabIndex = 0;
+    article.append(div, form);
     li.appendChild(article);
 
     return li;
@@ -976,6 +943,13 @@ function renderPages(pagesJson, mount = getMount()) {
         mount.textContent = '';
         mount.append(...pages);
     }
+}
+
+if (savedCopy && savedCopy !== m('PAGES') && window.confirm(m('LOAD_CONFIRM'))) {
+    renderPages(JSON.parse(savedCopy));
+} else {
+    renderPages(DEFAULTS.get());
+    window.localStorage.removeItem('price');
 }
 
 // Import
@@ -1094,8 +1068,43 @@ const resizeObserver = new ResizeObserver(function handleResize() {
     repositionTitleAlignment();
 });
 
+resizeObserver.observe(document.body);
+
 if (mount) {
-    resizeObserver.observe(document.body);
+    mount.addEventListener("drop", function handleDivDrop(event) {
+        event.preventDefault();
+
+        const targetElement = /** @type {HTMLHeadingElement | null} */ (event.target);
+        const underDiv = targetElement &&
+            (targetElement.tagName === 'DIV' ? targetElement : targetElement.parentElement);
+        const text = event.dataTransfer ? event.dataTransfer.getData('text/plain') : '';
+        let range = document.caretRangeFromPoint && document.caretRangeFromPoint(event.clientX, event.clientY);
+
+        // @ts-ignore
+        if (!range && event.rangeParent) {
+            range = document.createRange();
+            // @ts-ignore
+            range.setStart(event.rangeParent, event.rangeOffset);
+            // @ts-ignore
+            range.setEnd(event.rangeParent, event.rangeOffset);
+        }
+
+        if (range) { range.insertNode(document.createTextNode(text)); }
+
+        if (underDiv) {
+            underDiv.classList.remove("drag-over");
+            if (dragged && underDiv !== dragged && underDiv !== dragged.nextElementSibling) {
+                underDiv.insertAdjacentElement('beforebegin', dragged);
+            }
+        }
+
+        if (targetElement && targetElement.tagName === 'H2') {
+            targetElement.classList.remove("drag-over");
+            if (dragged && !dragged.isSameNode(targetElement) && !targetElement.isSameNode(dragged.nextElementSibling)) {
+                targetElement.insertAdjacentElement('beforebegin', dragged);
+            }
+        }
+    });
     mount.addEventListener('focusin', function handleFormFocusIn(e) {
         const focusedElement = /** @type {HTMLElement} */ (e.target);
         const form = /** @type {HTMLFormElement} */ (focusedElement.closest('form'));
@@ -1145,7 +1154,7 @@ document.body.addEventListener('click', function handleClick(e) {
     const add = document.getElementById('add');
     const isBackgroundControls = closestFieldset && !clickedElement.isSameNode(closestFieldset) && closestFieldset.id === 'background';
 
-    if (!clickedElement.hasAttribute('contenteditable') && !['delete', 'titleAlignment'].includes(clickedElement.id)) {
+    if (!clickedElement.hasAttribute('contenteditable') && !['delete', 'titleAlignment', 'textAlign', 'justifyContent'].includes(clickedElement.id)) {
         if (deleteBtn) {
             deleteBtn.hidden = true;
         }
@@ -1200,12 +1209,3 @@ document.body.addEventListener('keyup', function sortWithArrows(e) {
 window.addEventListener('change', function savePages() {
     window.localStorage.setItem('price', parsePages());
 });
-
-const savedCopy = window.localStorage.getItem('price');
-
-if (savedCopy && savedCopy !== m('PAGES') && window.confirm(m('LOAD_CONFIRM'))) {
-    renderPages(JSON.parse(savedCopy));
-} else {
-    renderPages(DEFAULTS.get());
-    window.localStorage.removeItem('price');
-}

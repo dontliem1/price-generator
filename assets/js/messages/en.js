@@ -7,31 +7,39 @@ const messages = {
     P: 'Price',
     SPAN: 'Service description',
     FOOTER: 'Page footer',
-    PRICE: 'PRICE',
+    PRICE: 'PRICE MAKER',
     ITEMS: [
-        { type: 'CATEGORY', H2: 'Makeup' },
         {
-            type: 'SERVICE',
-            H3: 'Full face makeup application',
-            P: '£45',
-            SPAN: 'lashes included',
+            type: "SERVICE",
+            SPAN: "Welcome to our handy image constructor!"
         },
         {
-            type: 'SERVICE',
-            H3: 'Eye Makeup only',
-            P: '£30',
+            type: "CATEGORY",
+            H2: "A few buttons"
         },
         {
-            type: 'SERVICE',
-            H3: 'Strip lashes',
-            P: '£5',
+            type: "SERVICE",
+            H3: "Export to image(s)",
+            P: "🖼"
         },
+        {
+            type: "SERVICE",
+            H3: "Export to .json file",
+            P: "📄",
+            SPAN: "You can import it later to load your project"
+        },
+        {
+            type: "SERVICE",
+            H3: "Toggle sorting mode",
+            P: "⇅",
+            SPAN: "Try it now and drag and drop these hints!"
+        }
     ],
-    EXAMPLE_FOOTER: 'Show this image to administrator to get 5% off',
+    EXAMPLE_FOOTER: "To change font, colors and image, tap on the background",
     FILE_LOAD_ERROR: "Couldn't load the file",
     REMOVE_ELEMENT: 'Remove element',
     REMOVE_PAGE: 'Remove the current page?',
     IMPORT_CONFIRM: 'This will replace the current price. Continue?',
     LOAD_CONFIRM: 'There is a saved local copy of last price made without images. Do you want to load it?',
-    PAGES: '{"PAGES":[{"H1":"PRICE","STYLE":{"backgroundColor":"rgb(0, 0, 0)","color":"rgb(230, 228, 200)","justifyContent":"flex-end","opacity":"0"}},{"ITEMS":[{"type":"CATEGORY","H2":"Makeup"},{"type":"SERVICE","H3":"Full face makeup application","P":"£45","SPAN":"lashes included"},{"type":"SERVICE","H3":"Eye Makeup only","P":"£30"},{"type":"SERVICE","H3":"Strip lashes","P":"£5"}],"FOOTER":"Made in Lepekhin Studio","STYLE":{"backgroundColor":"rgb(50, 50, 50)","color":"rgb(255, 255, 255)","opacity":"0.5"}}],"STYLE":{"aspectRatio":"4 / 5"}}',
+    PAGES: '{"PAGES":[{"H1":"PRICE MAKER","ITEMS":[{"type":"SERVICE","SPAN":"Welcome to our handy image constructor!"},{"type":"CATEGORY","H2":"A few buttons"},{"type":"SERVICE","H3":"Export to image(s)","P":"🖼"},{"type":"SERVICE","H3":"Export to .json file","P":"📄","SPAN":"You can import it later to load your project"},{"type":"SERVICE","H3":"Toggle sorting mode","P":"⇅","SPAN":"Try it now and drag and drop these hints!"}],"FOOTER":"To change font, colors and image, tap on the background","STYLE":{"backgroundColor":"rgb(0, 0, 0)","color":"rgb(230, 228, 200)","justifyContent":"flex-end","opacity":"0.3"}}],"STYLE":{"aspectRatio":"4 / 5"}}',
 };
