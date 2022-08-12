@@ -574,12 +574,17 @@ function repositionDeleteBtn(element = getActiveElement()) {
         }
     }
 }
-
+function truncate(str) {
+    if (!str.trim()) {
+        return '';
+    }
+    return '"' + (str.length > 10 ? str.substring(0, 10) + '...' : str) + '"';
+}
 BindListener(deleteBtn, function handleDeleteClick() {
     const activeElement = getActiveElement();
 
     if (activeElement && window.confirm(
-        `${m('REMOVE_ELEMENT')}${activeElement.innerText.trim() ? (' "' + activeElement.innerText + '"') : ''}?`)
+        `${m('REMOVE_ELEMENT')}${truncate(activeElement.innerText)}?`)
     ) {
         const parent = activeElement.parentElement;
 
@@ -1070,13 +1075,22 @@ const resizeObserver = new ResizeObserver(function handleResize() {
 
 resizeObserver.observe(document.body);
 
+function getDraggable(element) {
+    let parentElement = element;
+
+    while (parentElement && !parentElement.draggable) {
+        parentElement = parentElement.parentElement;
+    }
+
+    return parentElement;
+}
+
 if (mount) {
     mount.addEventListener("drop", function handleDivDrop(event) {
         event.preventDefault();
 
         const targetElement = /** @type {HTMLHeadingElement | null} */ (event.target);
-        const underDiv = targetElement &&
-            (targetElement.tagName === 'DIV' ? targetElement : targetElement.parentElement);
+        const draggable = getDraggable(targetElement);
         const text = event.dataTransfer ? event.dataTransfer.getData('text/plain') : '';
         let range = document.caretRangeFromPoint && document.caretRangeFromPoint(event.clientX, event.clientY);
 
@@ -1091,17 +1105,10 @@ if (mount) {
 
         if (range) { range.insertNode(document.createTextNode(text)); }
 
-        if (underDiv) {
-            underDiv.classList.remove("drag-over");
-            if (dragged && underDiv !== dragged && underDiv !== dragged.nextElementSibling) {
-                underDiv.insertAdjacentElement('beforebegin', dragged);
-            }
-        }
-
-        if (targetElement && targetElement.tagName === 'H2') {
-            targetElement.classList.remove("drag-over");
-            if (dragged && !dragged.isSameNode(targetElement) && !targetElement.isSameNode(dragged.nextElementSibling)) {
-                targetElement.insertAdjacentElement('beforebegin', dragged);
+        if (draggable) {
+            draggable.classList.remove("drag-over");
+            if (dragged && !dragged.isSameNode(draggable) && !draggable.isSameNode(dragged.nextElementSibling)) {
+                draggable.insertAdjacentElement('beforebegin', dragged);
             }
         }
     });

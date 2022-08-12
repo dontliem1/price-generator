@@ -164,6 +164,10 @@
             scroll-snap-align: center;
         }
 
+        .pages ul {
+            list-style-type: disc;
+        }
+
         /* Price */
         .pages article {
             aspect-ratio: 1 / 1;
@@ -253,7 +257,7 @@
             margin-block-start: .5em;
         }
 
-        .pages form div {
+        .pages form>div {
             align-items: end;
             display: grid;
             font-size: 136%;
@@ -261,6 +265,10 @@
             grid-template-columns: 1fr auto;
             margin-block-start: .7em;
             text-align: left;
+        }
+
+        .pages form>h1+div {
+            margin-block-start: .4em;
         }
 
         .pages [draggable] {
