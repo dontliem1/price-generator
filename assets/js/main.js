@@ -1182,6 +1182,10 @@ document.body.addEventListener('click', function handleClick(e) {
     if (add && clickedElement.id !== 'addSummary') {
         add.removeAttribute('open');
     }
+
+    if (clickedElement.id) {
+        ym(89949856,'reachGoal', clickedElement.id);
+    }
 });
 
 document.body.addEventListener('keyup', function sortWithArrows(e) {
