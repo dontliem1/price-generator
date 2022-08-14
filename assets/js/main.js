@@ -1184,7 +1184,7 @@ document.body.addEventListener('click', function handleClick(e) {
     }
 
     if (clickedElement.id) {
-        ym(89949856,'reachGoal', clickedElement.id);
+        ym(89949856, 'reachGoal', clickedElement.id);
     }
 });
 
@@ -1220,3 +1220,9 @@ document.body.addEventListener('keyup', function sortWithArrows(e) {
 window.addEventListener('change', function savePages() {
     window.localStorage.setItem('price', parsePages());
 });
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+        navigator.serviceWorker.register("/sw.js");
+    });
+}
