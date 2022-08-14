@@ -3,9 +3,4 @@
 
 A tool for building elegant pictures with text for social networks.
 
-Built on vanilla HTML, CSS and JS.
-
-## Roadmap
-
-- Multi languages
-- Service worker for offline work
+Built on vanilla HTML, CSS and JS with help of [DragDropTouch](https://github.com/Bernardo-Castilho/dragdroptouch), [html2canvas](https://github.com/niklasvh/html2canvas) and [Workbox](https://github.com/GoogleChrome/workbox).
