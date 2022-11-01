@@ -52,7 +52,6 @@ const ITEMS_TAGS = ['H2', 'H3', 'SPAN', 'P'];
 /** @type {ReadonlyArray<'H1'| 'FOOTER'>} */
 const HEADER_TAGS = ['H1', 'FOOTER'];
 
-
 /**
  * GETTERS
  */
@@ -116,33 +115,6 @@ function getOffset(el) {
 /**
  * CONSTRUCTORS
  */
-
-function stripTagsOnPaste(e) {
-    e.preventDefault();
-
-    const text = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
-    const oldSelection = document.getSelection();
-
-    if (oldSelection) {
-        const range = oldSelection.getRangeAt(0);
-
-        range.deleteContents();
-
-        const textNode = document.createTextNode(text);
-
-        range.insertNode(textNode);
-        range.selectNodeContents(textNode);
-        range.collapse(false);
-
-        const selection = window.getSelection();
-
-        if (selection) {
-            selection.removeAllRanges();
-            selection.addRange(range);
-        }
-    }
-}
-
 /**
 * @param {Object} params
 * @param {EditableTags} params.tag
@@ -169,7 +141,6 @@ function createEditableElement({ tag, text, parent, fromStart }, useDefaults = t
         }
     }
     elem.tabIndex = 0;
-    elem.addEventListener('paste', stripTagsOnPaste);
 
     return elem;
 }
@@ -182,25 +153,22 @@ let draggedOver;
 let draggedSame;
 let draggedTarget;
 const savedCopy = window.localStorage.getItem('price');
-
 /**
- * Set effectAllowed and dropEffect to "move"
- * @param {Event} event - The event object.
+ * @param {DragEvent} e
  */
-function handleDragStart(event) {
-    dragged = /** @type {HTMLDivElement | HTMLHeadingElement} */ (event.target);
+function handleServiceDragEnter(e) {
+    if (dragged && dragged.nextElementSibling !== this) {
+        this.classList.add('drag-over');
+    }
+    draggedSame = this === draggedOver;
+    draggedOver = this;
+    draggedTarget = e.target;
 }
 /**
- * Set the dragged variable to null.
+ * @param {DragEvent} e
  */
-function handleDragEnd() {
-    dragged = null;
-}
-/**
- * Allow drop.
- */
-function handleDragOver(event) {
-    event.preventDefault();
+function handleServiceDragLeave(e) {
+    if (!draggedSame || (draggedTarget === e.target)) { this.classList.remove('drag-over'); }
 }
 
 /**
@@ -223,22 +191,16 @@ function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
             }, false);
         }
     }
-    div.addEventListener("dragstart", handleDragStart);
-    div.addEventListener("dragend", handleDragEnd);
-    div.addEventListener("dragover", handleDragOver, false);
-    div.addEventListener("dragenter", function handleDivDragEnter(e) {
-        if (dragged && dragged.nextElementSibling !== this) {
-            this.classList.add('drag-over');
-        }
-        draggedSame = this === draggedOver;
-        draggedOver = this;
-        draggedTarget = e.target;
-    });
-    div.addEventListener("dragleave", function handleDivDragLeave(e) {
-        if (!draggedSame || (draggedTarget === e.target)) { this.classList.remove('drag-over'); }
-    });
+    div.addEventListener("dragenter", handleServiceDragEnter);
+    div.addEventListener("dragleave", handleServiceDragLeave);
 
     return div;
+}
+function handleCategoryDragEnter() {
+    if (dragged && dragged.nextElementSibling !== this) { this.classList.add('drag-over'); }
+}
+function handleCategoryDragLeave() {
+    this.classList.remove('drag-over');
 }
 /**
  * @param {boolean} draggable
@@ -252,15 +214,8 @@ function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
     }, false));
 
     category.draggable = draggable;
-    category.addEventListener("dragstart", handleDragStart);
-    category.addEventListener("dragend", handleDragEnd);
-    category.addEventListener("dragover", handleDragOver, false);
-    category.addEventListener("dragenter", function handleCategoryDragEnter() {
-        if (dragged && dragged.nextElementSibling !== this) { this.classList.add('drag-over'); }
-    });
-    category.addEventListener("dragleave", function handleCategoryDragLeave() {
-        this.classList.remove('drag-over');
-    });
+    category.addEventListener("dragenter", handleCategoryDragEnter);
+    category.addEventListener("dragleave", handleCategoryDragLeave);
 
     return category;
 }
@@ -588,8 +543,14 @@ BindListener(deleteBtn, function handleDeleteClick() {
     ) {
         const parent = activeElement.parentElement;
 
+        if (activeElement.tagName === 'H2') {
+            activeElement.removeEventListener('dragenter', handleCategoryDragEnter);
+            activeElement.removeEventListener('dragleave', handleCategoryDragLeave);
+        }
         activeElement.remove();
         if (parent && parent.tagName === 'DIV' && !parent.innerText.trim()) {
+            parent.removeEventListener('dragenter', handleServiceDragEnter);
+            parent.removeEventListener('dragleave', handleServiceDragLeave);
             parent.remove();
         }
         this.hidden = true;
@@ -843,6 +804,18 @@ BindListener('deletePage', function handleDeletePageClick() {
     const activePage = getActiveLi();
 
     if (activePage && window.confirm(m('REMOVE_PAGE'))) {
+        const categories = activePage.getElementsByTagName('h2');
+        const services = activePage.getElementsByTagName('div');
+
+        for (const category of categories) {
+            category.removeEventListener('dragenter', handleCategoryDragEnter);
+            category.removeEventListener('dragleave', handleCategoryDragLeave);
+        }
+
+        for (const service of services) {
+            service.removeEventListener('dragenter', handleServiceDragEnter);
+            service.removeEventListener('dragleave', handleServiceDragLeave);
+        }
         observer.unobserve(activePage);
         activePage.remove();
     }
@@ -1153,6 +1126,40 @@ if (mount) {
             });
         }
     });
+    mount.addEventListener('paste', function stripTagsOnPaste(e) {
+        e.preventDefault();
+
+        const text = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
+        const oldSelection = document.getSelection();
+
+        if (oldSelection) {
+            const range = oldSelection.getRangeAt(0);
+
+            range.deleteContents();
+
+            const textNode = document.createTextNode(text);
+
+            range.insertNode(textNode);
+            range.selectNodeContents(textNode);
+            range.collapse(false);
+
+            const selection = window.getSelection();
+
+            if (selection) {
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        }
+    });
+    mount.addEventListener("dragstart", function handleDragStart(event) {
+        dragged = /** @type {HTMLDivElement | HTMLHeadingElement} */ (event.target);
+    });
+    mount.addEventListener("dragend", function handleDragEnd() {
+        dragged = null;
+    });
+    mount.addEventListener("dragover", function handleDragOver(event) {
+        event.preventDefault();
+    }, false);
 }
 
 document.body.addEventListener('click', function handleClick(e) {

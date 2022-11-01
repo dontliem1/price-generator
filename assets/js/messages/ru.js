@@ -7,7 +7,7 @@ const messages = {
     P: 'Цена',
     SPAN: 'Описание услуги',
     FOOTER: 'Дополнительный текст',
-    PRICE: 'ГЕНЕРАТОР ПРАЙСА',
+    PRICE: 'РУТИНА',
     ITEMS: [
         {
             type: "SERVICE",
