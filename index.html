@@ -311,8 +311,13 @@
             outline: none;
         }
 
+        .pages [draggable="true"]:focus-within *:focus,
         .pages [draggable="true"]:active * {
             outline: none;
+        }
+
+        .pages [draggable="true"]:focus-within {
+            outline: auto;
         }
 
         .drag-over:not(:active) {

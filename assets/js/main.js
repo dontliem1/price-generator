@@ -1221,6 +1221,7 @@ document.body.addEventListener('keyup', function sortWithArrows(e) {
 
                 break;
         }
+        targetElement.focus();
     }
 });
 
