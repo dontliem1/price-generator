@@ -51,6 +51,7 @@ const DEFAULTS = new Defaults();
 const ITEMS_TAGS = ['H2', 'H3', 'SPAN', 'P'];
 /** @type {ReadonlyArray<'H1'| 'FOOTER'>} */
 const HEADER_TAGS = ['H1', 'FOOTER'];
+const DRAG_OVER_CLASSNAMES = ["drag-over--before", "drag-over--after"];
 
 /**
  * GETTERS
@@ -156,19 +157,41 @@ const savedCopy = window.localStorage.getItem('price');
 /**
  * @param {DragEvent} e
  */
-function handleServiceDragEnter(e) {
-    if (dragged && dragged.nextElementSibling !== this) {
-        this.classList.add('drag-over');
+function handleDragEnter(e) {
+    const activeForm = getActiveForm();
+
+    if (dragged && activeForm && e.currentTarget instanceof HTMLElement) {
+        let hoverClass = DRAG_OVER_CLASSNAMES[0];
+
+        for (let i = 0; i < activeForm.children.length; i++) {
+            if (e.currentTarget.isSameNode(activeForm.children[i])) {
+                break;
+            }
+            if (dragged.isSameNode(activeForm.children[i])) {
+                hoverClass = DRAG_OVER_CLASSNAMES[1];
+
+                break;
+            }
+        }
+        e.currentTarget.classList.add(hoverClass);
     }
-    draggedSame = this === draggedOver;
-    draggedOver = this;
+}
+/**
+ * @param {DragEvent} e
+ */
+function handleServiceDragEnter(e) {
+    handleDragEnter(e);
+    draggedSame = e.currentTarget === draggedOver;
+    draggedOver = e.currentTarget ;
     draggedTarget = e.target;
 }
 /**
  * @param {DragEvent} e
  */
 function handleServiceDragLeave(e) {
-    if (!draggedSame || (draggedTarget === e.target)) { this.classList.remove('drag-over'); }
+    if (e.currentTarget instanceof HTMLDivElement && (!draggedSame || (draggedTarget === e.target))) {
+        e.currentTarget.classList.remove(...DRAG_OVER_CLASSNAMES);
+    }
 }
 
 /**
@@ -196,11 +219,13 @@ function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
 
     return div;
 }
-function handleCategoryDragEnter() {
-    if (dragged && dragged.nextElementSibling !== this) { this.classList.add('drag-over'); }
-}
-function handleCategoryDragLeave() {
-    this.classList.remove('drag-over');
+/**
+ * @param {DragEvent} e
+ */
+function handleCategoryDragLeave(e) {
+    if (e.currentTarget instanceof HTMLHeadingElement) {
+        e.currentTarget.classList.remove(...DRAG_OVER_CLASSNAMES);
+    }
 }
 /**
  * @param {boolean} draggable
@@ -214,7 +239,7 @@ function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
     }, false));
 
     category.draggable = draggable;
-    category.addEventListener("dragenter", handleCategoryDragEnter);
+    category.addEventListener("dragenter", handleDragEnter);
     category.addEventListener("dragleave", handleCategoryDragLeave);
 
     return category;
@@ -245,6 +270,7 @@ function parseStyles({ page, form, div }, parseImages) {
         if (!parseImages && prop === 'backgroundImage') {
             return false;
         }
+
         return value;
     }));
 }
@@ -320,6 +346,7 @@ function parsePages(parseImages) {
     for (const page of pages) {
         json.PAGES.push(parsePage(page, parseImages));
     }
+
     return JSON.stringify(json);
 }
 
@@ -352,10 +379,9 @@ function BindListener(element, callback, eventType = 'change') {
  */
 function handleArticleStylePropChange(e) {
     const activeArticle = getActiveArticle();
-    const control = /** @type {HTMLInputElement | HTMLSelectElement} */ (e.target);
 
-    if (activeArticle && control) {
-        activeArticle.style[control.name] = control.value;
+    if (activeArticle && (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement)) {
+        activeArticle.style[e.target.name] = e.target.value;
     }
 }
 
@@ -365,10 +391,9 @@ function handleArticleStylePropChange(e) {
  */
 function handleFormStylePropChange(e) {
     const activeForm = getActiveForm();
-    const control = /** @type {HTMLInputElement | HTMLSelectElement} */ (e.target);
 
-    if (activeForm) {
-        activeForm.style[control.name] = control.value;
+    if (activeForm && (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement)) {
+        activeForm.style[e.target.name] = e.target.value;
     }
 }
 
@@ -533,6 +558,7 @@ function truncate(str) {
     if (!str.trim()) {
         return '';
     }
+
     return '"' + (str.length > 10 ? str.substring(0, 10) + '...' : str) + '"';
 }
 BindListener(deleteBtn, function handleDeleteClick() {
@@ -544,7 +570,7 @@ BindListener(deleteBtn, function handleDeleteClick() {
         const parent = activeElement.parentElement;
 
         if (activeElement.tagName === 'H2') {
-            activeElement.removeEventListener('dragenter', handleCategoryDragEnter);
+            activeElement.removeEventListener('dragenter', handleDragEnter);
             activeElement.removeEventListener('dragleave', handleCategoryDragLeave);
         }
         activeElement.remove();
@@ -748,7 +774,7 @@ function checkBasicFileShare() {
 BindListener('save', async function handleSaveClick(e) {
     const saveBtn = /** @type {HTMLButtonElement} */ (e.currentTarget);
 
-    if (saveBtn) { saveBtn.disabled = true; }
+    saveBtn.disabled = true;
 
     await import('./vendors/html2canvas.min.js');
 
@@ -808,7 +834,7 @@ BindListener('deletePage', function handleDeletePageClick() {
         const services = activePage.getElementsByTagName('div');
 
         for (const category of categories) {
-            category.removeEventListener('dragenter', handleCategoryDragEnter);
+            category.removeEventListener('dragenter', handleDragEnter);
             category.removeEventListener('dragleave', handleCategoryDragLeave);
         }
 
@@ -818,6 +844,10 @@ BindListener('deletePage', function handleDeletePageClick() {
         }
         observer.unobserve(activePage);
         activePage.remove();
+
+        if (background) {
+            background.hidden = true;
+        }
     }
 }, 'click');
 
@@ -1048,23 +1078,12 @@ const resizeObserver = new ResizeObserver(function handleResize() {
 
 resizeObserver.observe(document.body);
 
-function getDraggable(element) {
-    let parentElement = element;
-
-    while (parentElement && !parentElement.draggable) {
-        parentElement = parentElement.parentElement;
-    }
-
-    return parentElement;
-}
-
 if (mount) {
     mount.addEventListener("drop", function handleDivDrop(event) {
         event.preventDefault();
 
-        const targetElement = /** @type {HTMLHeadingElement | null} */ (event.target);
-        const draggable = getDraggable(targetElement);
         const text = event.dataTransfer ? event.dataTransfer.getData('text/plain') : '';
+        let dropZone = event.target;
         let range = document.caretRangeFromPoint && document.caretRangeFromPoint(event.clientX, event.clientY);
 
         // @ts-ignore
@@ -1078,11 +1097,15 @@ if (mount) {
 
         if (range) { range.insertNode(document.createTextNode(text)); }
 
-        if (draggable) {
-            draggable.classList.remove("drag-over");
-            if (dragged && !dragged.isSameNode(draggable) && !draggable.isSameNode(dragged.nextElementSibling)) {
-                draggable.insertAdjacentElement('beforebegin', dragged);
+        while (dropZone && dropZone instanceof HTMLElement && !dropZone.draggable) {
+            dropZone = dropZone.parentElement;
+        }
+
+        if (dropZone instanceof HTMLElement) {
+            if (dragged && !dragged.isSameNode(dropZone)) {
+                dropZone.insertAdjacentElement(dropZone.classList.contains(DRAG_OVER_CLASSNAMES[0]) ? 'beforebegin' : 'afterend', dragged);
             }
+            dropZone.classList.remove(...DRAG_OVER_CLASSNAMES);
         }
     });
     mount.addEventListener('focusin', function handleFormFocusIn(e) {
@@ -1190,7 +1213,7 @@ document.body.addEventListener('click', function handleClick(e) {
         add.removeAttribute('open');
     }
 
-    if (clickedElement.id) {
+    if (clickedElement.id && typeof ym === 'function') {
         ym(89949856, 'reachGoal', clickedElement.id);
     }
 });
@@ -1225,7 +1248,7 @@ document.body.addEventListener('keyup', function sortWithArrows(e) {
     }
 });
 
-window.addEventListener('change', function savePages() {
+document.body.addEventListener('change', function savePages() {
     window.localStorage.setItem('price', parsePages());
 });
 

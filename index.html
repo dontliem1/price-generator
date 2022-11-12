@@ -254,7 +254,6 @@
         .pages h2 {
             font-size: 227%;
             text-align: start;
-            touch-action: none;
         }
 
         .pages div+h2 {
@@ -320,9 +319,13 @@
             outline: auto;
         }
 
-        .drag-over:not(:active) {
+        .drag-over--before:not(:active) {
             opacity: .5;
             box-shadow: 0 -2px;
+        }
+        .drag-over--after:not(:active) {
+            opacity: .5;
+            box-shadow: 0 2px;
         }
 
         .pages h1,
@@ -507,15 +510,15 @@
     <h1 class="visually-hidden">Rutina, the price constructor</h1>
     <div class="settings" id="settings">
         <span class="btn--group">
-            <button class="btn" type="button" id="save" aria-label="Export to image(s)">🖼</button>
-            <button class="btn" type="button" id="export" aria-label="Export to file">📄</button>
+            <button class="btn" type="button" id="save" title="Export to image(s)" aria-label="Export to image(s)">🖼</button>
+            <button class="btn" type="button" id="export" title="Export to file" aria-label="Export to file">📄</button>
         </span>
-        <select class="btn" name="aspectRatio" aria-label="Aspect ratio" id="aspectRatio">
+        <select class="btn" name="aspectRatio" title="Aspect ratio" aria-label="Aspect ratio" id="aspectRatio">
             <option value="1 / 1">1:1</option>
             <option value="4 / 5" selected>4:5</option>
             <option value="9 / 16">9:16</option>
         </select>
-        <label class="btn"><input aria-label="Sorting mode" type="checkbox" name="sorting" id="sorting"> ⇅</label>
+        <label class="btn" title="Sort mode"><input aria-label="Sort mode" type="checkbox" name="sorting" id="sorting"> ⇅</label>
     </div>
     <details class="add" id="add">
         <summary class="btn" id="addSummary">Add</summary>
@@ -548,8 +551,8 @@
         </fieldset>
         <fieldset class="float__fieldset" id="background" hidden>
             <legend class="visually-hidden">Page settings</legend>
-            <label class="btn"><input type="color" name="color" id="color" aria-label="Text"> Aa</label>
-            <select class="btn" name="fontFamily" aria-label="Font" id="fontFamily">
+            <label class="btn" title="Text color"><input type="color" name="color" id="color" aria-label="Text"> Aa</label>
+            <select class="btn" name="fontFamily" title="Font" aria-label="Font" id="fontFamily">
                 <option value="system-ui, sans-serif" selected>System font</option>
                 <optgroup label="Serif">
                     <option value='Alegreya, serif'>Alegreya</option>
@@ -604,17 +607,17 @@
                 </optgroup>
             </select>
             <br>
-            <label class="btn"><input type="color" name="backgroundColor" id="backgroundColor"> Bg</label>
+            <label class="btn" title="Backgorund color"><input type="color" name="backgroundColor" id="backgroundColor"> Bg</label>
             <label class="btn fd-c">Transparency<input type="range" name="opacity" min="0" max="1" step="0.1" id="opacity"></label>
             <span class="btn--group">
-                <label class="file"><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span class="btn">Image</span></label>
-                <button class="btn" type="button" id="deleteBackgroundImage" aria-label="Remove image">╳</button>
+                <label class="file" title="Change background image"><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span class="btn">Image</span></label>
+                <button class="btn" type="button" id="deleteBackgroundImage" aria-label="Remove background image" title="Remove background image">╳</button>
             </span>
             <br>
-            <button class="btn" type="button" id="deletePage">Remove</button>
-            <button class="btn" type="button" id="duplicate" aria-label="Duplicate">Duplicate</button>
-            <button class="btn" type="button" id="moveLeft" aria-label="Move left">⤺</button>
-            <button class="btn" type="button" id="moveRight" aria-label="Move right">⤻</button>
+            <button class="btn" type="button" id="deletePage" aria-label="Remove page">Remove</button>
+            <button class="btn" type="button" id="duplicate" aria-label="Duplicate page">Duplicate</button>
+            <button class="btn" type="button" id="moveLeft" aria-label="Move page left" title="Move page left">⤺</button>
+            <button class="btn" type="button" id="moveRight" aria-label="Move page right" title="Move page right">⤻</button>
         </fieldset>
     </div>
     <script>(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)}; m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)}) (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym"); ym(89949856, "init", { clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true }); </script>

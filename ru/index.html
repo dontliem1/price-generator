@@ -254,7 +254,6 @@
         .pages h2 {
             font-size: 227%;
             text-align: start;
-            touch-action: none;
         }
 
         .pages div+h2 {
@@ -320,9 +319,13 @@
             outline: auto;
         }
 
-        .drag-over:not(:active) {
+        .drag-over--before:not(:active) {
             opacity: .5;
             box-shadow: 0 -2px;
+        }
+        .drag-over--after:not(:active) {
+            opacity: .5;
+            box-shadow: 0 2px;
         }
 
         .pages h1,
@@ -507,15 +510,15 @@
     <h1 class="visually-hidden">Рутина — генератор прайса</h1>
     <div class="settings" id="settings">
         <span class="btn--group">
-            <button class="btn" type="button" id="save" aria-label="Сохранить картинки">🖼</button>
-            <button class="btn" type="button" id="export" aria-label="Сохранить в файл .json">📄</button>
+            <button class="btn" type="button" id="save" title="Сохранить картинки" aria-label="Сохранить картинки">🖼</button>
+            <button class="btn" type="button" id="export" title="Сохранить в файл .json" aria-label="Сохранить в файл .json">📄</button>
         </span>
-        <select class="btn" name="aspectRatio" aria-label="соотношение сторон" id="aspectRatio">
+        <select class="btn" name="aspectRatio" title="Соотношение сторон" aria-label="Cоотношение сторон" id="aspectRatio">
             <option value="1 / 1">1:1</option>
             <option value="4 / 5" selected>4:5</option>
             <option value="9 / 16">9:16</option>
         </select>
-        <label class="btn"><input aria-label="Сортировка" type="checkbox" name="sorting" id="sorting"> ⇅</label>
+        <label class="btn"><input title="Режим сортировки" aria-label="Режим сортировки" type="checkbox" name="sorting" id="sorting"> ⇅</label>
     </div>
     <details class="add" id="add">
         <summary class="btn" id="addSummary">Добавить</summary>
@@ -549,7 +552,7 @@
         <fieldset class="float__fieldset" id="background" hidden>
             <legend class="visually-hidden">Настройки страницы</legend>
             <label class="btn"><input type="color" name="color" id="color"> Текст</label>
-            <select class="btn" name="fontFamily" aria-label="Шрифт" id="fontFamily">
+            <select class="btn" name="fontFamily" title="Шрифт" aria-label="Шрифт" id="fontFamily">
                 <option value="system-ui, sans-serif" selected>Системный шрифт</option>
                 <optgroup label="Serif">
                     <option value='Alegreya, serif'>Alegreya</option>
@@ -607,14 +610,14 @@
             <label class="btn"><input type="color" name="backgroundColor" id="backgroundColor"> Фон</label>
             <label class="btn fd-c">Прозрачность<input type="range" name="opacity" min="0" max="1" step="0.1" id="opacity"></label>
             <span class="btn--group">
-                <label class="file"><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span class="btn">Картинка</span></label>
-                <button class="btn" type="button" id="deleteBackgroundImage" aria-label="Удалить картинку">╳</button>
+                <label class="file" title="Сменить картинку"><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span class="btn">Картинка</span></label>
+                <button class="btn" type="button" id="deleteBackgroundImage" title="Удалить картинку" aria-label="Удалить картинку">╳</button>
             </span>
             <br>
-            <button class="btn" type="button" id="deletePage">Удалить</button>
-            <button class="btn" type="button" id="duplicate">Дублировать</button>
-            <button class="btn" type="button" id="moveLeft" aria-label="Переместить влево">⤺</button>
-            <button class="btn" type="button" id="moveRight" aria-label="Переместить вправо">⤻</button>
+            <button class="btn" type="button" id="deletePage" title="Удалить страницу" aria-label="Удалить страницу">Удалить</button>
+            <button class="btn" type="button" id="duplicate" title="Дублировать страницу" aria-label="Дублировать страницу">Дублировать</button>
+            <button class="btn" type="button" id="moveLeft" aria-label="Переместить страницу влево" title="Переместить страницу влево">⤺</button>
+            <button class="btn" type="button" id="moveRight" aria-label="Переместить страницу вправо" title="Переместить страницу вправо">⤻</button>
         </fieldset>
     </div>
     <script>(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)}; m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)}) (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym"); ym(89949856, "init", { clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true }); </script>
