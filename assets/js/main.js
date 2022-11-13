@@ -182,7 +182,7 @@ function handleDragEnter(e) {
 function handleServiceDragEnter(e) {
     handleDragEnter(e);
     draggedSame = e.currentTarget === draggedOver;
-    draggedOver = e.currentTarget ;
+    draggedOver = e.currentTarget;
     draggedTarget = e.target;
 }
 /**
@@ -1250,6 +1250,20 @@ document.body.addEventListener('keyup', function sortWithArrows(e) {
 
 document.body.addEventListener('change', function savePages() {
     window.localStorage.setItem('price', parsePages());
+});
+
+document.body.addEventListener('copy', async function handleCopyText(e) {
+    if (e.target instanceof HTMLElement) {
+        await import('./vendors/html2canvas.min.js');
+
+        await html2canvas(e.target, { backgroundColor: 'transparent', scale: 1 }).then(
+            function resolveCanvas(/** @type {HTMLCanvasElement} */ canvas) {
+                if (e.clipboardData) {
+                    e.clipboardData.setData('image/png', canvas.toDataURL());
+                }
+            }
+        );
+    }
 });
 
 if ('serviceWorker' in navigator) {
