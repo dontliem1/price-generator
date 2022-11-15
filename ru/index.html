@@ -279,30 +279,45 @@
         }
 
         @keyframes wiggle {
-            0% {
-                transform: rotate(-.4deg);
+            25% {
+                transform: translate(0, 1px);
+            }
+
+            50% {
+                transform: translate(1px, 1px);
+            }
+
+            75% {
+                transform: translate(1px, 0);
             }
 
             100% {
-                transform: rotate(.4deg);
+                transform: translate(0, 0);
             }
         }
 
         .pages [draggable="true"] {
             animation-name: wiggle;
-            animation-duration: .15s;
+            animation-duration: .3s;
             animation-timing-function: ease-in-out;
             animation-iteration-count: infinite;
             animation-direction: alternate;
             cursor: grab;
         }
 
-        .pages h2[draggable="true"] {
-            width: fit-content;
+        @media (prefers-reduced-motion) {
+            .pages [draggable="true"] {
+                animation: none;
+                transform: translateX(-2%);
+            }
         }
 
         .pages [draggable="true"]:nth-child(2n) {
             animation-direction: alternate-reverse;
+        }
+
+        .pages [draggable="true"]:nth-child(3n) {
+            animation-delay: -.5s;
         }
 
         .pages [draggable="true"]:active {
@@ -323,6 +338,7 @@
             opacity: .5;
             box-shadow: 0 -2px;
         }
+
         .drag-over--after:not(:active) {
             opacity: .5;
             box-shadow: 0 2px;
@@ -620,8 +636,10 @@
             <button class="btn" type="button" id="moveRight" aria-label="Переместить страницу вправо" title="Переместить страницу вправо">⤻</button>
         </fieldset>
     </div>
-    <script>(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)}; m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)}) (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym"); ym(89949856, "init", { clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true }); </script>
-    <noscript><div><img src="https://mc.yandex.ru/watch/89949856" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+    <script>(function (m, e, t, r, i, k, a) { m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) }; m[i].l = 1 * new Date(); k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a) })(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym"); ym(89949856, "init", { clickmap: true, trackLinks: true, accurateTrackBounce: true, webvisor: true }); </script>
+    <noscript>
+        <div><img src="https://mc.yandex.ru/watch/89949856" style="position:absolute; left:-9999px;" alt="" /></div>
+    </noscript>
     <script src="../assets/js/messages/ru.js"></script>
     <script src="../assets/js/main.js" type="module"></script>
 </body>

@@ -1,5 +1,5 @@
 {
-  "short_name": "Прайс",
+  "short_name": "Рутина",
   "name": "Генератор прайса",
   "icons": [
     {
@@ -14,7 +14,7 @@
       "purpose": "maskable"
     }
   ],
-  "id": "price-generator",
+  "id": "rutina",
   "categories": [
     "utilities"
   ],

@@ -1,5 +1,5 @@
 {
-  "short_name": "Price",
+  "short_name": "Rutina",
   "name": "Price Generator",
   "icons": [
     {
@@ -14,7 +14,7 @@
       "purpose": "maskable"
     }
   ],
-  "id": "price-generator",
+  "id": "rutina",
   "categories": [
     "utilities"
   ],
