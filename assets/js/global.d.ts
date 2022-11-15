@@ -1,4 +1,4 @@
-declare type HtmlToCanvasOptions = Partial<{ backgroundColor: CSSStyleDeclaration["color"], scale: number, windowWidth: number, windowHeight: number }>;
+declare type HtmlToCanvasOptions = Partial<{ allowTaint: boolean, backgroundColor: CSSStyleDeclaration["color"]|null, scale: number, windowWidth: number, windowHeight: number }>;
 declare function ym(counter: number, event: string, id: string): void;
 declare function html2canvas(element: Element, options?: HtmlToCanvasOptions): Promise<HTMLCanvasElement>;
 declare type Category = { type: 'CATEGORY'; H2?: string };

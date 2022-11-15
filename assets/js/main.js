@@ -753,11 +753,13 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
 BindListener('export', function handleExportClick() {
     const exportJson = new Blob(["\ufeff", parsePages(true)], { type: 'text/json' });
     const link = document.createElement('a');
+    const url = URL.createObjectURL(exportJson);
 
-    link.href = URL.createObjectURL(exportJson);
+    link.href = url;
     link.download = 'price.json';
     link.click();
     link.remove();
+    URL.revokeObjectURL(url);
 }, 'click');
 
 /**
@@ -780,49 +782,48 @@ BindListener('save', async function handleSaveClick(e) {
 
     const pages = document.getElementsByTagName('article');
     /** @type {HtmlToCanvasOptions} */
-    const options = { backgroundColor: '#000', scale: 1, windowWidth: 1080, windowHeight: 1920 };
+    const options = { allowTaint: true, backgroundColor: '#000', scale: 1, windowWidth: 1080, windowHeight: 1920 };
 
     if (sorting) { sorting.checked = false; }
     if (navigator.share === undefined || !navigator.canShare || !checkBasicFileShare()) {
         const link = document.createElement('a');
-        const canvases = /** @type {string[]} */ ([]);
 
-        for (const page of pages) {
-            await html2canvas(page, options).then(function resolveCanvas(canvas) {
-                canvases.push(canvas.toDataURL());
-            });
-        }
-
-        setTimeout(async function downloadImages() {
-            for (let i = 0; i < canvases.length; i++) {
-                link.href = canvases[i];
+        for (let i = 0; i < pages.length; i++) {
+            try {
+                link.href = (await html2canvas(pages[i], options)).toDataURL();
                 link.download = (i + 1) + '.png';
                 link.click();
+            } catch (error) {
+                window.console.error(error);
             }
-            link.remove();
-            saveBtn.disabled = false;
-        }, 1000);
+        }
+        link.remove();
     } else {
         const files = /** @type {File[]} */ ([]);
 
         for (const page of pages) {
-            await html2canvas(page, options).then(function resolveCanvas(/** @type {HTMLCanvasElement} */ canvas) {
-                canvas.toBlob(function blobToFile(blob) {
+            try {
+                const canvas = await html2canvas(page, options);
+
+                if (canvas instanceof HTMLCanvasElement) {
+                    const blob = /** @type {Blob | null} */ (await new Promise(resolve => canvas.toBlob(resolve)));
+
                     if (blob) {
                         files.push(new File([blob], (files.length + 1) + '.png'));
                     }
-                });
-            });
+                }
+            } catch (error) {
+                window.console.error(error);
+            }
         }
 
-        setTimeout(async function shareImages() {
-            await navigator.share({ files }).catch(function handleError(error) {
-                window.console.log(error.name + ': ' + error.message);
-            }).finally(function resetStyle() {
-                saveBtn.disabled = false;
-            });
-        }, 1000);
+        try {
+            await navigator.share({ files });
+        } catch (error) {
+            window.console.log(error.toString());
+        }
     }
+    saveBtn.disabled = false;
 }, 'click');
 
 // Delete page
@@ -953,6 +954,20 @@ function renderPages(pagesJson, mount = getMount()) {
     }
 }
 
+/**
+ * @param {HTMLElement | null} element
+ */
+function selectElement(element) {
+    const selection = document.getSelection();
+
+    if (element && selection) {
+        const item = /** @type {HTMLElement} */ (element.children.length ? element.children[0] : element);
+
+        item.focus();
+        selection.setBaseAndExtent(item, 0, item, item.childNodes.length);
+    }
+}
+
 if (savedCopy && savedCopy !== m('PAGES') && window.confirm(m('LOAD_CONFIRM'))) {
     renderPages(JSON.parse(savedCopy));
 } else {
@@ -1020,15 +1035,11 @@ BindListener('title', function handleAddTitleClick() {
     if (form) {
         const existingTitle = form.querySelector('h1');
 
-        if (existingTitle) {
-            existingTitle.focus();
-        } else {
-            createEditableElement({
-                tag: 'H1',
-                fromStart: true,
-                parent: form
-            });
-        }
+        selectElement(existingTitle ? existingTitle : createEditableElement({
+            tag: 'H1',
+            fromStart: true,
+            parent: form
+        }));
     }
 }, 'click');
 
@@ -1038,23 +1049,19 @@ BindListener('footer', function handleAddFooterClick() {
     if (form) {
         const existingFooter = form.querySelector('footer');
 
-        if (existingFooter) {
-            existingFooter.focus();
-        } else {
-            createEditableElement({
-                tag: 'FOOTER',
-                parent: form
-            });
-        }
+        selectElement(existingFooter ? existingFooter : createEditableElement({
+            tag: 'FOOTER',
+            parent: form
+        }));
     }
 }, 'click');
 
 Object.keys(itemsActionsMap).forEach(function bingClickToItem(itemId) {
     BindListener(itemId, function handleAddItemClick() {
         const form = getActiveForm();
-        const item = itemsActionsMap[itemId](Boolean(sorting && sorting.checked));
+        const item = /** @type {HTMLHeadingElement | HTMLDivElement} */ (itemsActionsMap[itemId](Boolean(sorting && sorting.checked)));
 
-        if (form && item) {
+        if (form) {
             const existingFooter = form.querySelector('footer');
 
             if (existingFooter) {
@@ -1062,6 +1069,7 @@ Object.keys(itemsActionsMap).forEach(function bingClickToItem(itemId) {
             } else {
                 form.appendChild(item);
             }
+            selectElement(item);
         }
     }, 'click');
 });
@@ -1250,20 +1258,6 @@ document.body.addEventListener('keyup', function sortWithArrows(e) {
 
 document.body.addEventListener('change', function savePages() {
     window.localStorage.setItem('price', parsePages());
-});
-
-document.body.addEventListener('copy', async function handleCopyText(e) {
-    if (e.target instanceof HTMLElement) {
-        await import('./vendors/html2canvas.min.js');
-
-        await html2canvas(e.target, { backgroundColor: 'transparent', scale: 1 }).then(
-            function resolveCanvas(/** @type {HTMLCanvasElement} */ canvas) {
-                if (e.clipboardData) {
-                    e.clipboardData.setData('image/png', canvas.toDataURL());
-                }
-            }
-        );
-    }
 });
 
 if ('serviceWorker' in navigator) {
