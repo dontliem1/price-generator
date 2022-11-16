@@ -278,38 +278,21 @@
             transition: transform .5s cubic-bezier(.5, -1, 1, .5);
         }
 
-        @keyframes wiggle {
-            25% {
-                transform: translate(0, 1px);
-            }
-
-            50% {
-                transform: translate(1px, 1px);
-            }
-
-            75% {
-                transform: translate(1px, 0);
-            }
-
-            100% {
-                transform: translate(0, 0);
-            }
-        }
-
         .pages [draggable="true"] {
-            animation-name: wiggle;
-            animation-duration: .15s;
-            animation-timing-function: ease-in-out;
-            animation-iteration-count: infinite;
-            animation-direction: alternate;
             cursor: grab;
+            position: relative;
         }
 
-        @media (prefers-reduced-motion) {
-            .pages [draggable="true"] {
-                animation: none;
-                transform: translateX(-2%);
-            }
+        .pages [draggable="true"]::before {
+            align-items: center;
+            bottom: 0;
+            content: '↕︎';
+            display: flex;
+            font-size: 1rem;
+            left: -1rem;
+            padding-right: .5rem;
+            position: absolute;
+            top: 0;
         }
 
         .pages [draggable="true"]:nth-child(2n) {
