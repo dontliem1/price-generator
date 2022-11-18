@@ -133,7 +133,7 @@ function createEditableElement({ tag, text, parent, fromStart }, useDefaults = t
 
     return elem;
 }
-
+/** @type {HTMLElement | null} */
 let dragged = null;
 let draggedOver;
 let draggedSame;
@@ -1002,7 +1002,7 @@ if (mount !== null) {
         }
 
         if (dropZone instanceof HTMLElement) {
-            if (dragged && !dragged.isSameNode(dropZone)) {
+            if (dragged !== null && !dragged.isSameNode(dropZone)) {
                 dropZone.insertAdjacentElement(dropZone.classList.contains(DRAG_OVER_CLASSNAMES[0]) ? 'beforebegin' : 'afterend', dragged);
             }
             dropZone.classList.remove(...DRAG_OVER_CLASSNAMES);
@@ -1077,11 +1077,18 @@ if (mount !== null) {
     });
     mount.addEventListener("dragenter", function handleDragEnter(e) {
         const activeForm = getActiveForm();
-        const dropZone = e.target instanceof HTMLElement &&
-            ITEMS_TAGS.includes(e.target.tagName) &&
-            (e.target.tagName === CATEGORY_TAG ? e.target : e.target.parentElement);
+        let dropZone = null;
 
-        if (dragged && activeForm !== null && dropZone) {
+        if (e.target instanceof HTMLElement) {
+            if ([CATEGORY_TAG, SERVICE_TAG].includes(e.target.tagName)) {
+                dropZone = e.target;
+            }
+            if (SERVICE_TAGS.includes(e.target.tagName)) {
+                dropZone = e.target.parentElement;
+            }
+        }
+
+        if (dragged !== null && activeForm !== null && dropZone !== null) {
             let hoverClass = DRAG_OVER_CLASSNAMES[0];
 
             for (let i = 0; i < activeForm.childElementCount; i++) {
@@ -1105,7 +1112,9 @@ if (mount !== null) {
     });
     mount.addEventListener("dragleave", function handleDragLeave(e) {
         if (e.target instanceof HTMLElement) {
-            if (e.target.tagName === CATEGORY_TAG) {
+            if (e.target.tagName === CATEGORY_TAG ||
+                (e.target.tagName === SERVICE_TAG && (!draggedSame || (draggedTarget === e.target)))
+            ) {
                 e.target.classList.remove(...DRAG_OVER_CLASSNAMES);
             } else if (
                 SERVICE_TAGS.includes(e.target.tagName) &&
@@ -1116,8 +1125,10 @@ if (mount !== null) {
             }
         }
     });
-    mount.addEventListener("dragstart", function handleDragStart(event) {
-        dragged = event.target;
+    mount.addEventListener("dragstart", function handleDragStart(e) {
+        if (e.target instanceof HTMLElement) {
+            dragged = e.target;
+        }
     });
     mount.addEventListener("dragend", function handleDragEnd() {
         dragged = null;
