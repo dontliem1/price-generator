@@ -11,14 +11,14 @@ module.exports = {
 	runtimeCaching: [
 	  {
 		urlPattern: /\.(?:html)$/,
-		handler: "NetworkFirst",
+		handler: "CacheFirst",
 		options: {
 		  cacheName: "html",
 		},
 	  },
 	  {
 		urlPattern: /\.(?:js)$/,
-		handler: "NetworkFirst",
+		handler: "CacheFirst",
 		options: {
 		  cacheName: "scripts",
 		},

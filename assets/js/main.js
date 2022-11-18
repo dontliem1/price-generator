@@ -511,7 +511,7 @@ const opacityRange = BindListener('opacity', function handleOpacityRangeChange()
     const activeDiv = getActiveDiv();
 
     if (activeDiv !== null) {
-        activeDiv.style[this.name] = (1 - parseFloat(this.value)).toString();
+        activeDiv.style.opacity = (1 - this.valueAsNumber).toString();
     }
 }, 'input');
 
@@ -858,15 +858,16 @@ function renderPages(pagesJson, mount = getMount()) {
 
 /**
  * @param {HTMLElement | null} element
+ * @param {boolean} [notDuringSorting]
  */
-function selectElement(element) {
+function selectElement(element, notDuringSorting = false) {
     const selection = document.getSelection();
 
-    if (element !== null && selection  !== null) {
+    if (element !== null && selection !== null) {
         const item = /** @type {HTMLElement} */ (element.firstElementChild ? element.firstElementChild : element);
 
         item.focus();
-        selection.setBaseAndExtent(item, 0, item, item.childNodes.length);
+        if (!notDuringSorting || (sorting !== null && !sorting.checked)) { selection.setBaseAndExtent(item, 0, item, item.childNodes.length); }
     }
 }
 
@@ -963,7 +964,7 @@ Object.keys(itemsActionsMap).forEach(function bingClickToItem(itemId) {
 
         if (form !== null) {
             form.insertBefore(item, form.querySelector(FOOTER_TAG.toLowerCase()));
-            selectElement(item);
+            selectElement(item, true);
         }
     }, 'click');
 });
@@ -1157,7 +1158,7 @@ document.addEventListener('click', function handleClick(e) {
         }
 
         if (
-            background &&
+            background !== null &&
             e.target.tagName !== 'FORM' &&
             !isBackgroundControls &&
             !(e.target.isSameNode(this) && document.activeElement && document.activeElement.tagName === 'FORM')
