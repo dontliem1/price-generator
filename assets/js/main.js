@@ -36,7 +36,7 @@ class Defaults {
         };
     }
     /**
-     * @return {Pages}
+     * @return {Pages} Example pages
      */
     get() {
         return {
@@ -103,9 +103,7 @@ function getOffset(el) {
     };
 }
 
-/**
- * CONSTRUCTORS
- */
+/* CONSTRUCTORS */
 /**
 * @param {Object} params
 * @param {EditableTags} params.tag
@@ -278,7 +276,7 @@ function parsePages(parseImages) {
     const pages = document.getElementsByTagName('article');
     const mount = getMount();
 
-    if (mount && mount.dataset.aspectRatio) {
+    if (mount !== null && mount.dataset.aspectRatio) {
         json.STYLE.aspectRatio = mount.dataset.aspectRatio;
     }
     for (const page of pages) {
@@ -288,15 +286,13 @@ function parsePages(parseImages) {
     return JSON.stringify(json);
 }
 
-/**
- * LISTENERS
- */
+/* LISTENERS */
 
 /**
  * @typedef {HTMLInputElement | HTMLButtonElement | HTMLSelectElement | null} InteractiveElement
  * @param {InteractiveElement | string} element
  * @param {(this: HTMLInputElement, ev: Event) => any} callback
- * @param {'change' | 'click' | 'input'} eventType
+ * @param {'change' | 'click' | 'input'} [eventType]
  * @return {InteractiveElement}
  */
 function BindListener(element, callback, eventType = 'change') {
@@ -318,7 +314,7 @@ function BindListener(element, callback, eventType = 'change') {
 function handleArticleStylePropChange(e) {
     const activeArticle = getActiveArticle();
 
-    if (activeArticle && (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement)) {
+    if (activeArticle !== null && (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement)) {
         activeArticle.style[e.target.name] = e.target.value;
     }
 }
@@ -335,9 +331,7 @@ function handleFormStylePropChange(e) {
     }
 }
 
-/**
- * VARS
- * */
+/* VARS */
 
 let sortingPollyfilled = false;
 let fontsAdded = false;
@@ -347,12 +341,10 @@ const itemsActionsMap = {
     service: createService
 };
 
-/**
- * FLOAT
- * */
+/* FLOAT */
 
 // Alignment
-const titleAlignment = /** @type {HTMLFieldSetElement | null} */ (document.getElementById('titleAlignment'));
+const titleAlignment = document.getElementById('titleAlignment');
 
 /**
  * If the active element is an H1 and it's alone or with footer, then show the title
@@ -360,9 +352,9 @@ const titleAlignment = /** @type {HTMLFieldSetElement | null} */ (document.getEl
  * @param [element] - The element to reposition the title alignment for.
  */
 function repositionTitleAlignment(element = getActiveElement()) {
-    if (titleAlignment) {
+    if (titleAlignment !== null) {
         if (
-            element &&
+            element !== null &&
             element.tagName === TITLE_TAG &&
             (!element.nextElementSibling || element.nextElementSibling.tagName === FOOTER_TAG)
         ) {
@@ -376,8 +368,35 @@ function repositionTitleAlignment(element = getActiveElement()) {
     }
 }
 
+/**
+ * @param {string} str
+ */
+function truncate(str) {
+    if (!str.trim()) {
+        return '';
+    }
+
+    return '"' + (str.length > 15 ? str.substring(0, 15) + '…' : str) + '"';
+}
 // Remove element
-const deleteBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('delete'));
+const deleteBtn = BindListener('delete', function handleDeleteClick() {
+    const activeElement = getActiveElement();
+
+    if (activeElement !== null && window.confirm(
+        `${m('REMOVE_ELEMENT')} ${truncate(activeElement.innerText)}?`)
+    ) {
+        const parent = activeElement.parentElement;
+
+        activeElement.remove();
+        if (parent !== null && parent.tagName === SERVICE_TAG && !parent.innerText.trim()) {
+            parent.remove();
+        }
+        this.hidden = true;
+        if (titleAlignment !== null) {
+            titleAlignment.hidden = true;
+        }
+    }
+}, 'click');
 
 // Swap
 const moveLeft = BindListener('moveLeft', function movePageLeft() {
@@ -400,14 +419,14 @@ const moveRight = BindListener('moveRight', function movePageRight() {
 }, 'click');
 
 // Background
-const background = /** @type {HTMLFieldSetElement | null} */ (document.getElementById('background'));
+const background = document.getElementById('background');
 
 /**
  * If the form is active, show the background and hide the left and right arrows if there's no according neighbours
  * @param [form] - The form to reposition the background for.
  */
 function toggleBackground(form = getActiveForm()) {
-    if (background) {
+    if (background !== null) {
         if (form && form.isSameNode(document.activeElement)) {
             const activeLi = getActiveLi();
 
@@ -422,9 +441,7 @@ function toggleBackground(form = getActiveForm()) {
     }
 }
 
-/**
- * SETTINGS
- * */
+/* SETTINGS */
 
 const sorting = /** @type {HTMLInputElement | null} */ (BindListener('sorting', function handleSortingChange() {
     const draggableElements = /** @type {NodeListOf<HTMLElement>} */ (
@@ -455,8 +472,7 @@ const sorting = /** @type {HTMLInputElement | null} */ (BindListener('sorting', 
         }
     }
 
-    // @ts-ignore
-    if (deleteBtn && activeElement && ITEMS_TAGS.includes(activeElement.tagName)) {
+    if (deleteBtn !== null && activeElement !== null && ITEMS_TAGS.includes(activeElement.tagName)) {
         deleteBtn.hidden = true;
     }
 }));
@@ -466,18 +482,16 @@ const sorting = /** @type {HTMLInputElement | null} */ (BindListener('sorting', 
  * @param [element] - The element to reposition the delete button for.
  */
 function repositionDeleteBtn(element = getActiveElement()) {
-    if (deleteBtn) {
+    if (deleteBtn !== null) {
         if (
-            element &&
+            element !== null &&
             (
                 [TITLE_TAG, FOOTER_TAG].includes(element.tagName) ||
-                // @ts-ignore
-                (ITEMS_TAGS.includes(element.tagName) && sorting && !sorting.checked)
+                (ITEMS_TAGS.includes(element.tagName) && sorting !== null && !sorting.checked)
             )
         ) {
             const { left, height, top } = getOffset(element);
 
-            deleteBtn.hidden = false;
             deleteBtn.style.transform = `translate(${left + Math.min(
                 0,
                 window.innerWidth - left - deleteBtn.clientWidth - 6
@@ -485,43 +499,18 @@ function repositionDeleteBtn(element = getActiveElement()) {
                 0,
                 window.innerHeight - top - height - deleteBtn.clientHeight - 6
             )}px)`;
-            // console.log();
+            deleteBtn.hidden = false;
         } else {
             deleteBtn.hidden = true;
         }
     }
 }
-function truncate(str) {
-    if (!str.trim()) {
-        return '';
-    }
-
-    return '"' + (str.length > 10 ? str.substring(0, 10) + '...' : str) + '"';
-}
-BindListener(deleteBtn, function handleDeleteClick() {
-    const activeElement = getActiveElement();
-
-    if (activeElement && window.confirm(
-        `${m('REMOVE_ELEMENT')}${truncate(activeElement.innerText)}?`)
-    ) {
-        const parent = activeElement.parentElement;
-
-        activeElement.remove();
-        if (parent && parent.tagName === SERVICE_TAG && !parent.innerText.trim()) {
-            parent.remove();
-        }
-        this.hidden = true;
-        if (titleAlignment) {
-            titleAlignment.hidden = true;
-        }
-    }
-}, 'click');
 
 // Background opacity
 const opacityRange = BindListener('opacity', function handleOpacityRangeChange() {
     const activeDiv = getActiveDiv();
 
-    if (activeDiv) {
+    if (activeDiv !== null) {
         activeDiv.style[this.name] = (1 - parseFloat(this.value)).toString();
     }
 }, 'input');
@@ -530,7 +519,7 @@ const opacityRange = BindListener('opacity', function handleOpacityRangeChange()
 const backgroundImageInput = BindListener('backgroundImage', function handleBackgroundImageChange() {
     const activeArticle = getActiveArticle();
 
-    if (this.files && activeArticle) {
+    if (this.files !== null && activeArticle !== null) {
         const file = this.files[0];
         const reader = new FileReader();
 
@@ -544,10 +533,8 @@ const backgroundImageInput = BindListener('backgroundImage', function handleBack
 BindListener('deleteBackgroundImage', function handleDeleteBackgroundImageClick() {
     const activeArticle = getActiveArticle();
 
-    if (activeArticle) {
+    if (activeArticle !== null && backgroundImageInput) {
         activeArticle.style.backgroundImage = '';
-    }
-    if (backgroundImageInput) {
         backgroundImageInput.value = '';
     }
 }, 'click');
@@ -586,10 +573,10 @@ const fontFamilySelect = /** @type {HTMLSelectElement | null} */ (BindListener(
 
 // Aspect ratio
 const aspectRatioSelect = BindListener('aspectRatio', function handleAspectRatioChange() {
-    if (mount) {
+    if (mount !== null) {
         mount.dataset.aspectRatio = this.value;
-        if (deleteBtn) { deleteBtn.hidden = true; }
-        if (titleAlignment) { titleAlignment.hidden = true; }
+        if (deleteBtn !== null) { deleteBtn.hidden = true; }
+        if (titleAlignment !== null) { titleAlignment.hidden = true; }
     }
 });
 
@@ -598,14 +585,12 @@ const colorInput = BindListener('color', handleArticleStylePropChange);
 const backgroundColorInput = BindListener('backgroundColor', function handleDivStylePropChange() {
     const activeDiv = getActiveDiv();
 
-    if (activeDiv) {
+    if (activeDiv !== null) {
         activeDiv.style[this.name] = this.value;
     }
 });
 
-/**
- * SCROLL OBSERVER
- */
+/* SCROLL OBSERVER */
 
 /**
  * @param {HTMLSelectElement | null} select to pass the value
@@ -613,7 +598,7 @@ const backgroundColorInput = BindListener('backgroundColor', function handleDivS
  * @returns {void}
  */
 function assignValueFromStyle(select, from) {
-    if (select && from) {
+    if (select !== null && from !== null) {
         if (from.style[select.name]) {
             select.value = from.style[select.name];
         } else {
@@ -640,22 +625,22 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
                 return '#' + colorToHex(colors[0]) + colorToHex(colors[1]) + colorToHex(colors[2]);
             };
 
-            if (focusedElement) {
+            if (focusedElement !== null) {
                 focusedElement.classList.add('active');
             }
             assignValueFromStyle(textAlignSelect, activeForm);
             assignValueFromStyle(justifyContentSelect, activeForm);
             assignValueFromStyle(fontFamilySelect, activeArticle);
-            if (colorInput && activeArticle) {
+            if (colorInput !== null && activeArticle !== null) {
                 colorInput.value = convertRGBtoHex(activeArticle.style.color);
             }
-            if (opacityRange && activeDiv) {
+            if (opacityRange !== null && activeDiv !== null) {
                 opacityRange.value = (1 - parseFloat(activeDiv.style.opacity)).toString();
             }
-            if (backgroundColorInput && activeDiv) {
+            if (backgroundColorInput !== null && activeDiv !== null) {
                 backgroundColorInput.value = convertRGBtoHex(activeDiv.style.backgroundColor);
             }
-            if (backgroundImageInput) {
+            if (backgroundImageInput !== null) {
                 backgroundImageInput.value = '';
             }
             toggleBackground();
@@ -664,13 +649,13 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
         } else {
             const activeElement = getActiveElement(page);
 
-            if (activeElement) {
+            if (activeElement !== null) {
                 activeElement.classList.remove('active');
             }
 
             page.classList.remove('active');
             [deleteBtn, titleAlignment, background].forEach(function hideControl(control) {
-                if (control) {
+                if (control !== null) {
                     control.hidden = true;
                 }
             });
@@ -715,7 +700,7 @@ BindListener('save', async function handleSaveClick(e) {
     /** @type {HtmlToCanvasOptions} */
     const options = { allowTaint: true, backgroundColor: '#000', scale: 1, windowWidth: 1080, windowHeight: 1920 };
 
-    if (sorting) { sorting.checked = false; }
+    if (sorting !== null) { sorting.checked = false; }
     if (navigator.share === undefined || !navigator.canShare || !checkBasicFileShare()) {
         const link = document.createElement('a');
 
@@ -761,19 +746,17 @@ BindListener('save', async function handleSaveClick(e) {
 BindListener('deletePage', function handleDeletePageClick() {
     const activePage = getActiveLi();
 
-    if (activePage && window.confirm(m('REMOVE_PAGE'))) {
+    if (activePage !== null && window.confirm(m('REMOVE_PAGE'))) {
         observer.unobserve(activePage);
         activePage.remove();
 
-        if (background) {
+        if (background !== null) {
             background.hidden = true;
         }
     }
 }, 'click');
 
-/**
- * IMPORT
- */
+/* IMPORT */
 
 /**
  * Assigns the style properties of the given props to the given elements
@@ -850,17 +833,17 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
  * @param {HTMLElement | null} mount
  */
 function renderPages(pagesJson, mount = getMount()) {
-    if (mount) {
+    if (mount !== null) {
         const pages = [];
         const aspectRatio = (pagesJson.STYLE && pagesJson.STYLE.aspectRatio) ?
             pagesJson.STYLE.aspectRatio :
             DEFAULTS.aspectRatio;
 
         mount.dataset.aspectRatio = aspectRatio;
-        if (aspectRatioSelect) {
+        if (aspectRatioSelect !== null) {
             aspectRatioSelect.value = aspectRatio;
         }
-        if (pagesJson.PAGES) {
+        if (Array.isArray(pagesJson.PAGES)) {
             pagesJson.PAGES.forEach(function createPages(page, index) {
                 pages.push(createPage(page, index === 0));
             });
@@ -879,15 +862,15 @@ function renderPages(pagesJson, mount = getMount()) {
 function selectElement(element) {
     const selection = document.getSelection();
 
-    if (element && selection) {
-        const item = /** @type {HTMLElement} */ (element.children.length ? element.children[0] : element);
+    if (element !== null && selection  !== null) {
+        const item = /** @type {HTMLElement} */ (element.firstElementChild ? element.firstElementChild : element);
 
         item.focus();
         selection.setBaseAndExtent(item, 0, item, item.childNodes.length);
     }
 }
 
-if (savedCopy && savedCopy !== m('PAGES') && window.confirm(m('LOAD_CONFIRM'))) {
+if (savedCopy !== null && savedCopy !== m('PAGES') && window.confirm(m('LOAD_CONFIRM'))) {
     renderPages(JSON.parse(savedCopy));
 } else {
     renderPages(DEFAULTS.get());
@@ -902,7 +885,7 @@ const importInput = BindListener('import', function handleImportClick(e) {
 }, 'click');
 
 BindListener(importInput, function handleImportChange() {
-    if (this.files) {
+    if (this.files !== null) {
         const fileReader = new FileReader();
 
         fileReader.onload = function handleFileLoad(e) {
@@ -916,14 +899,12 @@ BindListener(importInput, function handleImportChange() {
     }
 });
 
-/**
- * ADD
- * */
+/* ADD */
 
 BindListener('duplicate', function handleDuplicateClick() {
     const activeLi = getActiveLi();
 
-    if (activeLi) {
+    if (activeLi !== null) {
         const activePage = getActiveArticle(activeLi);
         const activePageJson = activePage && parsePage(activePage);
 
@@ -951,10 +932,10 @@ if (mount) {
 BindListener('title', function handleAddTitleClick() {
     const form = getActiveForm();
 
-    if (form) {
+    if (form !== null) {
         const existingTitle = /** @type {HTMLElementTagNameMap[Lowercase<typeof TITLE_TAG>] | null} */ (form.querySelector(TITLE_TAG.toLowerCase()));
 
-        selectElement(existingTitle ? existingTitle : createEditableElement({
+        selectElement(existingTitle !== null ? existingTitle : createEditableElement({
             tag: TITLE_TAG,
             fromStart: true,
             parent: form
@@ -965,10 +946,10 @@ BindListener('title', function handleAddTitleClick() {
 BindListener('footer', function handleAddFooterClick() {
     const form = getActiveForm();
 
-    if (form) {
+    if (form !== null) {
         const existingFooter =  /** @type {HTMLElementTagNameMap[Lowercase<typeof FOOTER_TAG>] | null} */ (form.querySelector(FOOTER_TAG.toLowerCase()));
 
-        selectElement(existingFooter ? existingFooter : createEditableElement({
+        selectElement(existingFooter !== null ? existingFooter : createEditableElement({
             tag: FOOTER_TAG,
             parent: form
         }));
@@ -980,22 +961,14 @@ Object.keys(itemsActionsMap).forEach(function bingClickToItem(itemId) {
         const form = getActiveForm();
         const item = /** @type {HTMLElementTagNameMap[Lowercase<typeof CATEGORY_TAG | typeof SERVICE_TAG>]} */ (itemsActionsMap[itemId](Boolean(sorting && sorting.checked)));
 
-        if (form) {
-            const existingFooter = form.querySelector(FOOTER_TAG.toLowerCase());
-
-            if (existingFooter) {
-                form.insertBefore(item, existingFooter);
-            } else {
-                form.appendChild(item);
-            }
+        if (form !== null) {
+            form.insertBefore(item, form.querySelector(FOOTER_TAG.toLowerCase()));
             selectElement(item);
         }
     }, 'click');
 });
 
-/**
- * GLOBAL LISTENERS
- */
+/* GLOBAL LISTENERS */
 
 const resizeObserver = new ResizeObserver(function handleResize() {
     toggleBackground();
@@ -1005,7 +978,7 @@ const resizeObserver = new ResizeObserver(function handleResize() {
 
 resizeObserver.observe(document.body);
 
-if (mount) {
+if (mount !== null) {
     mount.addEventListener("drop", function handleDivDrop(event) {
         event.preventDefault();
 
@@ -1022,9 +995,9 @@ if (mount) {
             range.setEnd(event.rangeParent, event.rangeOffset);
         }
 
-        if (range) { range.insertNode(document.createTextNode(text)); }
+        if (range !== null) { range.insertNode(document.createTextNode(text)); }
 
-        while (dropZone && dropZone instanceof HTMLElement && !dropZone.draggable) {
+        while (dropZone instanceof HTMLElement && !dropZone.draggable) {
             dropZone = dropZone.parentElement;
         }
 
@@ -1050,11 +1023,10 @@ if (mount) {
             editableElements.forEach(function disableContentEditable(element) {
                 element.contentEditable = 'true';
             });
-            if (background) { background.hidden = true; }
+            if (background !== null) { background.hidden = true; }
         }
-        // @ts-ignore
-        if (ITEMS_TAGS.includes(focusedElement.tagName) && sorting && sorting.checked) {
-            if (deleteBtn) {
+        if (ITEMS_TAGS.includes(focusedElement.tagName) && sorting !== null && sorting.checked) {
+            if (deleteBtn !== null) {
                 deleteBtn.hidden = true;
             }
         } else {
@@ -1066,14 +1038,16 @@ if (mount) {
         }
     });
     mount.addEventListener('focusout', function handleFormInput(e) {
-        const focusedElement = /** @type {HTMLElement} */ (e.target);
-        const form = /** @type {HTMLFormElement} */ (focusedElement.closest('form'));
-        const editableElements = /** @type {NodeListOf<HTMLElement>} */ (form.querySelectorAll('[contenteditable]'));
+        if (e.target instanceof HTMLElement && e.target.hasAttribute('contenteditable')) {
+            const form = e.target.closest('form');
 
-        if (focusedElement.hasAttribute('contenteditable')) {
-            editableElements.forEach(function disableContentEditable(element) {
-                element.contentEditable = 'false';
-            });
+            if (form !== null) {
+                const editableElements = /** @type {NodeListOf<HTMLElement>} */ (form.querySelectorAll('[contenteditable]'));
+
+                editableElements.forEach(function disableContentEditable(element) {
+                    element.contentEditable = 'false';
+                });
+            }
         }
     });
     mount.addEventListener('paste', function stripTagsOnPaste(e) {
@@ -1082,7 +1056,7 @@ if (mount) {
         const text = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
         const oldSelection = document.getSelection();
 
-        if (oldSelection) {
+        if (oldSelection !== null) {
             const range = oldSelection.getRangeAt(0);
 
             range.deleteContents();
@@ -1095,7 +1069,7 @@ if (mount) {
 
             const selection = window.getSelection();
 
-            if (selection) {
+            if (selection !== null) {
                 selection.removeAllRanges();
                 selection.addRange(range);
             }
@@ -1103,12 +1077,14 @@ if (mount) {
     });
     mount.addEventListener("dragenter", function handleDragEnter(e) {
         const activeForm = getActiveForm();
-        const dropZone = e.target instanceof HTMLElement && ITEMS_TAGS.includes(e.target.tagName) && (e.target.tagName === CATEGORY_TAG ? e.target : e.target.parentElement);
+        const dropZone = e.target instanceof HTMLElement &&
+            ITEMS_TAGS.includes(e.target.tagName) &&
+            (e.target.tagName === CATEGORY_TAG ? e.target : e.target.parentElement);
 
-        if (dragged && activeForm && dropZone) {
+        if (dragged && activeForm !== null && dropZone) {
             let hoverClass = DRAG_OVER_CLASSNAMES[0];
 
-            for (let i = 0; i < activeForm.children.length; i++) {
+            for (let i = 0; i < activeForm.childElementCount; i++) {
                 if (dropZone.isSameNode(activeForm.children[i])) {
                     break;
                 }
@@ -1131,7 +1107,11 @@ if (mount) {
         if (e.target instanceof HTMLElement) {
             if (e.target.tagName === CATEGORY_TAG) {
                 e.target.classList.remove(...DRAG_OVER_CLASSNAMES);
-            } else if (SERVICE_TAGS.includes(e.target.tagName) && (!draggedSame || (draggedTarget === e.target)) && e.target.parentElement) {
+            } else if (
+                SERVICE_TAGS.includes(e.target.tagName) &&
+                (!draggedSame || (draggedTarget === e.target)) &&
+                e.target.parentElement !== null
+            ) {
                 e.target.parentElement.classList.remove(...DRAG_OVER_CLASSNAMES);
             }
         }
@@ -1147,66 +1127,70 @@ if (mount) {
     }, false);
 }
 
-document.body.addEventListener('click', function handleClick(e) {
-    const clickedElement = /** @type {HTMLElement} */ (e.target);
-    const closestFieldset = clickedElement.closest('fieldset');
-    const add = document.getElementById('add');
-    const isBackgroundControls = closestFieldset && !clickedElement.isSameNode(closestFieldset) && closestFieldset.id === 'background';
+document.addEventListener('click', function handleClick(e) {
+    if (e.target instanceof HTMLElement) {
+        const closestFieldset = e.target.closest('fieldset');
+        const add = document.getElementById('add');
+        const isBackgroundControls = closestFieldset && !e.target.isSameNode(closestFieldset) && closestFieldset.id === 'background';
 
-    if (!clickedElement.hasAttribute('contenteditable') && !['delete', 'titleAlignment', 'textAlign', 'justifyContent'].includes(clickedElement.id)) {
-        if (deleteBtn) {
-            deleteBtn.hidden = true;
+        if (
+            !e.target.hasAttribute('contenteditable') &&
+            !['delete', 'titleAlignment', 'textAlign', 'justifyContent'].includes(e.target.id)
+        ) {
+            if (deleteBtn !== null) {
+                deleteBtn.hidden = true;
+            }
+            if (titleAlignment !== null) {
+                titleAlignment.hidden = true;
+            }
         }
-        if (titleAlignment) {
-            titleAlignment.hidden = true;
+
+        if (
+            background &&
+            e.target.tagName !== 'FORM' &&
+            !isBackgroundControls &&
+            !(e.target.isSameNode(this) && document.activeElement && document.activeElement.tagName === 'FORM')
+        ) {
+            background.hidden = true;
         }
-    }
 
-    if (
-        background &&
-        clickedElement.tagName !== 'FORM' &&
-        !isBackgroundControls &&
-        !(clickedElement.isSameNode(this) && document.activeElement && document.activeElement.tagName === 'FORM')
-    ) {
-        background.hidden = true;
-    }
+        if (add && e.target.id !== 'addSummary') {
+            add.removeAttribute('open');
+        }
 
-    if (add && clickedElement.id !== 'addSummary') {
-        add.removeAttribute('open');
-    }
-
-    if (clickedElement.id && typeof ym === 'function') {
-        ym(89949856, 'reachGoal', clickedElement.id);
+        if (e.target.id && typeof ym === 'function') {
+            ym(89949856, 'reachGoal', e.target.id);
+        }
     }
 });
 
 document.body.addEventListener('keyup', function sortWithArrows(e) {
-    const targetElement = /** @type {HTMLElement | null} */ (e.target);
-    const element = targetElement &&
-        (SERVICE_TAGS.includes(targetElement.tagName) ? targetElement.parentElement : targetElement);
+    if (e.target instanceof HTMLElement) {
+        const element = SERVICE_TAGS.includes(e.target.tagName) ? e.target.parentElement : e.target;
 
-    if (element && element.draggable) {
-        switch (e.key) {
-            case 'ArrowUp':
-                const previousElement = /** @type {HTMLElement | null} */ (element.previousElementSibling);
+        if (element !== null && element.draggable) {
+            switch (e.key) {
+                case 'ArrowUp':
+                    const previousElement = /** @type {HTMLElement | null} */ (element.previousElementSibling);
 
-                if (previousElement && previousElement.draggable) {
-                    previousElement.insertAdjacentElement("beforebegin", element);
-                    e.preventDefault();
-                }
+                    if (previousElement && previousElement.draggable) {
+                        previousElement.insertAdjacentElement("beforebegin", element);
+                        e.preventDefault();
+                    }
 
-                break;
-            case 'ArrowDown':
-                const nextElement = /** @type {HTMLElement | null} */ (element.nextElementSibling);
+                    break;
+                case 'ArrowDown':
+                    const nextElement = /** @type {HTMLElement | null} */ (element.nextElementSibling);
 
-                if (nextElement && nextElement.draggable) {
-                    nextElement.insertAdjacentElement("afterend", element);
-                    e.preventDefault();
-                }
+                    if (nextElement && nextElement.draggable) {
+                        nextElement.insertAdjacentElement("afterend", element);
+                        e.preventDefault();
+                    }
 
-                break;
+                    break;
+            }
+            e.target.focus();
         }
-        targetElement.focus();
     }
 });
 
