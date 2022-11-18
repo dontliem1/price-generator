@@ -1,22 +1,33 @@
 'use strict';
 
 /**
- * @param {string} key
+ * @param {keyof typeof MESSAGES} key
  */
-function m(key) { return (messages && key in messages) ? messages[key] : 'text_not_found'; }
+function m(key) { return (typeof MESSAGES === 'object' && key in MESSAGES) ? MESSAGES[key] : 'text_not_found'; }
+
+const TITLE_TAG = 'H1';
+const FOOTER_TAG = 'FOOTER';
+const CATEGORY_TAG = 'H2';
+const SERVICE_TAG = 'DIV';
+const SERVICE_NAME_TAG = 'H3';
+const SERVICE_PRICE_TAG = 'P';
+const SERVICE_DESCRIPTION_TAG = 'SPAN';
+const SERVICE_TAGS = [SERVICE_NAME_TAG, SERVICE_PRICE_TAG, SERVICE_DESCRIPTION_TAG];
+const ITEMS_TAGS = [CATEGORY_TAG, ...SERVICE_TAGS];
+const DRAG_OVER_CLASSNAMES = ["drag-over--before", "drag-over--after"];
 
 class Defaults {
     constructor() {
         this.aspectRatio = '4 / 5';
         this.opacity = '0.5';
         /** @type {Category} */
-        this.CATEGORY = { type: 'CATEGORY', H2: m('H2') };
+        this.CATEGORY = { type: 'CATEGORY', [CATEGORY_TAG]: m(CATEGORY_TAG) };
         /** @type {Service} */
         this.SERVICE = {
             type: 'SERVICE',
-            H3: m('H3'),
-            P: m('P'),
-            SPAN: m('SPAN'),
+            [SERVICE_NAME_TAG]: m(SERVICE_NAME_TAG),
+            [SERVICE_PRICE_TAG]: m(SERVICE_PRICE_TAG),
+            [SERVICE_DESCRIPTION_TAG]: m(SERVICE_DESCRIPTION_TAG),
         };
         this.STYLE = {
             backgroundColor: 'rgb(50, 50, 50)',
@@ -30,9 +41,9 @@ class Defaults {
     get() {
         return {
             PAGES: [{
-                H1: m('PRICE'),
-                ITEMS: m('ITEMS'),
-                FOOTER: m('EXAMPLE_FOOTER'),
+                [TITLE_TAG]: m('EXAMPLE_TITLE'),
+                ITEMS: typeof EXAMPLE_ITEMS === 'object' ? EXAMPLE_ITEMS : [],
+                [FOOTER_TAG]: m('EXAMPLE_FOOTER'),
                 STYLE: {
                     backgroundColor: 'rgb(0, 0, 0)',
                     backgroundImage: 'radial-gradient(rgba(255, 255, 255, .2) 0%, rgba(255, 255, 255, 0) 100%), radial-gradient(at left bottom, rgba(0, 200, 255, 1) 0%, rgba(0, 200, 255, 0) 80%), linear-gradient(135deg, rgba(50, 50, 120, 0) 0%, rgba(50, 50, 120, 0) 75%, rgba(50, 50, 120, 1) 100%), linear-gradient(75deg, rgba(100, 100, 0, 1) 0%, rgba(200, 100, 100, 1) 17%, rgba(200, 150, 40, 1) 74%, rgba(200, 100, 30, 1) 100%)',
@@ -47,19 +58,8 @@ class Defaults {
 
 const DEFAULTS = new Defaults();
 
-/** @type {ReadonlyArray<'H2'| 'H3'| 'SPAN'| 'P'>} */
-const ITEMS_TAGS = ['H2', 'H3', 'SPAN', 'P'];
-/** @type {ReadonlyArray<'H1'| 'FOOTER'>} */
-const HEADER_TAGS = ['H1', 'FOOTER'];
-const DRAG_OVER_CLASSNAMES = ["drag-over--before", "drag-over--after"];
+/* GETTERS */
 
-/**
- * GETTERS
- */
-
-/**
- * @returns {HTMLOListElement | null} `<ol>` of current page
- */
 function getMount() {
     return /** @type {HTMLOListElement | null} */ (document.getElementById('pages'));
 }
@@ -71,33 +71,23 @@ function getActiveLi() {
     return document.querySelector('li.active');
 }
 
-/**
- * @returns `<article>` of current page
- */
 function getActiveArticle(li = getActiveLi()) {
     return /** @type {HTMLElement | null} */ (li && li.firstElementChild);
 }
 
-/**
- * @returns `<div>` of current page
- */
 function getActiveDiv(article = getActiveArticle()) {
     return /** @type {HTMLDivElement | null} */ (article && article.firstElementChild);
 }
 
-/**
- * @returns `<form>` of current page
- */
 function getActiveForm(article = getActiveArticle()) {
     return /** @type {HTMLFormElement | null} */ (article && article.lastElementChild);
 }
 
 /**
- * @param {HTMLElement | null} parent
  * @returns {HTMLElement | null} last focused element
  */
-function getActiveElement(parent = getActiveLi()) {
-    return parent && parent.querySelector('.active[contenteditable]');
+function getActiveElement(li = getActiveLi()) {
+    return li && li.querySelector('.active[contenteditable]');
 }
 
 /**
@@ -126,7 +116,7 @@ function getOffset(el) {
 * @returns {(HTMLElementTagNameMap[Lowercase<EditableTags>] & ElementContentEditable) | null} Created element
 */
 function createEditableElement({ tag, text, parent, fromStart }, useDefaults = true) {
-    if (![...HEADER_TAGS, ...ITEMS_TAGS].includes(tag) || (!useDefaults && !text)) {
+    if (![TITLE_TAG, FOOTER_TAG, ...ITEMS_TAGS].includes(tag) || (!useDefaults && !text)) {
         return null;
     }
 
@@ -146,101 +136,44 @@ function createEditableElement({ tag, text, parent, fromStart }, useDefaults = t
     return elem;
 }
 
-/**
- * @type {HTMLHeadingElement | HTMLDivElement | null}
- */
 let dragged = null;
 let draggedOver;
 let draggedSame;
 let draggedTarget;
 const savedCopy = window.localStorage.getItem('price');
-/**
- * @param {DragEvent} e
- */
-function handleDragEnter(e) {
-    const activeForm = getActiveForm();
-
-    if (dragged && activeForm && e.currentTarget instanceof HTMLElement) {
-        let hoverClass = DRAG_OVER_CLASSNAMES[0];
-
-        for (let i = 0; i < activeForm.children.length; i++) {
-            if (e.currentTarget.isSameNode(activeForm.children[i])) {
-                break;
-            }
-            if (dragged.isSameNode(activeForm.children[i])) {
-                hoverClass = DRAG_OVER_CLASSNAMES[1];
-
-                break;
-            }
-        }
-        e.currentTarget.classList.add(hoverClass);
-    }
-}
-/**
- * @param {DragEvent} e
- */
-function handleServiceDragEnter(e) {
-    handleDragEnter(e);
-    draggedSame = e.currentTarget === draggedOver;
-    draggedOver = e.currentTarget;
-    draggedTarget = e.target;
-}
-/**
- * @param {DragEvent} e
- */
-function handleServiceDragLeave(e) {
-    if (e.currentTarget instanceof HTMLDivElement && (!draggedSame || (draggedTarget === e.target))) {
-        e.currentTarget.classList.remove(...DRAG_OVER_CLASSNAMES);
-    }
-}
 
 /**
  * @param {boolean} draggable
  * @param {Service} serviceJson
- * @returns {HTMLDivElement}
  */
 function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
-    const div = document.createElement('div');
+    const service = /** @type {HTMLElementTagNameMap[Lowercase<typeof SERVICE_TAG>]} */ (document.createElement(SERVICE_TAG));
 
-    div.draggable = draggable;
+    service.draggable = draggable;
     for (const serviceProp in serviceJson) {
-        if (['H3', 'SPAN', 'P'].includes(serviceProp)) {
-            const tag = /** @type {'H3' | 'SPAN' | 'P'} */ (serviceProp);
-
+        if (SERVICE_TAGS.includes(serviceProp)) {
             createEditableElement({
-                tag,
+                // @ts-ignore
+                tag: serviceProp,
                 text: serviceJson[serviceProp],
-                parent: div
+                parent: service
             }, false);
         }
     }
-    div.addEventListener("dragenter", handleServiceDragEnter);
-    div.addEventListener("dragleave", handleServiceDragLeave);
 
-    return div;
-}
-/**
- * @param {DragEvent} e
- */
-function handleCategoryDragLeave(e) {
-    if (e.currentTarget instanceof HTMLHeadingElement) {
-        e.currentTarget.classList.remove(...DRAG_OVER_CLASSNAMES);
-    }
+    return service;
 }
 /**
  * @param {boolean} draggable
  * @param {Category} [categoryJson]
- * @returns {HTMLElement}
  */
 function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
-    const category = /** @type {HTMLHeadingElement} */ (createEditableElement({
-        tag: 'H2',
-        text: 'H2' in categoryJson ? categoryJson.H2 : m('H2'),
+    const category = /** @type {HTMLElementTagNameMap[Lowercase<typeof CATEGORY_TAG>]}  */ (createEditableElement({
+        tag: CATEGORY_TAG,
+        text: CATEGORY_TAG in categoryJson ? categoryJson[CATEGORY_TAG] : m(CATEGORY_TAG),
     }, false));
 
     category.draggable = draggable;
-    category.addEventListener("dragenter", handleDragEnter);
-    category.addEventListener("dragleave", handleCategoryDragLeave);
 
     return category;
 }
@@ -248,8 +181,8 @@ function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
 /**
 * @param {Object} params
 * @param {HTMLElement | null} params.page
-* @param {HTMLElement | null} params.form
-* @param {HTMLElement | null} params.div
+* @param {HTMLFormElement | null} params.form
+* @param {HTMLDivElement | null} params.div
 * @param {boolean} [parseImages]
 * @returns {Partial<CSSStyleDeclaration>}
 */
@@ -271,7 +204,7 @@ function parseStyles({ page, form, div }, parseImages) {
             return false;
         }
 
-        return value;
+        return Boolean(value);
     }));
 }
 
@@ -280,28 +213,34 @@ function parseStyles({ page, form, div }, parseImages) {
  * @param {boolean} [parseImages]
  */
 function parsePage(page, parseImages) {
-    /** @type {Page} */
-    const pageJson = {};
     const div = /** @type {HTMLDivElement | null} */ (page.firstElementChild);
     const form = /** @type {HTMLFormElement | null} */ (page.lastElementChild);
     const priceElems = form ? /** @type {HTMLCollectionOf<HTMLElement>} */ (form.children) : [];
+    /** @type {Page} */
+    const pageJson = {
+        STYLE: parseStyles({ page, form, div }, parseImages)
+    };
 
     for (const priceElem of priceElems) {
         switch (priceElem.tagName) {
-            case 'H1':
-            case 'FOOTER':
+            case TITLE_TAG:
+            case FOOTER_TAG:
                 pageJson[priceElem.tagName] = priceElem.innerText;
 
                 break;
-            case 'H2':
+            case CATEGORY_TAG:
                 /** @type {Category} */
-                const category = { type: 'CATEGORY', H2: priceElem.innerText };
+                const category = { type: 'CATEGORY', [CATEGORY_TAG]: priceElem.innerText };
 
-                pageJson.ITEMS = pageJson.ITEMS ? [...pageJson.ITEMS, category] : [category];
+                if (Array.isArray(pageJson.ITEMS)) {
+                    pageJson.ITEMS.push(category);
+                } else {
+                    pageJson.ITEMS = [category];
+                }
 
                 break;
-            case 'DIV':
-                const serviceItems = /** @type {HTMLCollectionOf<HTMLElement>} */ (priceElem.children);
+            case SERVICE_TAG:
+                const serviceItems = /** @type {HTMLCollectionOf<HTMLElementTagNameMap[Lowercase<typeof SERVICE_NAME_TAG | typeof SERVICE_PRICE_TAG | typeof SERVICE_DESCRIPTION_TAG>]>} */ (priceElem.children);
 
                 if (serviceItems.length) {
                     /** @type {Service} */
@@ -311,17 +250,16 @@ function parsePage(page, parseImages) {
                         service[item.tagName] = item.innerText;
                     }
 
-                    pageJson.ITEMS = pageJson.ITEMS ? [...pageJson.ITEMS, service] : [service];
+                    if (Array.isArray(pageJson.ITEMS)) {
+                        pageJson.ITEMS.push(service);
+                    } else {
+                        pageJson.ITEMS = [service];
+                    }
                 }
 
                 break;
         }
     }
-    pageJson.STYLE = parseStyles({
-        page,
-        form,
-        div,
-    }, parseImages);
 
     return pageJson;
 }
@@ -425,8 +363,8 @@ function repositionTitleAlignment(element = getActiveElement()) {
     if (titleAlignment) {
         if (
             element &&
-            element.tagName === 'H1' &&
-            (!element.nextElementSibling || element.nextElementSibling.tagName === 'FOOTER')
+            element.tagName === TITLE_TAG &&
+            (!element.nextElementSibling || element.nextElementSibling.tagName === FOOTER_TAG)
         ) {
             const { left, height, top } = getOffset(element);
 
@@ -505,12 +443,12 @@ const sorting = /** @type {HTMLInputElement | null} */ (BindListener('sorting', 
     }
     for (const element of draggableElements) {
         element.draggable = this.checked;
-        if (element.tagName === 'H2') {
+        if (element.tagName === CATEGORY_TAG) {
             element.contentEditable = contentEditable;
         }
-        if (element.tagName === 'DIV') {
+        if (element.tagName === SERVICE_TAG) {
             for (const child of element.children) {
-                const childElement = /** @type {HTMLHeadingElement | HTMLSpanElement | HTMLParagraphElement} */ (child);
+                const childElement = /** @type {HTMLElementTagNameMap[Lowercase<typeof SERVICE_NAME_TAG | typeof SERVICE_PRICE_TAG | typeof SERVICE_DESCRIPTION_TAG>]} */ (child);
 
                 childElement.contentEditable = contentEditable;
             }
@@ -532,8 +470,7 @@ function repositionDeleteBtn(element = getActiveElement()) {
         if (
             element &&
             (
-                // @ts-ignore
-                HEADER_TAGS.includes(element.tagName) ||
+                [TITLE_TAG, FOOTER_TAG].includes(element.tagName) ||
                 // @ts-ignore
                 (ITEMS_TAGS.includes(element.tagName) && sorting && !sorting.checked)
             )
@@ -569,14 +506,8 @@ BindListener(deleteBtn, function handleDeleteClick() {
     ) {
         const parent = activeElement.parentElement;
 
-        if (activeElement.tagName === 'H2') {
-            activeElement.removeEventListener('dragenter', handleDragEnter);
-            activeElement.removeEventListener('dragleave', handleCategoryDragLeave);
-        }
         activeElement.remove();
-        if (parent && parent.tagName === 'DIV' && !parent.innerText.trim()) {
-            parent.removeEventListener('dragenter', handleServiceDragEnter);
-            parent.removeEventListener('dragleave', handleServiceDragLeave);
+        if (parent && parent.tagName === SERVICE_TAG && !parent.innerText.trim()) {
             parent.remove();
         }
         this.hidden = true;
@@ -831,18 +762,6 @@ BindListener('deletePage', function handleDeletePageClick() {
     const activePage = getActiveLi();
 
     if (activePage && window.confirm(m('REMOVE_PAGE'))) {
-        const categories = activePage.getElementsByTagName('h2');
-        const services = activePage.getElementsByTagName('div');
-
-        for (const category of categories) {
-            category.removeEventListener('dragenter', handleDragEnter);
-            category.removeEventListener('dragleave', handleCategoryDragLeave);
-        }
-
-        for (const service of services) {
-            service.removeEventListener('dragenter', handleServiceDragEnter);
-            service.removeEventListener('dragleave', handleServiceDragLeave);
-        }
         observer.unobserve(activePage);
         activePage.remove();
 
@@ -899,8 +818,8 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
 
     attachStyleFromJson({ form, div, article }, pageJson.STYLE);
     createEditableElement({
-        tag: 'H1',
-        text: pageJson.H1,
+        tag: TITLE_TAG,
+        text: pageJson[TITLE_TAG],
         parent: form
     }, false);
     if (pageJson.ITEMS !== undefined && typeof pageJson.ITEMS !== 'string') {
@@ -913,7 +832,7 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
         });
     }
     createEditableElement({
-        tag: 'FOOTER',
+        tag: FOOTER_TAG,
         text: pageJson.FOOTER,
         parent: form
     }, false);
@@ -1008,8 +927,8 @@ BindListener('duplicate', function handleDuplicateClick() {
         const activePage = getActiveArticle(activeLi);
         const activePageJson = activePage && parsePage(activePage);
 
-        if (activePageJson && 'H1' in activePageJson) {
-            activePageJson.H1 += ' copy';
+        if (activePageJson && TITLE_TAG in activePageJson) {
+            activePageJson[TITLE_TAG] += ' copy';
         }
 
         const newPage = activePageJson ? createPage(activePageJson) : createPage();
@@ -1033,10 +952,10 @@ BindListener('title', function handleAddTitleClick() {
     const form = getActiveForm();
 
     if (form) {
-        const existingTitle = form.querySelector('h1');
+        const existingTitle = /** @type {HTMLElementTagNameMap[Lowercase<typeof TITLE_TAG>] | null} */ (form.querySelector(TITLE_TAG.toLowerCase()));
 
         selectElement(existingTitle ? existingTitle : createEditableElement({
-            tag: 'H1',
+            tag: TITLE_TAG,
             fromStart: true,
             parent: form
         }));
@@ -1047,10 +966,10 @@ BindListener('footer', function handleAddFooterClick() {
     const form = getActiveForm();
 
     if (form) {
-        const existingFooter = form.querySelector('footer');
+        const existingFooter =  /** @type {HTMLElementTagNameMap[Lowercase<typeof FOOTER_TAG>] | null} */ (form.querySelector(FOOTER_TAG.toLowerCase()));
 
         selectElement(existingFooter ? existingFooter : createEditableElement({
-            tag: 'FOOTER',
+            tag: FOOTER_TAG,
             parent: form
         }));
     }
@@ -1059,10 +978,10 @@ BindListener('footer', function handleAddFooterClick() {
 Object.keys(itemsActionsMap).forEach(function bingClickToItem(itemId) {
     BindListener(itemId, function handleAddItemClick() {
         const form = getActiveForm();
-        const item = /** @type {HTMLHeadingElement | HTMLDivElement} */ (itemsActionsMap[itemId](Boolean(sorting && sorting.checked)));
+        const item = /** @type {HTMLElementTagNameMap[Lowercase<typeof CATEGORY_TAG | typeof SERVICE_TAG>]} */ (itemsActionsMap[itemId](Boolean(sorting && sorting.checked)));
 
         if (form) {
-            const existingFooter = form.querySelector('footer');
+            const existingFooter = form.querySelector(FOOTER_TAG.toLowerCase());
 
             if (existingFooter) {
                 form.insertBefore(item, existingFooter);
@@ -1182,8 +1101,43 @@ if (mount) {
             }
         }
     });
+    mount.addEventListener("dragenter", function handleDragEnter(e) {
+        const activeForm = getActiveForm();
+        const dropZone = e.target instanceof HTMLElement && ITEMS_TAGS.includes(e.target.tagName) && (e.target.tagName === CATEGORY_TAG ? e.target : e.target.parentElement);
+
+        if (dragged && activeForm && dropZone) {
+            let hoverClass = DRAG_OVER_CLASSNAMES[0];
+
+            for (let i = 0; i < activeForm.children.length; i++) {
+                if (dropZone.isSameNode(activeForm.children[i])) {
+                    break;
+                }
+                if (dragged.isSameNode(activeForm.children[i])) {
+                    hoverClass = DRAG_OVER_CLASSNAMES[1];
+
+                    break;
+                }
+            }
+            dropZone.classList.add(hoverClass);
+
+            if (dropZone.tagName === SERVICE_TAG) {
+                draggedSame = dropZone === draggedOver;
+                draggedOver = dropZone;
+                draggedTarget = e.target;
+            }
+        }
+    });
+    mount.addEventListener("dragleave", function handleDragLeave(e) {
+        if (e.target instanceof HTMLElement) {
+            if (e.target.tagName === CATEGORY_TAG) {
+                e.target.classList.remove(...DRAG_OVER_CLASSNAMES);
+            } else if (SERVICE_TAGS.includes(e.target.tagName) && (!draggedSame || (draggedTarget === e.target)) && e.target.parentElement) {
+                e.target.parentElement.classList.remove(...DRAG_OVER_CLASSNAMES);
+            }
+        }
+    });
     mount.addEventListener("dragstart", function handleDragStart(event) {
-        dragged = /** @type {HTMLDivElement | HTMLHeadingElement} */ (event.target);
+        dragged = event.target;
     });
     mount.addEventListener("dragend", function handleDragEnd() {
         dragged = null;
@@ -1229,7 +1183,7 @@ document.body.addEventListener('click', function handleClick(e) {
 document.body.addEventListener('keyup', function sortWithArrows(e) {
     const targetElement = /** @type {HTMLElement | null} */ (e.target);
     const element = targetElement &&
-        (['H3', 'P', 'SPAN'].includes(targetElement.tagName) ? targetElement.parentElement : targetElement);
+        (SERVICE_TAGS.includes(targetElement.tagName) ? targetElement.parentElement : targetElement);
 
     if (element && element.draggable) {
         switch (e.key) {

@@ -7,7 +7,8 @@
     "freeze": true,
     "globals": {
         "html2canvas": false,
-        "messages": false,
+        "MESSAGES": false,
+        "EXAMPLE_ITEMS": false,
         "ym": false
     },
     "latedef": true,

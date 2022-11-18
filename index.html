@@ -254,10 +254,11 @@
         .pages h2 {
             font-size: 227%;
             text-align: start;
+            margin: 0;
         }
 
         .pages div+h2 {
-            margin-block-start: .5em;
+            padding-block-start: .35em;
         }
 
         .pages form>div {
@@ -266,12 +267,9 @@
             font-size: 136%;
             grid-auto-flow: dense;
             grid-template-columns: 1fr auto;
-            margin-block-start: .7em;
+            padding-block-start: .35em;
+            padding-block-end: .35em;
             text-align: left;
-        }
-
-        .pages form>h1+div {
-            margin-block-start: .4em;
         }
 
         .pages [draggable] {
@@ -280,36 +278,12 @@
 
         .pages [draggable="true"] {
             cursor: grab;
-            position: relative;
-        }
-
-        .pages [draggable="true"]::before {
-            align-items: center;
-            bottom: 0;
-            content: '↕︎';
-            display: flex;
-            font-size: 1rem;
-            left: -1rem;
-            padding-right: .5rem;
-            position: absolute;
-            top: 0;
-        }
-
-        .pages [draggable="true"]:nth-child(2n) {
-            animation-direction: alternate-reverse;
-        }
-
-        .pages [draggable="true"]:nth-child(3n) {
-            animation-delay: -.5s;
-        }
-
-        .pages [draggable="true"]:active {
-            animation: none;
-            outline: none;
+            transform: translateX(-1rem);
         }
 
         .pages [draggable="true"]:focus-within *:focus,
-        .pages [draggable="true"]:active * {
+        .pages [draggable="true"]:active *,
+        .pages [draggable="true"]:active {
             outline: none;
         }
 
