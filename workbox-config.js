@@ -1,7 +1,7 @@
 module.exports = {
 	globDirectory: './',
 	globPatterns: [
-		'**/*.{js,html,ico}'
+		'**/*.{js,html,css,ico}'
 	],
 	swDest: './sw.js',
 	ignoreURLParametersMatching: [
@@ -21,6 +21,13 @@ module.exports = {
 		handler: "CacheFirst",
 		options: {
 		  cacheName: "scripts",
+		},
+	  },
+	  {
+		urlPattern: /\.(?:css)$/,
+		handler: "CacheFirst",
+		options: {
+		  cacheName: "styles",
 		},
 	  },
 	],

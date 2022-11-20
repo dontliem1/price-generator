@@ -222,12 +222,12 @@ img {
     width: min(1080px, 56.25vh, 100%);
 }
 
-.pages[data-aspect-ratio="4 / 5"] span,
+.pages[data-aspect-ratio="4 / 5"] p,
 .pages[data-aspect-ratio="4 / 5"] form {
     font-size: min(4.074vw, 3.26vh, 44px);
 }
 
-.pages[data-aspect-ratio="9 / 16"] span,
+.pages[data-aspect-ratio="9 / 16"] p,
 .pages[data-aspect-ratio="9 / 16"] form {
     font-size: min(4.074vw, 2.29vh, 44px);
 }
@@ -290,13 +290,12 @@ img {
 
 .pages h1,
 h2,
-h3 {
+b {
     font-weight: inherit;
     margin: 0;
 }
 
-.pages h1,
-h3 {
+.pages h1 {
     font-size: inherit;
 }
 
@@ -319,9 +318,6 @@ form h2:last-child {
 
 .pages p {
     margin: 0;
-}
-
-.pages span {
     font-size: min(4.074vw, 4.074vh, 44px);
     grid-column: 1/3;
 }

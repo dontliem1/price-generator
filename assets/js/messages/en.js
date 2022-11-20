@@ -3,7 +3,7 @@
 const MESSAGES = {
     H1: 'Title',
     H2: 'Category',
-    H3: 'Service name',
+    B: 'Service name',
     P: 'Price',
     SPAN: 'Service description',
     FOOTER: 'Page footer',
@@ -12,7 +12,7 @@ const MESSAGES = {
     REMOVE_PAGE: 'Remove the current page?',
     IMPORT_CONFIRM: 'This will replace the current price. Continue?',
     LOAD_CONFIRM: 'There is a saved local copy of last price made without images. Do you want to load it?',
-    PAGES: '{"PAGES":[{"STYLE":{"backgroundColor":"rgb(0, 0, 0)","color":"rgb(255, 255, 255)","justifyContent":"flex-end","opacity":"0","textAlign":"right"},"H1":"RUTINA","FOOTER":"Swipe for instructions →"},{"STYLE":{"backgroundColor":"rgb(50, 50, 50)","color":"rgb(255, 255, 255)","opacity":"0.5"},"ITEMS":[{"type":"SERVICE","H3":"Make your own price list","SPAN":"Tap on text or add more pages or items"},{"type":"SERVICE","H3":"Export to image(s)","P":"🖼"},{"type":"SERVICE","H3":"Save to .json file","P":"📄","SPAN":"You can load it later to continue work"},{"type":"SERVICE","H3":"Choose aspect ratio","P":"4:5","SPAN":"If you want to make stories"},{"type":"SERVICE","H3":"Toggle sorting mode","P":"⇅","SPAN":"Try it now and drag and drop these hints!"},{"type":"SERVICE","H3":"Change font, colors and image","P":"Aa","SPAN":"Just tap on background"}]},{"STYLE":{"backgroundColor":"rgb(0, 0, 0)","color":"rgb(230, 228, 200)","opacity":"0.3"},"H1":"Price example","ITEMS":[{"type":"CATEGORY","H2":"Brows"},{"type":"SERVICE","H3":"Brows architecture","P":"£20","SPAN":"modeling + coloring + correction"},{"type":"SERVICE","H3":"Long term paving","P":"£25"},{"type":"CATEGORY","H2":"Lashes"},{"type":"SERVICE","H3":"Eyelash tinting","P":"£5"},{"type":"SERVICE","H3":"Removal of false eyelashes","P":"£4"}],"FOOTER":"Book time at direct messages"}],"STYLE":{"aspectRatio":"4 / 5"}}',
+    PAGES: '{"PAGES":[{"STYLE":{"backgroundColor":"rgb(0, 0, 0)","color":"rgb(255, 255, 255)","justifyContent":"flex-end","opacity":"0","textAlign":"right"},"H1":"RUTINA","FOOTER":"Swipe for instructions →"},{"STYLE":{"backgroundColor":"rgb(50, 50, 50)","color":"rgb(255, 255, 255)","opacity":"0.5"},"ITEMS":[{"type":"SERVICE","B":"Make your own price list","P":"Tap on text or add more pages or items"},{"type":"SERVICE","B":"Export to image(s)","SPAN":"🖼"},{"type":"SERVICE","B":"Save to .json file","SPAN":"📄","P":"You can load it later to continue work"},{"type":"SERVICE","B":"Choose aspect ratio","SPAN":"4:5","P":"If you want to make stories"},{"type":"SERVICE","B":"Toggle sorting mode","SPAN":"⇅","P":"Try it now and drag and drop these hints!"},{"type":"SERVICE","B":"Change font, colors and image","SPAN":"Aa","P":"Just tap on background"}]},{"STYLE":{"backgroundColor":"rgb(0, 0, 0)","color":"rgb(230, 228, 200)","opacity":"0.3"},"H1":"Price example","ITEMS":[{"type":"CATEGORY","H2":"Brows"},{"type":"SERVICE","B":"Brows architecture","SPAN":"£20","P":"modeling + coloring + correction"},{"type":"SERVICE","B":"Long term paving","SPAN":"£25"},{"type":"CATEGORY","H2":"Lashes"},{"type":"SERVICE","B":"Eyelash tinting","SPAN":"£5"},{"type":"SERVICE","B":"Removal of false eyelashes","SPAN":"£4"}],"FOOTER":"Book time at direct messages"}],"STYLE":{"aspectRatio":"4 / 5"}}',
 };
 
 /** @type {Page[]} */
@@ -30,37 +30,37 @@ const PAGES = [
         ITEMS: [
             {
                 type: "SERVICE",
-                H3: "Make your own price list",
-                SPAN: "Tap on text or add more pages or items"
+                B: "Make your own price list",
+                P: "Tap on text or add more pages or items"
             },
             {
                 type: "SERVICE",
-                H3: "Export to image(s)",
-                P: "🖼"
+                B: "Export to image(s)",
+                SPAN: "🖼"
             },
             {
                 type: "SERVICE",
-                H3: "Save to .json file",
-                P: "📄",
-                SPAN: "You can load it later to continue work"
+                B: "Save to .json file",
+                SPAN: "📄",
+                P: "You can load it later to continue work"
             },
             {
                 type: "SERVICE",
-                H3: "Choose aspect ratio",
-                P: "4:5",
-                SPAN: "If you want to make stories"
+                B: "Choose aspect ratio",
+                SPAN: "4:5",
+                P: "If you want to make stories"
             },
             {
                 type: "SERVICE",
-                H3: "Toggle sorting mode",
-                P: "⇅",
-                SPAN: "Try it now and drag and drop these hints!"
+                B: "Toggle sorting mode",
+                SPAN: "⇅",
+                P: "Try it now and drag and drop these hints!"
             },
             {
                 type: "SERVICE",
-                H3: "Change font, colors and image",
-                P: "Aa",
-                SPAN: "Just tap on background"
+                B: "Change font, colors and image",
+                SPAN: "Aa",
+                P: "Just tap on background"
             }
         ],
         STYLE: {
@@ -73,33 +73,33 @@ const PAGES = [
         H1: 'Price example',
         ITEMS: [
             {
-                "type": "CATEGORY",
-                "H2": "Brows"
+                type: "CATEGORY",
+                H2: "Brows"
+            },
+            {
+                type: "SERVICE",
+                B: "Brows architecture",
+                SPAN: "£20",
+                P: "modeling + coloring + correction"
+            },
+            {
+                type: "SERVICE",
+                B: "Long term paving",
+                SPAN: "£25"
+            },
+            {
+                type: "CATEGORY",
+                H2: "Lashes"
+            },
+            {
+                type: "SERVICE",
+                B: "Eyelash tinting",
+                SPAN: "£5"
             },
             {
                 "type": "SERVICE",
-                "H3": "Brows architecture",
-                "P": "£20",
-                "SPAN": "modeling + coloring + correction"
-            },
-            {
-                "type": "SERVICE",
-                "H3": "Long term paving",
-                "P": "£25"
-            },
-            {
-                "type": "CATEGORY",
-                "H2": "Lashes"
-            },
-            {
-                "type": "SERVICE",
-                "H3": "Eyelash tinting",
-                "P": "£5"
-            },
-            {
-                "type": "SERVICE",
-                "H3": "Removal of false eyelashes",
-                "P": "£4"
+                B: "Removal of false eyelashes",
+                SPAN: "£4"
             }
         ],
         FOOTER: "Book time at direct messages",
