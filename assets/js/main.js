@@ -38,7 +38,7 @@ class Defaults {
      * @return {Pages} Example pages
      */
     get() {
-        return { PAGES, STYLE: { aspectRatio: this.aspectRatio } };
+        return { PAGES: typeof PAGES === 'object' ? PAGES : [], STYLE: { aspectRatio: this.aspectRatio } };
     }
 }
 
@@ -1124,7 +1124,7 @@ if (mount !== null) {
     }, false);
 }
 
-document.addEventListener('click', function handleClick(e) {
+document.body.addEventListener('click', function handleClick(e) {
     if (e.target instanceof HTMLElement) {
         const closestFieldset = e.target.closest('fieldset');
         const add = document.getElementById('add');
