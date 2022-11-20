@@ -253,8 +253,9 @@
 
         .pages h2 {
             font-size: 227%;
-            text-align: start;
+            line-height: 1;
             margin: 0;
+            text-align: start;
         }
 
         .pages div+h2 {
@@ -316,17 +317,18 @@
         .pages h1:only-child,
         .pages form:not(:has(h2)) h1 {
             font-size: 400%;
-            padding-block-end: 4%;
-            padding-block-start: 10%;
+            padding-top: 4%;
             text-align: inherit;
         }
 
-        form:has(h2, div) {
-            justify-content: flex-start !important;
+        form:has(div),
+        form:has(h2) {
+            text-align: left !important;
         }
 
-        .pages h1:not(:only-child) {
-            text-align: start;
+        form div:last-child,
+        form h2:last-child {
+            margin-bottom: auto;
         }
 
         .pages p {
@@ -340,12 +342,12 @@
 
         .pages footer {
             order: 1;
-            padding-block-start: 1em;
+            padding-top: 1em;
         }
 
         .pages *:not(h1)+footer {
-            margin-block-start: auto;
-            text-align: start;
+            margin-top: auto;
+            text-align: left;
         }
 
         main noscript {
@@ -485,7 +487,7 @@
             <button class="btn" type="button" id="save" title="Сохранить картинки" aria-label="Сохранить картинки">🖼</button>
             <button class="btn" type="button" id="export" title="Сохранить в файл .json" aria-label="Сохранить в файл .json">📄</button>
         </span>
-        <select class="btn" name="aspectRatio" title="Соотношение сторон" aria-label="Cоотношение сторон" id="aspectRatio">
+        <select class="btn" name="aspectRatio" title="Соотношение сторон" aria-label="Соотношение сторон" id="aspectRatio">
             <option value="1 / 1">1:1</option>
             <option value="4 / 5" selected>4:5</option>
             <option value="9 / 16">9:16</option>
@@ -499,7 +501,7 @@
         <button class="btn" type="button" id="category">Категорию</button>
         <button class="btn" type="button" id="service">Услугу</button>
         <button class="btn" type="button" id="footer">Подвал</button>
-        <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json" /><span class="btn" id="importLabel">Из JSON...</span></label>
+        <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json"><span class="btn" id="importLabel">Из JSON...</span></label>
     </details>
     <main>
         <h2 class="visually-hidden">Страницы и содержимое</h2>
@@ -523,7 +525,7 @@
         </fieldset>
         <fieldset class="float__fieldset" id="background" hidden>
             <legend class="visually-hidden">Настройки страницы</legend>
-            <label class="btn"><input type="color" name="color" id="color"> Текст</label>
+            <label class="btn"><input type="color" name="color" id="color" value="rgb(255, 255, 255)"> Текст</label>
             <select class="btn" name="fontFamily" title="Шрифт" aria-label="Шрифт" id="fontFamily">
                 <option value="system-ui, sans-serif" selected>Системный шрифт</option>
                 <optgroup label="Serif">
@@ -579,8 +581,8 @@
                 </optgroup>
             </select>
             <br>
-            <label class="btn"><input type="color" name="backgroundColor" id="backgroundColor"> Фон</label>
-            <label class="btn fd-c">Прозрачность<input type="range" name="opacity" min="0" max="1" step="0.1" id="opacity"></label>
+            <label class="btn"><input type="color" name="backgroundColor" id="backgroundColor" value="rgb(0, 0, 0)"> Фон</label>
+            <label class="btn fd-c">Прозрачность<input type="range" name="opacity" min="0" max="1" step="0.1" value="1" id="opacity"></label>
             <span class="btn--group">
                 <label class="file" title="Сменить картинку"><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span class="btn">Картинка</span></label>
                 <button class="btn" type="button" id="deleteBackgroundImage" title="Удалить картинку" aria-label="Удалить картинку">╳</button>
@@ -594,7 +596,7 @@
     </div>
     <script>(function (m, e, t, r, i, k, a) { m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) }; m[i].l = 1 * new Date(); k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a) })(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym"); ym(89949856, "init", { clickmap: true, trackLinks: true, accurateTrackBounce: true, webvisor: true }); </script>
     <noscript>
-        <div><img src="https://mc.yandex.ru/watch/89949856" style="position:absolute; left:-9999px;" alt="" /></div>
+        <div><img src="https://mc.yandex.ru/watch/89949856" style="position:absolute; left:-9999px;" alt=""></div>
     </noscript>
     <script src="../assets/js/messages/ru.js"></script>
     <script src="../assets/js/main.js" type="module"></script>

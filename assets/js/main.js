@@ -19,7 +19,6 @@ const DRAG_OVER_CLASSNAMES = ["drag-over--before", "drag-over--after"];
 class Defaults {
     constructor() {
         this.aspectRatio = '4 / 5';
-        this.opacity = '0.5';
         /** @type {Category} */
         this.CATEGORY = { type: 'CATEGORY', [CATEGORY_TAG]: m(CATEGORY_TAG) };
         /** @type {Service} */
@@ -32,27 +31,14 @@ class Defaults {
         this.STYLE = {
             backgroundColor: 'rgb(50, 50, 50)',
             color: 'rgb(255, 255, 255)',
-            opacity: this.opacity,
+            opacity: '0.5',
         };
     }
     /**
      * @return {Pages} Example pages
      */
     get() {
-        return {
-            PAGES: [{
-                [TITLE_TAG]: m('EXAMPLE_TITLE'),
-                ITEMS: typeof EXAMPLE_ITEMS === 'object' ? EXAMPLE_ITEMS : [],
-                [FOOTER_TAG]: m('EXAMPLE_FOOTER'),
-                STYLE: {
-                    backgroundColor: 'rgb(0, 0, 0)',
-                    backgroundImage: 'radial-gradient(rgba(255, 255, 255, .2) 0%, rgba(255, 255, 255, 0) 100%), radial-gradient(at left bottom, rgba(0, 200, 255, 1) 0%, rgba(0, 200, 255, 0) 80%), linear-gradient(135deg, rgba(50, 50, 120, 0) 0%, rgba(50, 50, 120, 0) 75%, rgba(50, 50, 120, 1) 100%), linear-gradient(75deg, rgba(100, 100, 0, 1) 0%, rgba(200, 100, 100, 1) 17%, rgba(200, 150, 40, 1) 74%, rgba(200, 100, 30, 1) 100%)',
-                    color: 'rgb(230, 228, 200)',
-                    justifyContent: 'flex-end',
-                    opacity: '0.3',
-                },
-            }], STYLE: { aspectRatio: this.aspectRatio }
-        };
+        return { PAGES, STYLE: { aspectRatio: this.aspectRatio } };
     }
 }
 
@@ -133,12 +119,18 @@ function createEditableElement({ tag, text, parent, fromStart }, useDefaults = t
 
     return elem;
 }
+
+/* VARS */
+
 /** @type {HTMLElement | null} */
 let dragged = null;
 let draggedOver;
 let draggedSame;
 let draggedTarget;
 const savedCopy = window.localStorage.getItem('price');
+let sortingPolyfilled = false;
+let fontsAdded = false;
+const mount = getMount();
 
 /**
  * @param {boolean} draggable
@@ -176,6 +168,11 @@ function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
     return category;
 }
 
+const itemsActionsMap = {
+    category: createCategory,
+    service: createService
+};
+
 /**
 * @param {Object} params
 * @param {HTMLElement | null} params.page
@@ -185,9 +182,9 @@ function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
 * @returns {Partial<CSSStyleDeclaration>}
 */
 function parseStyles({ page, form, div }, parseImages) {
-    const { backgroundImage = '', color = '', fontFamily = '' } = page ? page.style : {};
-    const { justifyContent = '', textAlign = '' } = form ? form.style : {};
-    const { backgroundColor = '', opacity = '' } = div ? div.style : {};
+    const { backgroundImage = '', color = '', fontFamily = '' } = page !== null ? page.style : {};
+    const { justifyContent = '', textAlign = '' } = form !== null ? form.style : {};
+    const { backgroundColor = '', opacity = '' } = div !== null ? div.style : {};
 
     return Object.fromEntries(Object.entries({
         backgroundColor,
@@ -198,7 +195,7 @@ function parseStyles({ page, form, div }, parseImages) {
         opacity,
         textAlign,
     }).filter(function filterEmpty([prop, value]) {
-        if (!parseImages && prop === 'backgroundImage') {
+        if (!parseImages && prop === 'backgroundImage' && !['radial', 'linear'].includes(value.substring(0,6))) {
             return false;
         }
 
@@ -213,13 +210,13 @@ function parseStyles({ page, form, div }, parseImages) {
 function parsePage(page, parseImages) {
     const div = /** @type {HTMLDivElement | null} */ (page.firstElementChild);
     const form = /** @type {HTMLFormElement | null} */ (page.lastElementChild);
-    const priceElems = form ? /** @type {HTMLCollectionOf<HTMLElement>} */ (form.children) : [];
+    const priceElements = form ? /** @type {HTMLCollectionOf<HTMLElement>} */ (form.children) : [];
     /** @type {Page} */
     const pageJson = {
         STYLE: parseStyles({ page, form, div }, parseImages)
     };
 
-    for (const priceElem of priceElems) {
+    for (const priceElem of priceElements) {
         switch (priceElem.tagName) {
             case TITLE_TAG:
             case FOOTER_TAG:
@@ -238,14 +235,12 @@ function parsePage(page, parseImages) {
 
                 break;
             case SERVICE_TAG:
-                const serviceItems = /** @type {HTMLCollectionOf<HTMLElementTagNameMap[Lowercase<typeof SERVICE_NAME_TAG | typeof SERVICE_PRICE_TAG | typeof SERVICE_DESCRIPTION_TAG>]>} */ (priceElem.children);
-
-                if (serviceItems.length) {
+                if (priceElem.childElementCount > 0) {
                     /** @type {Service} */
                     const service = { type: "SERVICE" };
 
-                    for (const item of serviceItems) {
-                        service[item.tagName] = item.innerText;
+                    for (const item of priceElem.children) {
+                        service[item.tagName] = item.textContent;
                     }
 
                     if (Array.isArray(pageJson.ITEMS)) {
@@ -300,9 +295,7 @@ function BindListener(element, callback, eventType = 'change') {
         /** @type {InteractiveElement} */ (document.getElementById(element)) :
         element;
 
-    if (targetElement) {
-        targetElement.addEventListener(eventType, callback);
-    }
+    if (targetElement) { targetElement.addEventListener(eventType, callback); }
 
     return targetElement;
 }
@@ -331,16 +324,6 @@ function handleFormStylePropChange(e) {
     }
 }
 
-/* VARS */
-
-let sortingPollyfilled = false;
-let fontsAdded = false;
-const mount = getMount();
-const itemsActionsMap = {
-    category: createCategory,
-    service: createService
-};
-
 /* FLOAT */
 
 // Alignment
@@ -368,33 +351,41 @@ function repositionTitleAlignment(element = getActiveElement()) {
     }
 }
 
-/**
- * @param {string} str
- */
-function truncate(str) {
-    if (!str.trim()) {
-        return '';
-    }
-
-    return '"' + (str.length > 15 ? str.substring(0, 15) + '…' : str) + '"';
-}
 // Remove element
 const deleteBtn = BindListener('delete', function handleDeleteClick() {
-    const activeElement = getActiveElement();
+    const element = getActiveElement();
 
-    if (activeElement !== null && window.confirm(
-        `${m('REMOVE_ELEMENT')} ${truncate(activeElement.innerText)}?`)
-    ) {
-        const parent = activeElement.parentElement;
+    /**
+     * @param {Object} params
+     * @param {HTMLElement} params.element
+     * @param {HTMLElement} params.parentElement
+     * @param {HTMLElement} params.buttonToHide
+     * @param {boolean} [params.parentOnly]
+     */
+    function removeElement({ element, parentElement, buttonToHide, parentOnly = false }) {
+        if (parentOnly) {
+            parentElement.remove();
+        } else {
+            element.remove();
+            if (parentElement.tagName === SERVICE_TAG && !parentElement.innerText.trim()) {
+                parentElement.remove();
+            }
+            if (titleAlignment !== null) { titleAlignment.hidden = true; }
+        }
+        buttonToHide.hidden = true;
+    }
 
-        activeElement.remove();
-        if (parent !== null && parent.tagName === SERVICE_TAG && !parent.innerText.trim()) {
-            parent.remove();
-        }
-        this.hidden = true;
-        if (titleAlignment !== null) {
-            titleAlignment.hidden = true;
-        }
+    if (element !== null && element.parentElement !== null) {
+        removeElement({
+            element,
+            parentElement: element.parentElement,
+            buttonToHide: this,
+            parentOnly: (
+                element.parentElement.tagName === SERVICE_TAG &&
+                SERVICE_TAGS.includes(element.tagName) &&
+                element.parentElement.childElementCount > 1
+            ) && window.confirm(m('REMOVE_SERVICE'))
+        });
     }
 }, 'click');
 
@@ -422,7 +413,7 @@ const moveRight = BindListener('moveRight', function movePageRight() {
 const background = document.getElementById('background');
 
 /**
- * If the form is active, show the background and hide the left and right arrows if there's no according neighbours
+ * If the form is active, show the background and hide the left and right arrows if there's no according neighbors
  * @param [form] - The form to reposition the background for.
  */
 function toggleBackground(form = getActiveForm()) {
@@ -450,13 +441,13 @@ const sorting = /** @type {HTMLInputElement | null} */ (BindListener('sorting', 
     const contentEditable = this.checked ? 'false' : 'true';
     const activeElement = getActiveElement();
 
-    if (!sortingPollyfilled) {
+    if (!sortingPolyfilled) {
         const script = document.createElement('script');
 
         script.src = (document.documentElement.lang === 'en' ? '.' : '..') + '/assets/js/vendors/DragDropTouch.js';
         script.async = false;
         document.body.appendChild(script);
-        sortingPollyfilled = true;
+        sortingPolyfilled = true;
     }
     for (const element of draggableElements) {
         element.draggable = this.checked;
@@ -465,14 +456,12 @@ const sorting = /** @type {HTMLInputElement | null} */ (BindListener('sorting', 
         }
         if (element.tagName === SERVICE_TAG) {
             for (const child of element.children) {
-                const childElement = /** @type {HTMLElementTagNameMap[Lowercase<typeof SERVICE_NAME_TAG | typeof SERVICE_PRICE_TAG | typeof SERVICE_DESCRIPTION_TAG>]} */ (child);
-
-                childElement.contentEditable = contentEditable;
+                Object.assign(child, { contentEditable });
             }
         }
     }
 
-    if (deleteBtn !== null && activeElement !== null && ITEMS_TAGS.includes(activeElement.tagName)) {
+    if (activeElement !== null && deleteBtn !== null && ITEMS_TAGS.includes(activeElement.tagName)) {
         deleteBtn.hidden = true;
     }
 }));
@@ -556,28 +545,24 @@ const justifyContentSelect = /** @type {HTMLSelectElement | null} */ (BindListen
 ));
 
 // Font
-const fontFamilySelect = /** @type {HTMLSelectElement | null} */ (BindListener(
-    'fontFamily',
-    function handleFontChange(e) {
-        if (!fontsAdded) {
-            const link = document.createElement('link');
+function handleFontChange(e) {
+    if (!fontsAdded) {
+        const link = document.createElement('link');
 
-            link.rel = 'stylesheet';
-            link.href = 'https://fonts.googleapis.com/css2?family=Alegreya&family=Alice&family=Bitter&family=Cormorant&family=EB+Garamond&family=IBM+Plex+Serif&family=Literata:opsz@7..72&family=Lora&family=Merriweather&family=Old+Standard+TT&family=PT+Serif&family=PT+Serif+Caption&family=Piazzolla:opsz@8..30&family=Playfair+Display&family=Prata&family=Source+Serif+Pro&family=Spectral&family=Alegreya+Sans&family=Arsenal&family=Commissioner&family=IBM+Plex+Mono&family=IBM+Plex+Sans&family=Inter&family=JetBrains+Mono&family=Montserrat&family=PT+Mono&family=PT+Sans&family=Raleway&family=Roboto&family=Roboto+Condensed&family=Roboto+Mono&family=Rubik&family=Yanone+Kaffeesatz&family=Caveat&family=Lobster&family=Pacifico&family=Pangolin&family=Podkova&family=Press+Start+2P&family=Ruslan+Display&family=Russo+One&family=Underdog&family=Yeseva+One&display=swap';
-            document.head.appendChild(link);
-            fontsAdded = true;
-        }
-        handleArticleStylePropChange(e);
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Alegreya&family=Alice&family=Bitter&family=Cormorant&family=EB+Garamond&family=IBM+Plex+Serif&family=Literata:opsz@7..72&family=Lora&family=Merriweather&family=Old+Standard+TT&family=PT+Serif&family=PT+Serif+Caption&family=Piazzolla:opsz@8..30&family=Playfair+Display&family=Prata&family=Source+Serif+Pro&family=Spectral&family=Alegreya+Sans&family=Arsenal&family=Commissioner&family=IBM+Plex+Mono&family=IBM+Plex+Sans&family=Inter&family=JetBrains+Mono&family=Montserrat&family=PT+Mono&family=PT+Sans&family=Raleway&family=Roboto&family=Roboto+Condensed&family=Roboto+Mono&family=Rubik&family=Yanone+Kaffeesatz&family=Caveat&family=Lobster&family=Pacifico&family=Pangolin&family=Podkova&family=Press+Start+2P&family=Ruslan+Display&family=Russo+One&family=Underdog&family=Yeseva+One&display=swap';
+        document.head.appendChild(link);
+        fontsAdded = true;
     }
-));
+    handleArticleStylePropChange(e);
+}
+const fontFamilySelect = /** @type {HTMLSelectElement | null} */ (BindListener('fontFamily', handleFontChange));
 
 // Aspect ratio
 const aspectRatioSelect = BindListener('aspectRatio', function handleAspectRatioChange() {
-    if (mount !== null) {
-        mount.dataset.aspectRatio = this.value;
-        if (deleteBtn !== null) { deleteBtn.hidden = true; }
-        if (titleAlignment !== null) { titleAlignment.hidden = true; }
-    }
+    if (mount !== null) { mount.dataset.aspectRatio = this.value; }
+    if (deleteBtn !== null) { deleteBtn.hidden = true; }
+    if (titleAlignment !== null) { titleAlignment.hidden = true; }
 });
 
 // Colors
@@ -635,7 +620,7 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
                 colorInput.value = convertRGBtoHex(activeArticle.style.color);
             }
             if (opacityRange !== null && activeDiv !== null) {
-                opacityRange.value = (1 - parseFloat(activeDiv.style.opacity)).toString();
+                opacityRange.value = (1 - parseFloat(activeDiv.style.opacity || '0')).toString();
             }
             if (backgroundColorInput !== null && activeDiv !== null) {
                 backgroundColorInput.value = convertRGBtoHex(activeDiv.style.backgroundColor);
@@ -666,10 +651,9 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
     threshold: 1,
 });
 
-BindListener('export', function handleExportClick() {
-    const exportJson = new Blob(["\ufeff", parsePages(true)], { type: 'text/json' });
+BindListener('save', function handleExportClick() {
     const link = document.createElement('a');
-    const url = URL.createObjectURL(exportJson);
+    const url = URL.createObjectURL(new Blob(["\ufeff", parsePages(true)], { type: 'text/json' }));
 
     link.href = url;
     link.download = 'price.json';
@@ -689,10 +673,10 @@ function checkBasicFileShare() {
     return navigator.canShare({ files: [file] });
 }
 
-BindListener('save', async function handleSaveClick(e) {
-    const saveBtn = /** @type {HTMLButtonElement} */ (e.currentTarget);
+BindListener('export', async function handleSaveClick(e) {
+    const exportBtn = /** @type {HTMLButtonElement} */ (e.currentTarget);
 
-    saveBtn.disabled = true;
+    exportBtn.disabled = true;
 
     await import('./vendors/html2canvas.min.js');
 
@@ -739,7 +723,7 @@ BindListener('save', async function handleSaveClick(e) {
             window.console.log(error.toString());
         }
     }
-    saveBtn.disabled = false;
+    exportBtn.disabled = false;
 }, 'click');
 
 // Delete page
@@ -764,18 +748,21 @@ BindListener('deletePage', function handleDeletePageClick() {
  * @param {HTMLFormElement} elements.form
  * @param {HTMLDivElement} elements.div
  * @param {HTMLElement} elements.article
- * @param [props] - An object containing the style properties to be applied.
+ * @param {Partial<CSSStyleDeclaration>} [props] - An object containing the style properties to be applied.
  */
 function attachStyleFromJson({ form, div, article }, props = {}) {
     const {
-        backgroundColor,
+        backgroundColor = 'rgb(0, 0, 0)',
         backgroundImage,
-        color,
+        color = 'rgb(255, 255, 255)',
         fontFamily,
         justifyContent,
-        opacity,
+        opacity = '0',
         textAlign,
     } = props;
+    if (fontFamily && fontFamily !== 'system-ui, sans-serif') {
+        handleFontChange({ value: fontFamily });
+    }
     const assignFilteredStyle = function (element, object) {
         Object.assign(element.style, Object.fromEntries(Object.entries(object).filter(function filterEmpty([, value]) {
             return value;
@@ -921,15 +908,6 @@ BindListener('duplicate', function handleDuplicateClick() {
     }
 }, 'click');
 
-if (mount) {
-    BindListener('page', function handleAddPageClick() {
-        const newPage = createPage();
-
-        mount.appendChild(newPage);
-        newPage.scrollIntoView();
-    }, 'click');
-}
-
 BindListener('title', function handleAddTitleClick() {
     const form = getActiveForm();
 
@@ -980,6 +958,13 @@ const resizeObserver = new ResizeObserver(function handleResize() {
 resizeObserver.observe(document.body);
 
 if (mount !== null) {
+    BindListener('page', function handleAddPageClick() {
+        const newPage = createPage();
+
+        mount.appendChild(newPage);
+        newPage.scrollIntoView();
+    }, 'click');
+
     mount.addEventListener("drop", function handleDivDrop(event) {
         event.preventDefault();
 
@@ -1149,12 +1134,8 @@ document.addEventListener('click', function handleClick(e) {
             !e.target.hasAttribute('contenteditable') &&
             !['delete', 'titleAlignment', 'textAlign', 'justifyContent'].includes(e.target.id)
         ) {
-            if (deleteBtn !== null) {
-                deleteBtn.hidden = true;
-            }
-            if (titleAlignment !== null) {
-                titleAlignment.hidden = true;
-            }
+            if (deleteBtn !== null) { deleteBtn.hidden = true; }
+            if (titleAlignment !== null) { titleAlignment.hidden = true; }
         }
 
         if (

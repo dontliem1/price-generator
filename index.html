@@ -253,8 +253,9 @@
 
         .pages h2 {
             font-size: 227%;
-            text-align: start;
+            line-height: 1;
             margin: 0;
+            text-align: start;
         }
 
         .pages div+h2 {
@@ -316,17 +317,18 @@
         .pages h1:only-child,
         .pages form:not(:has(h2)) h1 {
             font-size: 400%;
-            padding-block-end: 4%;
-            padding-block-start: 10%;
+            padding-top: 4%;
             text-align: inherit;
         }
 
-        form:has(h2, div) {
-            justify-content: flex-start !important;
+        form:has(div),
+        form:has(h2) {
+            text-align: left !important;
         }
 
-        .pages h1:not(:only-child) {
-            text-align: start;
+        form div:last-child,
+        form h2:last-child {
+            margin-bottom: auto;
         }
 
         .pages p {
@@ -340,12 +342,12 @@
 
         .pages footer {
             order: 1;
-            padding-block-start: 1em;
+            padding-top: 1em;
         }
 
         .pages *:not(h1)+footer {
-            margin-block-start: auto;
-            text-align: start;
+            margin-top: auto;
+            text-align: left;
         }
 
         main noscript {
@@ -482,8 +484,8 @@
     <h1 class="visually-hidden">Rutina, the price constructor</h1>
     <div class="settings" id="settings">
         <span class="btn--group">
-            <button class="btn" type="button" id="save" title="Export to image(s)" aria-label="Export to image(s)">🖼</button>
-            <button class="btn" type="button" id="export" title="Export to file" aria-label="Export to file">📄</button>
+            <button class="btn" type="button" id="export" title="Export to image(s)" aria-label="Export to image(s)">🖼</button>
+            <button class="btn" type="button" id="save" title="Save to file" aria-label="Save to file">📄</button>
         </span>
         <select class="btn" name="aspectRatio" title="Aspect ratio" aria-label="Aspect ratio" id="aspectRatio">
             <option value="1 / 1">1:1</option>
@@ -499,7 +501,7 @@
         <button class="btn" type="button" id="category">Category</button>
         <button class="btn" type="button" id="service">Service</button>
         <button class="btn" type="button" id="footer">Footer</button>
-        <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json" /><span class="btn" id="importLabel">Import...</span></label>
+        <label class="file"><input class="visually-hidden" id="import" type="file" accept="application/json"><span class="btn" id="importLabel">Import...</span></label>
     </details>
     <main>
         <h2 class="visually-hidden">Pages and content</h2>
@@ -523,7 +525,7 @@
         </fieldset>
         <fieldset class="float__fieldset" id="background" hidden>
             <legend class="visually-hidden">Page settings</legend>
-            <label class="btn" title="Text color"><input type="color" name="color" id="color" aria-label="Text"> Aa</label>
+            <label class="btn" title="Text color"><input type="color" name="color" id="color" aria-label="Text" value="rgb(255, 255, 255)"> Aa</label>
             <select class="btn" name="fontFamily" title="Font" aria-label="Font" id="fontFamily">
                 <option value="system-ui, sans-serif" selected>System font</option>
                 <optgroup label="Serif">
@@ -579,8 +581,8 @@
                 </optgroup>
             </select>
             <br>
-            <label class="btn" title="Backgorund color"><input type="color" name="backgroundColor" id="backgroundColor"> Bg</label>
-            <label class="btn fd-c">Transparency<input type="range" name="opacity" min="0" max="1" step="0.1" id="opacity"></label>
+            <label class="btn" title="Background color"><input type="color" name="backgroundColor" id="backgroundColor" value="rgb(0, 0, 0)"> Bg</label>
+            <label class="btn fd-c">Transparency<input type="range" name="opacity" min="0" max="1" step="0.1" value="1" id="opacity"></label>
             <span class="btn--group">
                 <label class="file" title="Change background image"><input class="visually-hidden" type="file" name="backgroundImage" id="backgroundImage" accept="image/*"><span class="btn">Image</span></label>
                 <button class="btn" type="button" id="deleteBackgroundImage" aria-label="Remove background image" title="Remove background image">╳</button>
@@ -594,7 +596,7 @@
     </div>
     <script>(function (m, e, t, r, i, k, a) { m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) }; m[i].l = 1 * new Date(); k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a) })(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym"); ym(89949856, "init", { clickmap: true, trackLinks: true, accurateTrackBounce: true, webvisor: true }); </script>
     <noscript>
-        <div><img src="https://mc.yandex.ru/watch/89949856" style="position:absolute; left:-9999px;" alt="" /></div>
+        <div><img src="https://mc.yandex.ru/watch/89949856" style="position:absolute; left:-9999px;" alt=""></div>
     </noscript>
     <script src="assets/js/messages/en.js"></script>
     <script src="assets/js/main.js" type="module"></script>

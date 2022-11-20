@@ -15,13 +15,10 @@ declare const MESSAGES: {
     [SERVICE_PRICE_TAG]: string;
     [SERVICE_DESCRIPTION_TAG]: string;
     [FOOTER_TAG]: string;
-    EXAMPLE_TITLE: string;
-    EXAMPLE_FOOTER: string;
     FILE_LOAD_ERROR: string;
-    REMOVE_ELEMENT: string;
+    REMOVE_SERVICE: string;
     REMOVE_PAGE: string;
     IMPORT_CONFIRM: string;
     LOAD_CONFIRM: string;
     PAGES: string;
 };
-declare const EXAMPLE_ITEMS: Items;

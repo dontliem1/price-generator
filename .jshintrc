@@ -8,7 +8,7 @@
     "globals": {
         "html2canvas": false,
         "MESSAGES": false,
-        "EXAMPLE_ITEMS": false,
+        "PAGES": false,
         "ym": false
     },
     "latedef": true,
