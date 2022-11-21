@@ -1058,7 +1058,7 @@ if (mount !== null) {
             }
         }
 
-        if (dragged !== null && activeForm !== null && dropZone !== null) {
+        if (dragged !== null && activeForm !== null && dropZone !== null && sorting && sorting.checked) {
             let hoverClass = DRAG_OVER_CLASSNAMES[0];
 
             for (let i = 0; i < activeForm.childElementCount; i++) {
