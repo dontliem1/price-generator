@@ -23,7 +23,7 @@ const ITEMS_TAGS = [CATEGORY_TAG, ...SERVICE_TAGS];
 const DRAG_OVER_CLASSNAMES = ["drag-over--before", "drag-over--after"];
 
 /**
- * @param {keyof typeof MESSAGES} key
+ * @param {keyof MESSAGES} key
  */
 function m(key) { return (typeof MESSAGES === 'object' && key in MESSAGES) ? MESSAGES[key] : 'text_not_found'; }
 
@@ -49,7 +49,7 @@ class Defaults {
      * @return {Pages} Example pages
      */
     get() {
-        return { PAGES: typeof PAGES === 'object' ? PAGES : [], STYLE: { aspectRatio: this.aspectRatio } };
+        return { PAGES, STYLE: { aspectRatio: this.aspectRatio } };
     }
 }
 
@@ -261,10 +261,9 @@ function parsePage(page, parseImages) {
  * @returns {string} The current price stringified
  */
 function parsePages(parseImages) {
+    /** @type {Required<Pages>} */
     const json = {
-        /** @type {Page[]} */
         PAGES: [],
-        /** @type {PagesStyle} */
         STYLE: {}
     };
     const pages = document.getElementsByTagName('article');
@@ -353,18 +352,20 @@ function repositionTitleAlignment(element = getActiveElement()) {
 // Remove element
 const deleteBtn = BindListener('delete', function handleDeleteClick() {
     const element = getActiveElement();
+    const parentElement = element && element.parentElement;
 
-    if (element !== null && element.parentElement !== null) {
+    if (element !== null && parentElement) {
+
         if ((
-            element.parentElement.tagName === SERVICE_TAG &&
+            parentElement.tagName === SERVICE_TAG &&
             SERVICE_TAGS.includes(element.tagName) &&
-            element.parentElement.childElementCount > 1
+            parentElement.childElementCount > 1
         ) && window.confirm(m('REMOVE_SERVICE'))) {
-            element.parentElement.remove();
+            parentElement.remove();
         } else {
             element.remove();
-            if (element.parentElement.tagName === SERVICE_TAG && !element.parentElement.innerText.trim()) {
-                element.parentElement.remove();
+            if (parentElement.tagName === SERVICE_TAG && !parentElement.innerText.trim()) {
+                parentElement.remove();
             }
             if (titleAlignment !== null) { titleAlignment.hidden = true; }
         }
@@ -970,7 +971,7 @@ if (mount !== null) {
             dropZone = dropZone.parentElement;
         }
 
-        if (dropZone instanceof HTMLElement) {
+        if (dropZone instanceof HTMLElement && sorting && sorting.checked) {
             if (dragged !== null && !dragged.isSameNode(dropZone)) {
                 dropZone.insertAdjacentElement(dropZone.classList.contains(DRAG_OVER_CLASSNAMES[0]) ? 'beforebegin' : 'afterend', dragged);
             }

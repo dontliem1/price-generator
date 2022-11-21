@@ -6,7 +6,7 @@ declare type Service = { type: 'SERVICE'; [SERVICE_NAME_TAG]?: string; [SERVICE_
 declare type PagesStyle = Partial<Pick<CSSStyleDeclaration, "aspectRatio">>;
 declare type Page = Partial<{ [TITLE_TAG]: string, ITEMS: (Category | Service)[], [FOOTER_TAG]: string, STYLE: Partial<CSSStyleDeclaration> }>;
 declare type Pages = Partial<{ PAGES: Page[]; STYLE: PagesStyle }>;
-declare const MESSAGES: {
+declare type MESSAGES = {
     [TITLE_TAG]: string;
     [CATEGORY_TAG]: string;
     [SERVICE_NAME_TAG]: string;
