@@ -424,11 +424,6 @@ body>main {
     border-top-width: 6px;
 }
 
-#moveLeft,
-#moveRight {
-    font-size: 200%;
-}
-
 #aspectRatio+.btn {
     vertical-align: top;
 }

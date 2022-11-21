@@ -1,10 +1,16 @@
 'use strict';
 
-/**
- * @param {keyof typeof MESSAGES} key
- */
-function m(key) { return (typeof MESSAGES === 'object' && key in MESSAGES) ? MESSAGES[key] : 'text_not_found'; }
-
+/** @type {HTMLElement | null} */
+let dragged = null;
+/** @type {HTMLElement | null} */
+let draggedOver = null;
+let draggedSame = false;
+/** @type {EventTarget | null} */
+let draggedTarget = null;
+let sortingPolyfilled = false;
+let fontsAdded = false;
+const STORAGE_KEY = 'price';
+const savedCopy = window.localStorage.getItem(STORAGE_KEY);
 const TITLE_TAG = 'H1';
 const FOOTER_TAG = 'FOOTER';
 const CATEGORY_TAG = 'H2';
@@ -15,6 +21,11 @@ const SERVICE_DESCRIPTION_TAG = 'P';
 const SERVICE_TAGS = [SERVICE_NAME_TAG, SERVICE_PRICE_TAG, SERVICE_DESCRIPTION_TAG];
 const ITEMS_TAGS = [CATEGORY_TAG, ...SERVICE_TAGS];
 const DRAG_OVER_CLASSNAMES = ["drag-over--before", "drag-over--after"];
+
+/**
+ * @param {keyof typeof MESSAGES} key
+ */
+function m(key) { return (typeof MESSAGES === 'object' && key in MESSAGES) ? MESSAGES[key] : 'text_not_found'; }
 
 class Defaults {
     constructor() {
@@ -92,12 +103,11 @@ function getOffset(el) {
 /* CONSTRUCTORS */
 /**
 * @param {Object} params
-* @param {EditableTags} params.tag
+* @param {string} params.tag
 * @param {string} [params.text]
 * @param {HTMLElement | null} [params.parent]
 * @param {boolean} [params.fromStart]
 * @param {boolean} [useDefaults] - If `true` creates an element with default text if `text` is empty
-* @returns {(HTMLElementTagNameMap[Lowercase<EditableTags>] & ElementContentEditable) | null} Created element
 */
 function createEditableElement({ tag, text, parent, fromStart }, useDefaults = true) {
     if (![TITLE_TAG, FOOTER_TAG, ...ITEMS_TAGS].includes(tag) || (!useDefaults && !text)) {
@@ -107,7 +117,7 @@ function createEditableElement({ tag, text, parent, fromStart }, useDefaults = t
     const elem = document.createElement(tag);
 
     elem.contentEditable = 'false';
-    elem.innerText = text ? text : m(tag);
+    elem.innerText = text ? text : MESSAGES[tag];
     if (parent) {
         if (fromStart) {
             parent.prepend(elem);
@@ -120,16 +130,6 @@ function createEditableElement({ tag, text, parent, fromStart }, useDefaults = t
     return elem;
 }
 
-/* VARS */
-
-/** @type {HTMLElement | null} */
-let dragged = null;
-let draggedOver;
-let draggedSame;
-let draggedTarget;
-const savedCopy = window.localStorage.getItem('price');
-let sortingPolyfilled = false;
-let fontsAdded = false;
 const mount = getMount();
 
 /**
@@ -143,7 +143,6 @@ function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
     for (const serviceProp in serviceJson) {
         if (SERVICE_TAGS.includes(serviceProp)) {
             createEditableElement({
-                // @ts-ignore
                 tag: serviceProp,
                 text: serviceJson[serviceProp],
                 parent: service
@@ -195,7 +194,7 @@ function parseStyles({ page, form, div }, parseImages) {
         opacity,
         textAlign,
     }).filter(function filterEmpty([prop, value]) {
-        if (!parseImages && prop === 'backgroundImage' && !['radial', 'linear'].includes(value.substring(0,6))) {
+        if (!parseImages && prop === 'backgroundImage' && !['radial', 'linear'].includes(value.substring(0, 6))) {
             return false;
         }
 
@@ -355,37 +354,22 @@ function repositionTitleAlignment(element = getActiveElement()) {
 const deleteBtn = BindListener('delete', function handleDeleteClick() {
     const element = getActiveElement();
 
-    /**
-     * @param {Object} params
-     * @param {HTMLElement} params.element
-     * @param {HTMLElement} params.parentElement
-     * @param {HTMLElement} params.buttonToHide
-     * @param {boolean} [params.parentOnly]
-     */
-    function removeElement({ element, parentElement, buttonToHide, parentOnly = false }) {
-        if (parentOnly) {
-            parentElement.remove();
+    if (element !== null && element.parentElement !== null) {
+        if ((
+            element.parentElement.tagName === SERVICE_TAG &&
+            SERVICE_TAGS.includes(element.tagName) &&
+            element.parentElement.childElementCount > 1
+        ) && window.confirm(m('REMOVE_SERVICE'))) {
+            element.parentElement.remove();
         } else {
             element.remove();
-            if (parentElement.tagName === SERVICE_TAG && !parentElement.innerText.trim()) {
-                parentElement.remove();
+            if (element.parentElement.tagName === SERVICE_TAG && !element.parentElement.innerText.trim()) {
+                element.parentElement.remove();
             }
             if (titleAlignment !== null) { titleAlignment.hidden = true; }
         }
-        buttonToHide.hidden = true;
-    }
-
-    if (element !== null && element.parentElement !== null) {
-        removeElement({
-            element,
-            parentElement: element.parentElement,
-            buttonToHide: this,
-            parentOnly: (
-                element.parentElement.tagName === SERVICE_TAG &&
-                SERVICE_TAGS.includes(element.tagName) &&
-                element.parentElement.childElementCount > 1
-            ) && window.confirm(m('REMOVE_SERVICE'))
-        });
+        this.hidden = true;
+        window.localStorage.setItem(STORAGE_KEY, parsePages());
     }
 }, 'click');
 
@@ -737,6 +721,7 @@ BindListener('deletePage', function handleDeletePageClick() {
         if (background !== null) {
             background.hidden = true;
         }
+        window.localStorage.setItem(STORAGE_KEY, parsePages());
     }
 }, 'click');
 
@@ -862,7 +847,7 @@ if (savedCopy !== null && savedCopy !== m('PAGES') && window.confirm(m('LOAD_CON
     renderPages(JSON.parse(savedCopy));
 } else {
     renderPages(DEFAULTS.get());
-    window.localStorage.removeItem('price');
+    window.localStorage.removeItem(STORAGE_KEY);
 }
 
 // Import
@@ -965,19 +950,17 @@ if (mount !== null) {
         newPage.scrollIntoView();
     }, 'click');
 
-    mount.addEventListener("drop", function handleDivDrop(event) {
-        event.preventDefault();
+    mount.addEventListener("drop", function handleDivDrop(e) {
+        e.preventDefault();
 
+        const event = /** @type {DragEvent & {rangeParent: HTMLElement; rangeOffset: Number;}} */ (e);
         const text = event.dataTransfer ? event.dataTransfer.getData('text/plain') : '';
         let dropZone = event.target;
         let range = document.caretRangeFromPoint && document.caretRangeFromPoint(event.clientX, event.clientY);
 
-        // @ts-ignore
         if (!range && event.rangeParent) {
             range = document.createRange();
-            // @ts-ignore
             range.setStart(event.rangeParent, event.rangeOffset);
-            // @ts-ignore
             range.setEnd(event.rangeParent, event.rangeOffset);
         }
 
@@ -1188,7 +1171,7 @@ document.body.addEventListener('keyup', function sortWithArrows(e) {
 });
 
 document.body.addEventListener('change', function savePages() {
-    window.localStorage.setItem('price', parsePages());
+    window.localStorage.setItem(STORAGE_KEY, parsePages());
 });
 
 if ('serviceWorker' in navigator) {
