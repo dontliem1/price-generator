@@ -21,6 +21,8 @@ const SERVICE_DESCRIPTION_TAG = 'P';
 const SERVICE_TAGS = [SERVICE_NAME_TAG, SERVICE_PRICE_TAG, SERVICE_DESCRIPTION_TAG];
 const ITEMS_TAGS = [CATEGORY_TAG, ...SERVICE_TAGS];
 const DRAG_OVER_CLASSNAMES = ["drag-over--before", "drag-over--after"];
+const titleAlignment = document.getElementById('titleAlignment');
+const mountElement = document.getElementById('pages');
 
 /**
  * @param {keyof MESSAGES} key
@@ -56,11 +58,6 @@ class Defaults {
 const DEFAULTS = new Defaults();
 
 /* GETTERS */
-
-function getMount() {
-    return /** @type {HTMLOListElement | null} */ (document.getElementById('pages'));
-}
-
 /**
  * @returns {HTMLLIElement | null} `<li>` of current page
  */
@@ -110,7 +107,7 @@ function getOffset(el) {
 * @param {boolean} [useDefaults] - If `true` creates an element with default text if `text` is empty
 */
 function createEditableElement({ tag, text, parent, fromStart }, useDefaults = true) {
-    if (![TITLE_TAG, FOOTER_TAG, ...ITEMS_TAGS].includes(tag) || (!useDefaults && !text)) {
+    if (!useDefaults && typeof text !== 'string') {
         return null;
     }
 
@@ -130,89 +127,58 @@ function createEditableElement({ tag, text, parent, fromStart }, useDefaults = t
     return elem;
 }
 
-const mount = getMount();
-
-/**
- * @param {boolean} draggable
- * @param {Service} serviceJson
- */
-function createService(draggable, serviceJson = DEFAULTS.SERVICE) {
-    const service = /** @type {HTMLElementTagNameMap[Lowercase<typeof SERVICE_TAG>]} */ (document.createElement(SERVICE_TAG));
-
-    service.draggable = draggable;
-    for (const serviceProp in serviceJson) {
-        if (SERVICE_TAGS.includes(serviceProp)) {
-            createEditableElement({
-                tag: serviceProp,
-                text: serviceJson[serviceProp],
-                parent: service
-            }, false);
-        }
-    }
-
-    return service;
-}
-/**
- * @param {boolean} draggable
- * @param {Category} [categoryJson]
- */
-function createCategory(draggable, categoryJson = DEFAULTS.CATEGORY) {
-    const category = /** @type {HTMLElementTagNameMap[Lowercase<typeof CATEGORY_TAG>]}  */ (createEditableElement({
-        tag: CATEGORY_TAG,
-        text: CATEGORY_TAG in categoryJson ? categoryJson[CATEGORY_TAG] : m(CATEGORY_TAG),
-    }, false));
-
-    category.draggable = draggable;
-
-    return category;
-}
-
 const itemsActionsMap = {
-    category: createCategory,
-    service: createService
-};
+    CATEGORY: function createCategory(/** @type {boolean} */ draggable, categoryJson = DEFAULTS.CATEGORY) {
+        const category = /** @type {HTMLElementTagNameMap[Lowercase<typeof CATEGORY_TAG>]}  */ (createEditableElement({
+            tag: CATEGORY_TAG,
+            text: CATEGORY_TAG in categoryJson ? categoryJson[CATEGORY_TAG] : m(CATEGORY_TAG),
+        }, false));
 
-/**
-* @param {Object} params
-* @param {HTMLElement | null} params.page
-* @param {HTMLFormElement | null} params.form
-* @param {HTMLDivElement | null} params.div
-* @param {boolean} [parseImages]
-* @returns {Partial<CSSStyleDeclaration>}
-*/
-function parseStyles({ page, form, div }, parseImages) {
-    const { backgroundImage = '', color = '', fontFamily = '' } = page !== null ? page.style : {};
-    const { justifyContent = '', textAlign = '' } = form !== null ? form.style : {};
-    const { backgroundColor = '', opacity = '' } = div !== null ? div.style : {};
+        category.draggable = draggable;
 
-    return Object.fromEntries(Object.entries({
-        backgroundColor,
-        backgroundImage,
-        color,
-        fontFamily,
-        justifyContent,
-        opacity,
-        textAlign,
-    }).filter(function filterEmpty([prop, value]) {
-        if (!parseImages && prop === 'backgroundImage' && !['radial', 'linear'].includes(value.substring(0, 6))) {
-            return false;
+        return category;
+    },
+    SERVICE: function createService(/** @type {boolean} */ draggable, serviceJson = DEFAULTS.SERVICE) {
+        const service = /** @type {HTMLElementTagNameMap[Lowercase<typeof SERVICE_TAG>]} */ (document.createElement(SERVICE_TAG));
+
+        service.draggable = draggable;
+        for (const serviceProp in serviceJson) {
+            if (SERVICE_TAGS.includes(serviceProp)) {
+                createEditableElement({
+                    tag: serviceProp,
+                    text: serviceJson[serviceProp],
+                    parent: service
+                }, false);
+            }
         }
 
-        return Boolean(value);
-    }));
-}
+        return service;
+    }
+};
 
 /**
  * @param {HTMLElement} page
  * @param {boolean} [parseImages]
+ * @returns {Page}
  */
 function parsePage(page, parseImages) {
     const div = /** @type {HTMLDivElement | null} */ (page.firstElementChild);
+    const divStyle = div ? div.style : {};
     const form = /** @type {HTMLFormElement | null} */ (page.lastElementChild);
+    const formStyle = form ? form.style : {};
     const priceElements = form ? /** @type {HTMLCollectionOf<HTMLElement>} */ (form.children) : [];
-    /** @type {Page} */
     const pageJson = {
-        STYLE: parseStyles({ page, form, div }, parseImages)
+        /** @type {(Category | Service)[]} */
+        ITEMS: [],
+        STYLE: {
+            backgroundColor: divStyle.backgroundColor,
+            backgroundImage: (!parseImages && 'gradient' !== page.style.backgroundImage.substring(8, 16)) ? undefined : page.style.backgroundImage,
+            color: page.style.color,
+            fontFamily: page.style.fontFamily,
+            justifyContent: formStyle.justifyContent,
+            opacity: divStyle.opacity,
+            textAlign: formStyle.textAlign,
+        }
     };
 
     for (const priceElem of priceElements) {
@@ -223,14 +189,7 @@ function parsePage(page, parseImages) {
 
                 break;
             case CATEGORY_TAG:
-                /** @type {Category} */
-                const category = { type: 'CATEGORY', [CATEGORY_TAG]: priceElem.innerText };
-
-                if (Array.isArray(pageJson.ITEMS)) {
-                    pageJson.ITEMS.push(category);
-                } else {
-                    pageJson.ITEMS = [category];
-                }
+                pageJson.ITEMS.push({ type: 'CATEGORY', [CATEGORY_TAG]: priceElem.innerText });
 
                 break;
             case SERVICE_TAG:
@@ -242,11 +201,7 @@ function parsePage(page, parseImages) {
                         service[item.tagName] = item.textContent;
                     }
 
-                    if (Array.isArray(pageJson.ITEMS)) {
-                        pageJson.ITEMS.push(service);
-                    } else {
-                        pageJson.ITEMS = [service];
-                    }
+                    pageJson.ITEMS.push(service);
                 }
 
                 break;
@@ -267,10 +222,9 @@ function parsePages(parseImages) {
         STYLE: {}
     };
     const pages = document.getElementsByTagName('article');
-    const mount = getMount();
 
-    if (mount !== null && mount.dataset.aspectRatio) {
-        json.STYLE.aspectRatio = mount.dataset.aspectRatio;
+    if (mountElement !== null && mountElement.dataset.aspectRatio) {
+        json.STYLE.aspectRatio = mountElement.dataset.aspectRatio;
     }
     for (const page of pages) {
         json.PAGES.push(parsePage(page, parseImages));
@@ -324,9 +278,6 @@ function handleFormStylePropChange(e) {
 
 /* FLOAT */
 
-// Alignment
-const titleAlignment = document.getElementById('titleAlignment');
-
 /**
  * If the active element is an H1 and it's alone or with footer, then show the title
  * alignment element
@@ -337,7 +288,7 @@ function repositionTitleAlignment(element = getActiveElement()) {
         if (
             element !== null &&
             element.tagName === TITLE_TAG &&
-            (!element.nextElementSibling || element.nextElementSibling.tagName === FOOTER_TAG)
+            (element.nextElementSibling === null || element.nextElementSibling.tagName === FOOTER_TAG)
         ) {
             const { left, height, top } = getOffset(element);
 
@@ -355,16 +306,16 @@ const deleteBtn = BindListener('delete', function handleDeleteClick() {
     const parentElement = element && element.parentElement;
 
     if (element !== null && parentElement) {
-
-        if ((
+        if (
             parentElement.tagName === SERVICE_TAG &&
+            parentElement.childElementCount > 1 &&
             SERVICE_TAGS.includes(element.tagName) &&
-            parentElement.childElementCount > 1
-        ) && window.confirm(m('REMOVE_SERVICE'))) {
+            window.confirm(m('REMOVE_SERVICE'))
+        ) {
             parentElement.remove();
         } else {
             element.remove();
-            if (parentElement.tagName === SERVICE_TAG && !parentElement.innerText.trim()) {
+            if (parentElement.tagName === SERVICE_TAG && parentElement.innerText.trim() === '') {
                 parentElement.remove();
             }
             if (titleAlignment !== null) { titleAlignment.hidden = true; }
@@ -375,24 +326,18 @@ const deleteBtn = BindListener('delete', function handleDeleteClick() {
 }, 'click');
 
 // Swap
-const moveLeft = BindListener('moveLeft', function movePageLeft() {
+function movePage(e) {
+    const toRight = e.currentTarget && e.currentTarget.id === 'moveRight';
     const activePage = getActiveLi();
-    const leftPage = (activePage && activePage.previousElementSibling);
+    const sibling = activePage && (toRight ? activePage.nextElementSibling : activePage.previousElementSibling);
 
-    if (leftPage) {
-        leftPage.insertAdjacentElement('beforebegin', activePage);
+    if (sibling) {
+        sibling.insertAdjacentElement(toRight ? 'beforebegin' : 'beforebegin', activePage);
         activePage.scrollIntoView();
     }
-}, 'click');
-const moveRight = BindListener('moveRight', function movePageRight() {
-    const activePage = getActiveLi();
-    const rightPage = (activePage && activePage.nextElementSibling);
-
-    if (rightPage) {
-        rightPage.insertAdjacentElement('afterend', activePage);
-        activePage.scrollIntoView();
-    }
-}, 'click');
+}
+const moveLeft = BindListener('moveLeft', movePage, 'click');
+const moveRight = BindListener('moveRight', movePage, 'click');
 
 // Background
 const background = document.getElementById('background');
@@ -407,8 +352,8 @@ function toggleBackground(form = getActiveForm()) {
             const activeLi = getActiveLi();
 
             if (activeLi && moveLeft && moveRight) {
-                moveLeft.hidden = !activeLi.previousElementSibling;
-                moveRight.hidden = !activeLi.nextElementSibling;
+                moveLeft.hidden = activeLi.previousElementSibling === null;
+                moveRight.hidden = activeLi.nextElementSibling === null;
             }
             background.hidden = false;
         } else {
@@ -423,8 +368,7 @@ const sorting = /** @type {HTMLInputElement | null} */ (BindListener('sorting', 
     const draggableElements = /** @type {NodeListOf<HTMLElement>} */ (
         document.querySelectorAll('#pages [draggable]')
     );
-    const contentEditable = this.checked ? 'false' : 'true';
-    const activeElement = getActiveElement();
+    const contentEditable = (!this.checked).toString();
 
     if (!sortingPolyfilled) {
         const script = document.createElement('script');
@@ -446,9 +390,7 @@ const sorting = /** @type {HTMLInputElement | null} */ (BindListener('sorting', 
         }
     }
 
-    if (activeElement !== null && deleteBtn !== null && ITEMS_TAGS.includes(activeElement.tagName)) {
-        deleteBtn.hidden = true;
-    }
+    if (deleteBtn !== null) { deleteBtn.hidden = true; }
 }));
 
 /**
@@ -545,7 +487,7 @@ const fontFamilySelect = /** @type {HTMLSelectElement | null} */ (BindListener('
 
 // Aspect ratio
 const aspectRatioSelect = BindListener('aspectRatio', function handleAspectRatioChange() {
-    if (mount !== null) { mount.dataset.aspectRatio = this.value; }
+    if (mountElement !== null) { mountElement.dataset.aspectRatio = this.value; }
     if (deleteBtn !== null) { deleteBtn.hidden = true; }
     if (titleAlignment !== null) { titleAlignment.hidden = true; }
 });
@@ -564,12 +506,12 @@ const backgroundColorInput = BindListener('backgroundColor', function handleDivS
 
 /**
  * @param {HTMLSelectElement | null} select to pass the value
- * @param {HTMLElement | null} from take a style value
+ * @param {HTMLElement | null} [from] take a style value
  * @returns {void}
  */
 function assignValueFromStyle(select, from) {
-    if (select !== null && from !== null) {
-        if (from.style[select.name]) {
+    if (select !== null) {
+        if (from && from.style[select.name]) {
             select.value = from.style[select.name];
         } else {
             select.selectedIndex = 0;
@@ -613,7 +555,7 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
             if (backgroundImageInput !== null) {
                 backgroundImageInput.value = '';
             }
-            toggleBackground();
+            toggleBackground(activeForm);
             repositionDeleteBtn();
             repositionTitleAlignment();
         } else {
@@ -632,7 +574,7 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
         }
     }
 }, {
-    root: mount,
+    root: mountElement,
     threshold: 1,
 });
 
@@ -727,39 +669,6 @@ BindListener('deletePage', function handleDeletePageClick() {
 }, 'click');
 
 /* IMPORT */
-
-/**
- * Assigns the style properties of the given props to the given elements
- * @param {object} elements
- * @param {HTMLFormElement} elements.form
- * @param {HTMLDivElement} elements.div
- * @param {HTMLElement} elements.article
- * @param {Partial<CSSStyleDeclaration>} [props] - An object containing the style properties to be applied.
- */
-function attachStyleFromJson({ form, div, article }, props = {}) {
-    const {
-        backgroundColor = 'rgb(0, 0, 0)',
-        backgroundImage,
-        color = 'rgb(255, 255, 255)',
-        fontFamily,
-        justifyContent,
-        opacity = '0',
-        textAlign,
-    } = props;
-    if (fontFamily && fontFamily !== 'system-ui, sans-serif') {
-        handleFontChange({ value: fontFamily });
-    }
-    const assignFilteredStyle = function (element, object) {
-        Object.assign(element.style, Object.fromEntries(Object.entries(object).filter(function filterEmpty([, value]) {
-            return value;
-        })));
-    };
-
-    assignFilteredStyle(form, { justifyContent, textAlign });
-    assignFilteredStyle(div, { backgroundColor, opacity });
-    assignFilteredStyle(article, { backgroundImage, color, fontFamily });
-}
-
 /**
  * @param {Page} pageJson
  * @param {boolean} [isActive]
@@ -771,19 +680,23 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
     const form = document.createElement('form');
     const div = document.createElement('div');
     const draggable = Boolean(sorting && sorting.checked);
+    const { justifyContent, textAlign, backgroundColor, opacity, backgroundImage, color, fontFamily } = Object.assign(
+        { backgroundColor: 'rgb(0, 0, 0)', opacity: '0', color: DEFAULTS.STYLE.color, fontFamily: '' },
+        pageJson.STYLE
+    );
 
-    attachStyleFromJson({ form, div, article }, pageJson.STYLE);
+    Object.assign(form.style, { justifyContent, textAlign });
+    Object.assign(div.style, { backgroundColor, opacity });
+    Object.assign(article.style, { backgroundImage, color, fontFamily });
     createEditableElement({
         tag: TITLE_TAG,
         text: pageJson[TITLE_TAG],
         parent: form
     }, false);
-    if (pageJson.ITEMS !== undefined && typeof pageJson.ITEMS !== 'string') {
-        pageJson.ITEMS.forEach(function appendItem(item) {
-            const type = item.type.toLowerCase();
-
-            if (type in itemsActionsMap) {
-                form.appendChild(itemsActionsMap[type](draggable, item));
+    if (typeof pageJson.ITEMS === 'object') {
+        pageJson.ITEMS.forEach(function appendItem(/** @type {any} */ item) {
+            if (item.type in itemsActionsMap) {
+                form.appendChild(itemsActionsMap[item.type](draggable, item));
             }
         });
     }
@@ -805,7 +718,7 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
  * @param {Pages} pagesJson
  * @param {HTMLElement | null} mount
  */
-function renderPages(pagesJson, mount = getMount()) {
+function renderPages(pagesJson, mount = mountElement) {
     if (mount !== null) {
         const pages = [];
         const aspectRatio = (pagesJson.STYLE && pagesJson.STYLE.aspectRatio) ?
@@ -922,11 +835,12 @@ BindListener('footer', function handleAddFooterClick() {
 }, 'click');
 
 Object.keys(itemsActionsMap).forEach(function bingClickToItem(itemId) {
-    BindListener(itemId, function handleAddItemClick() {
+    BindListener(itemId.toLowerCase(), function handleAddItemClick() {
         const form = getActiveForm();
-        const item = /** @type {HTMLElementTagNameMap[Lowercase<typeof CATEGORY_TAG | typeof SERVICE_TAG>]} */ (itemsActionsMap[itemId](Boolean(sorting && sorting.checked)));
 
         if (form !== null) {
+            const item = /** @type {HTMLElementTagNameMap[Lowercase<typeof CATEGORY_TAG | typeof SERVICE_TAG>]} */ (itemsActionsMap[itemId](Boolean(sorting && sorting.checked)));
+
             form.insertBefore(item, form.querySelector(FOOTER_TAG.toLowerCase()));
             selectElement(item, true);
         }
@@ -943,15 +857,15 @@ const resizeObserver = new ResizeObserver(function handleResize() {
 
 resizeObserver.observe(document.body);
 
-if (mount !== null) {
+if (mountElement !== null) {
     BindListener('page', function handleAddPageClick() {
         const newPage = createPage();
 
-        mount.appendChild(newPage);
+        mountElement.appendChild(newPage);
         newPage.scrollIntoView();
     }, 'click');
 
-    mount.addEventListener("drop", function handleDivDrop(e) {
+    mountElement.addEventListener("drop", function handleDivDrop(e) {
         e.preventDefault();
 
         const event = /** @type {DragEvent & {rangeParent: HTMLElement; rangeOffset: Number;}} */ (e);
@@ -978,7 +892,7 @@ if (mount !== null) {
             dropZone.classList.remove(...DRAG_OVER_CLASSNAMES);
         }
     });
-    mount.addEventListener('focusin', function handleFormFocusIn(e) {
+    mountElement.addEventListener('focusin', function handleFormFocusIn(e) {
         const focusedElement = /** @type {HTMLElement} */ (e.target);
         const form = /** @type {HTMLFormElement} */ (focusedElement.closest('form'));
         const editableElements = /** @type {NodeListOf<HTMLElement>} */ (form.querySelectorAll('[contenteditable]'));
@@ -1007,7 +921,7 @@ if (mount !== null) {
             toggleBackground(form);
         }
     });
-    mount.addEventListener('focusout', function handleFormInput(e) {
+    mountElement.addEventListener('focusout', function handleFormInput(e) {
         if (e.target instanceof HTMLElement && e.target.hasAttribute('contenteditable')) {
             const form = e.target.closest('form');
 
@@ -1020,7 +934,7 @@ if (mount !== null) {
             }
         }
     });
-    mount.addEventListener('paste', function stripTagsOnPaste(e) {
+    mountElement.addEventListener('paste', function stripTagsOnPaste(e) {
         e.preventDefault();
 
         const text = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
@@ -1045,7 +959,7 @@ if (mount !== null) {
             }
         }
     });
-    mount.addEventListener("dragenter", function handleDragEnter(e) {
+    mountElement.addEventListener("dragenter", function handleDragEnter(e) {
         const activeForm = getActiveForm();
         let dropZone = null;
 
@@ -1080,7 +994,7 @@ if (mount !== null) {
             }
         }
     });
-    mount.addEventListener("dragleave", function handleDragLeave(e) {
+    mountElement.addEventListener("dragleave", function handleDragLeave(e) {
         if (e.target instanceof HTMLElement) {
             if (e.target.tagName === CATEGORY_TAG ||
                 (e.target.tagName === SERVICE_TAG && (!draggedSame || (draggedTarget === e.target)))
@@ -1095,15 +1009,15 @@ if (mount !== null) {
             }
         }
     });
-    mount.addEventListener("dragstart", function handleDragStart(e) {
+    mountElement.addEventListener("dragstart", function handleDragStart(e) {
         if (e.target instanceof HTMLElement) {
             dragged = e.target;
         }
     });
-    mount.addEventListener("dragend", function handleDragEnd() {
+    mountElement.addEventListener("dragend", function handleDragEnd() {
         dragged = null;
     });
-    mount.addEventListener("dragover", function handleDragOver(event) {
+    mountElement.addEventListener("dragover", function handleDragOver(event) {
         event.preventDefault();
     }, false);
 }
@@ -1112,7 +1026,6 @@ document.body.addEventListener('click', function handleClick(e) {
     if (e.target instanceof HTMLElement) {
         const closestFieldset = e.target.closest('fieldset');
         const add = document.getElementById('add');
-        const isBackgroundControls = closestFieldset && !e.target.isSameNode(closestFieldset) && closestFieldset.id === 'background';
 
         if (
             !e.target.hasAttribute('contenteditable') &&
@@ -1125,7 +1038,7 @@ document.body.addEventListener('click', function handleClick(e) {
         if (
             background !== null &&
             e.target.tagName !== 'FORM' &&
-            !isBackgroundControls &&
+            !(closestFieldset && !e.target.isSameNode(closestFieldset) && closestFieldset.id === 'background') &&
             !(e.target.isSameNode(this) && document.activeElement && document.activeElement.tagName === 'FORM')
         ) {
             background.hidden = true;
@@ -1135,33 +1048,27 @@ document.body.addEventListener('click', function handleClick(e) {
             add.removeAttribute('open');
         }
 
-        if (e.target.id && typeof ym === 'function') {
+        if (e.target.id !== '' && typeof ym === 'function') {
             ym(89949856, 'reachGoal', e.target.id);
         }
     }
 });
 
 document.body.addEventListener('keyup', function sortWithArrows(e) {
-    if (e.target instanceof HTMLElement) {
+    if (e.target instanceof HTMLElement && sorting && sorting.checked) {
         const element = SERVICE_TAGS.includes(e.target.tagName) ? e.target.parentElement : e.target;
 
         if (element !== null && element.draggable) {
             switch (e.key) {
                 case 'ArrowUp':
-                    const previousElement = /** @type {HTMLElement | null} */ (element.previousElementSibling);
-
-                    if (previousElement && previousElement.draggable) {
-                        previousElement.insertAdjacentElement("beforebegin", element);
-                        e.preventDefault();
+                    if (element.previousElementSibling instanceof HTMLElement && element.previousElementSibling.draggable) {
+                        element.previousElementSibling.insertAdjacentElement("beforebegin", element);
                     }
 
                     break;
                 case 'ArrowDown':
-                    const nextElement = /** @type {HTMLElement | null} */ (element.nextElementSibling);
-
-                    if (nextElement && nextElement.draggable) {
-                        nextElement.insertAdjacentElement("afterend", element);
-                        e.preventDefault();
+                    if (element.nextElementSibling instanceof HTMLElement && element.nextElementSibling.draggable) {
+                        element.nextElementSibling.insertAdjacentElement("afterend", element);
                     }
 
                     break;
@@ -1177,6 +1084,6 @@ document.body.addEventListener('change', function savePages() {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-        navigator.serviceWorker.register("/sw.js");
+        // navigator.serviceWorker.register("/sw.js");
     });
 }
