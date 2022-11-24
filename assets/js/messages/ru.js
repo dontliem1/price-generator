@@ -7,6 +7,7 @@ const MESSAGES = {
     P: 'Цена',
     SPAN: 'Описание услуги',
     FOOTER: 'Дополнительный текст',
+    COPY: " копия",
     FILE_LOAD_ERROR: "Не удалось загрузить файл",
     REMOVE_SERVICE: 'Удалить услугу целиком?',
     REMOVE_PAGE: 'Удалить страницу?',

@@ -7,6 +7,7 @@ const MESSAGES = {
     P: 'Price',
     SPAN: 'Service description',
     FOOTER: 'Page footer',
+    COPY: " copy",
     FILE_LOAD_ERROR: "Couldn't load the file",
     REMOVE_SERVICE: 'Remove the whole service row?',
     REMOVE_PAGE: 'Remove the current page?',

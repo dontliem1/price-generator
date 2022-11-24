@@ -106,7 +106,7 @@ function getOffset(el) {
 * @param {boolean} [params.fromStart]
 * @param {boolean} [useDefaults] - If `true` creates an element with default text if `text` is empty
 */
-function createEditableElement({ tag, text, parent, fromStart }, useDefaults = true) {
+function createEditableElement({ tag, text, parent }, useDefaults = true) {
     if (!useDefaults && typeof text !== 'string') {
         return null;
     }
@@ -114,9 +114,9 @@ function createEditableElement({ tag, text, parent, fromStart }, useDefaults = t
     const elem = document.createElement(tag);
 
     elem.contentEditable = 'false';
-    elem.innerText = text ? text : MESSAGES[tag];
+    elem.innerText = text || MESSAGES[tag];
     if (parent) {
-        if (fromStart) {
+        if (tag === TITLE_TAG) {
             parent.prepend(elem);
         } else {
             parent.appendChild(elem);
@@ -163,8 +163,10 @@ const itemsActionsMap = {
  */
 function parsePage(page, parseImages) {
     const div = /** @type {HTMLDivElement | null} */ (page.firstElementChild);
+    /** @type {Partial<CSSStyleDeclaration>} */
     const divStyle = div ? div.style : {};
     const form = /** @type {HTMLFormElement | null} */ (page.lastElementChild);
+    /** @type {Partial<CSSStyleDeclaration>} */
     const formStyle = form ? form.style : {};
     const priceElements = form ? /** @type {HTMLCollectionOf<HTMLElement>} */ (form.children) : [];
     const pageJson = {
@@ -172,7 +174,7 @@ function parsePage(page, parseImages) {
         ITEMS: [],
         STYLE: {
             backgroundColor: divStyle.backgroundColor,
-            backgroundImage: (!parseImages && 'gradient' !== page.style.backgroundImage.substring(8, 16)) ? undefined : page.style.backgroundImage,
+            backgroundImage: (!parseImages && 'gradient' !== page.style.backgroundImage.substring(7, 15)) ? undefined : page.style.backgroundImage,
             color: page.style.color,
             fontFamily: page.style.fontFamily,
             justifyContent: formStyle.justifyContent,
@@ -329,10 +331,10 @@ const deleteBtn = BindListener('delete', function handleDeleteClick() {
 function movePage(e) {
     const toRight = e.currentTarget && e.currentTarget.id === 'moveRight';
     const activePage = getActiveLi();
-    const sibling = activePage && (toRight ? activePage.nextElementSibling : activePage.previousElementSibling);
+    const sibling = activePage !== null && (toRight ? activePage.nextElementSibling : activePage.previousElementSibling);
 
     if (sibling) {
-        sibling.insertAdjacentElement(toRight ? 'beforebegin' : 'beforebegin', activePage);
+        sibling.insertAdjacentElement(toRight ? 'afterend' : 'beforebegin', activePage);
         activePage.scrollIntoView();
     }
 }
@@ -373,7 +375,7 @@ const sorting = /** @type {HTMLInputElement | null} */ (BindListener('sorting', 
     if (!sortingPolyfilled) {
         const script = document.createElement('script');
 
-        script.src = (document.documentElement.lang === 'en' ? '.' : '..') + '/assets/js/vendors/DragDropTouch.js';
+        script.src = '/assets/js/vendors/DragDropTouch.js';
         script.async = false;
         document.body.appendChild(script);
         sortingPolyfilled = true;
@@ -519,6 +521,14 @@ function assignValueFromStyle(select, from) {
     }
 }
 
+function colorToHex(/** @type {string} */ color) { return parseInt(color, 10).toString(16).padStart(2, '0'); }
+
+function convertRGBtoHex(/** @type {string} */ rgb) {
+    const colors = rgb.slice(4, -1).split(', ');
+
+    return '#' + colors.map(colorToHex).join('');
+}
+
 const observer = new IntersectionObserver(function handleIntersect(entries) {
     for (const entry of entries) {
         const page = /** @type {HTMLLIElement} */ (entry.target);
@@ -530,12 +540,6 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
             const activeArticle = getActiveArticle(page);
             const activeDiv = getActiveDiv(activeArticle);
             const activeForm = getActiveForm(activeArticle);
-            const convertRGBtoHex = (rgb) => {
-                const colorToHex = (color) => parseInt(color, 10).toString(16).padStart(2, '0');
-                const colors = rgb.slice(4, -1).split(', ');
-
-                return '#' + colorToHex(colors[0]) + colorToHex(colors[1]) + colorToHex(colors[2]);
-            };
 
             if (focusedElement !== null) {
                 focusedElement.classList.add('active');
@@ -546,11 +550,13 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
             if (colorInput !== null && activeArticle !== null) {
                 colorInput.value = convertRGBtoHex(activeArticle.style.color);
             }
-            if (opacityRange !== null && activeDiv !== null) {
-                opacityRange.value = (1 - parseFloat(activeDiv.style.opacity || '0')).toString();
-            }
-            if (backgroundColorInput !== null && activeDiv !== null) {
-                backgroundColorInput.value = convertRGBtoHex(activeDiv.style.backgroundColor);
+            if (activeDiv !== null) {
+                if (opacityRange !== null) {
+                    opacityRange.value = (1 - parseFloat(activeDiv.style.opacity || '0')).toString();
+                }
+                if (backgroundColorInput !== null) {
+                    backgroundColorInput.value = convertRGBtoHex(activeDiv.style.backgroundColor);
+                }
             }
             if (backgroundImageInput !== null) {
                 backgroundImageInput.value = '';
@@ -578,7 +584,7 @@ const observer = new IntersectionObserver(function handleIntersect(entries) {
     threshold: 1,
 });
 
-BindListener('save', function handleExportClick() {
+BindListener('save', function handleSaveClick() {
     const link = document.createElement('a');
     const url = URL.createObjectURL(new Blob(["\ufeff", parsePages(true)], { type: 'text/json' }));
 
@@ -600,7 +606,7 @@ function checkBasicFileShare() {
     return navigator.canShare({ files: [file] });
 }
 
-BindListener('export', async function handleSaveClick(e) {
+BindListener('export', async function handleExportClick(e) {
     const exportBtn = /** @type {HTMLButtonElement} */ (e.currentTarget);
 
     exportBtn.disabled = true;
@@ -693,7 +699,7 @@ function createPage(pageJson = { STYLE: DEFAULTS.STYLE }, isActive = true) {
         text: pageJson[TITLE_TAG],
         parent: form
     }, false);
-    if (typeof pageJson.ITEMS === 'object') {
+    if (Array.isArray(pageJson.ITEMS)) {
         pageJson.ITEMS.forEach(function appendItem(/** @type {any} */ item) {
             if (item.type in itemsActionsMap) {
                 form.appendChild(itemsActionsMap[item.type](draggable, item));
@@ -744,16 +750,16 @@ function renderPages(pagesJson, mount = mountElement) {
 
 /**
  * @param {HTMLElement | null} element
- * @param {boolean} [notDuringSorting]
+ * @param {boolean} [duringSorting]
  */
-function selectElement(element, notDuringSorting = false) {
+function selectElement(element, duringSorting = (sorting !== null && sorting.checked)) {
     const selection = document.getSelection();
 
-    if (element !== null && selection !== null) {
+    if (element !== null) {
         const item = /** @type {HTMLElement} */ (element.firstElementChild ? element.firstElementChild : element);
 
         item.focus();
-        if (!notDuringSorting || (sorting !== null && !sorting.checked)) { selection.setBaseAndExtent(item, 0, item, item.childNodes.length); }
+        if (!duringSorting && selection !== null) { selection.setBaseAndExtent(item, 0, item, item.childNodes.length); }
     }
 }
 
@@ -776,7 +782,7 @@ BindListener(importInput, function handleImportChange() {
         const fileReader = new FileReader();
 
         fileReader.onload = function handleFileLoad(e) {
-            if (e.target && typeof e.target.result === 'string') {
+            if (e.target !== null && typeof e.target.result === 'string') {
                 renderPages(JSON.parse(e.target.result));
             } else {
                 window.alert(m('FILE_LOAD_ERROR'));
@@ -796,7 +802,7 @@ BindListener('duplicate', function handleDuplicateClick() {
         const activePageJson = activePage && parsePage(activePage);
 
         if (activePageJson && TITLE_TAG in activePageJson) {
-            activePageJson[TITLE_TAG] += ' copy';
+            activePageJson[TITLE_TAG] += m('COPY');
         }
 
         const newPage = activePageJson ? createPage(activePageJson) : createPage();
@@ -815,7 +821,6 @@ BindListener('title', function handleAddTitleClick() {
 
         selectElement(existingTitle !== null ? existingTitle : createEditableElement({
             tag: TITLE_TAG,
-            fromStart: true,
             parent: form
         }));
     }

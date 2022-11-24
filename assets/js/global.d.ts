@@ -13,6 +13,7 @@ declare type MESSAGES = {
     [SERVICE_PRICE_TAG]: string;
     [SERVICE_DESCRIPTION_TAG]: string;
     [FOOTER_TAG]: string;
+    COPY: string;
     FILE_LOAD_ERROR: string;
     REMOVE_SERVICE: string;
     REMOVE_PAGE: string;
