@@ -18,15 +18,15 @@
     <h1 class="visually-hidden">Рутина — генератор прайса</h1>
     <div class="settings" id="settings">
         <span class="btn--group">
-            <button class="btn" type="button" id="save" title="Сохранить картинки" aria-label="Сохранить картинки">🖼</button>
-            <button class="btn" type="button" id="export" title="Сохранить в файл .json" aria-label="Сохранить в файл .json">📄</button>
+            <button class="btn" type="button" id="export" title="Сохранить картинки" aria-label="Сохранить картинки">🖼</button>
+            <button class="btn" type="button" id="save" title="Сохранить в файл .json" aria-label="Сохранить в файл .json">📄</button>
         </span>
         <select class="btn" name="aspectRatio" title="Соотношение сторон" aria-label="Соотношение сторон" id="aspectRatio">
             <option value="1 / 1">1:1</option>
             <option value="4 / 5" selected>4:5</option>
             <option value="9 / 16">9:16</option>
         </select>
-        <label class="btn"><input title="Режим сортировки" aria-label="Режим сортировки" type="checkbox" name="sorting" id="sorting"> ⇅</label>
+        <label class="btn" title="Режим сортировки"><input aria-label="Режим сортировки" type="checkbox" name="sorting" id="sorting"> ⇅</label>
     </div>
     <details class="add" id="add">
         <summary class="btn" id="addSummary">Добавить</summary>
@@ -58,7 +58,7 @@
             </select>
         </fieldset>
         <fieldset class="float__fieldset" id="background" hidden>
-            <legend class="visually-hidden">Настройки страницы</legend>
+            <legend class="visually-hidden">Настройка страницы</legend>
             <label class="btn"><input type="color" name="color" id="color" value="#FFFFFF"> Текст</label>
             <select class="btn" name="fontFamily" title="Шрифт" aria-label="Шрифт" id="fontFamily">
                 <option value="system-ui, sans-serif" selected>Системный шрифт</option>
@@ -124,7 +124,7 @@
             <br>
             <button class="btn" type="button" id="deletePage" title="Удалить страницу" aria-label="Удалить страницу">Удалить</button>
             <button class="btn" type="button" id="duplicate" title="Дублировать страницу" aria-label="Дублировать страницу">Дублировать</button>
-            <button class="btn" type="button" id="moveLeft" aria-label="Переместить страницу влево" title="Переместить страницу влево">←</button>
+            <button class="btn" type="button" id="moveLeft" aria-label="Переместить страницу влево" title="Переместить страницу влево" hidden>←</button>
             <button class="btn" type="button" id="moveRight" aria-label="Переместить страницу вправо" title="Переместить страницу вправо">→</button>
         </fieldset>
     </div>
