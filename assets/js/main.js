@@ -909,7 +909,7 @@ if (mountElement !== null) {
             focusedElement.hasAttribute('contenteditable') &&
             !(focusedElement.draggable || (focusedElement.parentElement && focusedElement.parentElement.draggable))
         ) {
-            editableElements.forEach(function disableContentEditable(element) {
+            editableElements.forEach(function enableContentEditable(element) {
                 element.contentEditable = 'true';
             });
             if (background !== null) { background.hidden = true; }
